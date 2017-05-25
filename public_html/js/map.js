@@ -64,10 +64,10 @@ $(function () {
     }
 
     function refreshMap(locs) {
-        var googleMap = new vars.googleMaps, map = googleMap.Map(vars.mapElem, {
+        var map = new vars.googleMaps.Map(vars.mapElem, {
             center: locs,
             zoom: config.zoom
-        }), marker = googleMap.Marker({
+        }), marker = new vars.googleMaps.Marker({
             position: locs,
             map: map
         });
