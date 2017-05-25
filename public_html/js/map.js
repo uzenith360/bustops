@@ -52,6 +52,8 @@ $(function () {
         refreshMap(vars.myLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude});
     }
     function getMyLocError(err) {
+        //maybe on error, if google maps has nt initialised , check server or local storage and get the last location d user was and display it in the map, and tell the user to turn on location or select hes location on d map
+        
         console.error('Get location err: ' + JSON.stringify(err));
 
         switch (err.code) {
