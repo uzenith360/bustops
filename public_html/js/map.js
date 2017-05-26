@@ -100,26 +100,30 @@ $(function () {
         vars.map = new vars.googleMaps.Map(document.getElementById('map'), {
             center: latlng,
             zoom: config.zoom, //set other map options, i.e wen dnt want default controls to show on d map, and we want to set handlers for when d person clicks or scrolls the map
-            disableDefaultUI: true,
-            bounds_changed:onMapbounds_changed,
-            center_changed:onMapcenter_changed,
-            click:onMapclick,
-            dblclick:onMapdblclick,
-            drag:onMapdrag,
-            dragend:onMapdragstart,
-            heading_changed:onMapheading_changed,
-            idle:onMapidle,
-            maptypeid_changed:onMapmaptypeid_changed,
-            mousemove:onMapmousemove,
-            mouseout:onMapmouseout,
-            mouseover:onMapmouseover,
-            projection_changed:onMapprojection_changed,
-            resize:onMapresize,
-            rightclick:onMaprightclick,
-            tilesloaded:onMaptilesloaded,
-            tilt_changed:onMaptilt_changed,
-            zoom_changed:onMapzoom_changed
+            disableDefaultUI: true
         });
+
+        vars.googleMaps.event.addListener(vars.map, 'bounds_changed', onMapbounds_changed);
+        vars.googleMaps.event.addListener(vars.map, 'center_changed', onMapcenter_changed);
+        vars.googleMaps.event.addListener(vars.map, 'drag', onMapdrag);
+        vars.googleMaps.event.addListener(vars.map, 'dragend', onMapdragend);
+        vars.googleMaps.event.addListener(vars.map, 'dragstart', onMapdragstart);
+        vars.googleMaps.event.addListener(vars.map, 'heading_changed', onMapheading_changed);
+        vars.googleMaps.event.addListener(vars.map, 'idle', onMapidle);
+        vars.googleMaps.event.addListener(vars.map, 'maptypeid_changed', onMapmaptypeid_changed);
+        vars.googleMaps.event.addListener(vars.map, 'mousemove', onMapmousemove);
+        vars.googleMaps.event.addListener(vars.map, 'mouseout', onMapmouseout);
+        vars.googleMaps.event.addListener(vars.map, 'mouseover', onMapmouseover);
+        vars.googleMaps.event.addListener(vars.map, 'mousedown', onMapmousedown);
+        vars.googleMaps.event.addListener(vars.map, 'mouseup', onMapmouseup);
+        vars.googleMaps.event.addListener(vars.map, 'click', onMapclick);
+        vars.googleMaps.event.addListener(vars.map, 'dblclick', onMapdblclick);
+        vars.googleMaps.event.addListener(vars.map, 'projection_changed', onMapprojection_changed);
+        vars.googleMaps.event.addListener(vars.map, 'resize', onMapresize);
+        vars.googleMaps.event.addListener(vars.map, 'rightclick', onMaprightclick);
+        vars.googleMaps.event.addListener(vars.map, 'tilesloaded', onMaptilesloaded);
+        vars.googleMaps.event.addListener(vars.map, 'tilt_changed', onMaptilt_changed);
+        vars.googleMaps.event.addListener(vars.map, 'zoom_changed', onMapzoom_changed);
 
         //also request to get nearby locations from server and display
     }
@@ -132,16 +136,42 @@ $(function () {
     function onMapcenter_changed() {
         console.log('center_changed');
     }
-    function onMapclick() {
+    function onMapclick(e) {
+        /*
+         * stop()	
+         Return Value:  None
+         Prevents this event from propagating further.
+         */
+        console.log({t: e.latLng.lat(), n: e.latLng.lng()});
+        var d = new Dialog('', '<input type="text">', '<button z-dialog-send>send</button>', {send:['click', function(){alert('Send');return true;}]});
+        setTimeout(function(){
+            d.close();
+        }, 7000);
+        d.onclose = function(){console.log('wow closed');};
         console.log('click');
     }
     function onMapdblclick() {
         console.log('dblclick');
     }
+    function onMapmousemove() {
+        console.log('mousemove');
+    }
+    function onMapmouseout() {
+        console.log('mouseout');
+    }
+    function onMapmousedown() {
+        console.log('mousedown');
+    }
+    function onMapmouseup() {
+        console.log('mouseup');
+    }
+    function onMapmouseover() {
+        console.log('mouseover');
+    }
     function onMapdrag() {
         console.log('drag');
     }
-    function onMapdragEnd() {
+    function onMapdragend() {
         console.log('dragEnd');
     }
     function onMapdragstart() {
@@ -155,15 +185,6 @@ $(function () {
     }
     function onMapmaptypeid_changed() {
         console.log('maptypeid_changed');
-    }
-    function onMapmousemove() {
-        console.log('mousemove');
-    }
-    function onMapmouseout() {
-        console.log('mouseout');
-    }
-    function onMapmouseover() {
-        console.log('mouseover');
     }
     function onMapprojection_changed() {
         console.log('projection_changed');
