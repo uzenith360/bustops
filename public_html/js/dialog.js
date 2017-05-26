@@ -23,7 +23,7 @@ function Dialog(header, body, footer, eventHandlers, backdropStatic) {
         });
     }
 
-    $('body').append('<div id="' + id + '" class="modal fade" role="dialog"><div class="modal-dialog"><div class="modal-content">' + (header ? '<div class="modal-header">' + header + '</div>' : '') + (body ? '<div class="modal-body">' + body + '</div>' : '') + (footer ? '<div class="modal-footer">' + footer + '</div>' : '') + '</div></div></div>');
+    $('body').append('<div id="' + id + '" class="modal fade" role="dialog"><div class="modal-dialog"><div class="modal-content">' + (header ? '<div class="modal-header">' + header + '<button type="button" class="close" data-dismiss="modal">&times;</button></div>' : '') + (body ? '<div class="modal-body">' + body + '</div>' : '') + (footer ? '<div class="modal-footer">' + footer + '</div>' : '') + '</div></div></div>');
 
     self = this;
 

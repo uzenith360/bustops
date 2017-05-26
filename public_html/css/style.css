@@ -5,3 +5,12 @@ body {
     height: 600px;
     width: 100%;
 }
+/*#mapControls{
+    width: 160px;
+    height: 30px;
+    border: 1px solid #000;
+    margin-top: -30px;
+    position: absolute;
+    z-index: 10000;
+    right:15px;
+}*/

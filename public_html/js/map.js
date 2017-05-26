@@ -4,8 +4,8 @@
 var map = {};
 
 $(function () {
-    if (!navigator.geolocation) {
-        alert('Bustops is not supported by your browser, please upgrade your browser to the latest version, or use chrome');
+    if (!navigator.geolocation) {//new Dialog('', '<input type="text">', '<button z-dialog-send>send</button>', {send:['click', function(){alert('Send');return true;}]})
+        new Dialog('Upgrade your browser', 'Bustops is not supported by your browser, please upgrade your browser to the latest version, or use chrome');
         return;
     }
 
@@ -49,7 +49,7 @@ $(function () {
 
         //if the accuracy is too low, info the person that he's gps accuracy is low and he should select he's current position
         if (pos.coords.accuracy > config.minAccuracy) {
-            alert('Your gps accuracy is too low, please select your current location from the map');
+            new Dialog('GPS inaccurate', 'Your gps accuracy is too low, please select your current location from the map, or switch to a device with a higher GPS accuracy');
         }
 
         onMyLocationChange(pos);
@@ -65,7 +65,7 @@ $(function () {
                 break;
         }
         //dnt refresh map, inform users that thrs a problem getting he's current location, either he should switch on location e.t.c
-        alert('Problem getting your current location, please check if your location is switched on');
+        new Dialog('Turn on location', 'Problem getting your current location, please check if your location is switched on');
     }
 
     function onMyLocationChange(pos) {
@@ -100,7 +100,8 @@ $(function () {
         vars.map = new vars.googleMaps.Map(document.getElementById('map'), {
             center: latlng,
             zoom: config.zoom, //set other map options, i.e wen dnt want default controls to show on d map, and we want to set handlers for when d person clicks or scrolls the map
-            disableDefaultUI: true
+            mapTypeControl:false,
+            //disableDefaultUI: true
         });
 
         vars.googleMaps.event.addListener(vars.map, 'bounds_changed', onMapbounds_changed);
