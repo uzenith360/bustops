@@ -99,34 +99,34 @@ $(function () {
     function initMap(latlng) {
         //eventually wen our map is very complete, we would hide all google's map styles so that users dnt confuse it with ours
         var styles/* = [
-                {
-                    featureType: "poi",
-                    elementType: "labels",
-                    stylers: [
-                        {visibility: "off"}
-                    ]
-                },{
-                    featureType: "transit",
-                    elementType: "labels",
-                    stylers: [
-                        {visibility: "off"}
-                    ]
-                },{
-                    featureType: "transit",
-                    elementType: "labels",
-                    stylers: [
-                        {visibility: "off"}
-                    ]
-                }
-            ]*/;
-        
+         {
+         featureType: "poi",
+         elementType: "labels",
+         stylers: [
+         {visibility: "off"}
+         ]
+         },{
+         featureType: "transit",
+         elementType: "labels",
+         stylers: [
+         {visibility: "off"}
+         ]
+         },{
+         featureType: "transit",
+         elementType: "labels",
+         stylers: [
+         {visibility: "off"}
+         ]
+         }
+         ]*/;
+
         vars.map = new vars.googleMaps.Map(document.getElementById('map'), {
             center: latlng,
             zoom: config.zoom, //set other map options, i.e wen dnt want default controls to show on d map, and we want to set handlers for when d person clicks or scrolls the map
             mapTypeControl: false,
-            streetViewControl: false, 
+            streetViewControl: false,
             styles: styles
-            //disableDefaultUI: true
+                    //disableDefaultUI: true
         });
 
         vars.googleMaps.event.addListener(vars.map, 'bounds_changed', onMapbounds_changed);
@@ -151,50 +151,59 @@ $(function () {
         vars.googleMaps.event.addListener(vars.map, 'tilt_changed', onMaptilt_changed);
         vars.googleMaps.event.addListener(vars.map, 'zoom_changed', onMapzoom_changed);
 
-        var input = document.createElement("input");
+        var input = document.createElement("input"), icoSpan = document.createElement("span"), ico = document.createElement("img");
         input.setAttribute('type', 'text');
         input.setAttribute('placeholder', 'Enter a location');
         input.setAttribute('class', 'controls');
+        input.setAttribute('style', 'margin-left:2px;');
         input.setAttribute('autocomplete', 'off');
+        icoSpan.setAttribute('style', 'width:29px;height:29px;padding:3px');
+        icoSpan.classList.add('controls');
+        ico.setAttribute('height', '20px');
+        ico.setAttribute('src', 'img/map-search.png');
+        ico.setAttribute('alt', 'search map');
+        icoSpan.appendChild(ico);
 
         var autocomplete = new vars.googleMaps.places.Autocomplete(input);
         autocomplete.bindTo('bounds', vars.map);
 
-        /*var infowindow = new google.maps.InfoWindow();
-         var marker = new google.maps.Marker({
-         map: map
-         });
-         google.maps.event.addListener(marker, 'click', function () {
-         infowindow.open(map, marker);
-         });
-         
-         google.maps.event.addListener(autocomplete, 'place_changed', function () {
-         infowindow.close();
-         var place = autocomplete.getPlace();
-         if (!place.geometry) {
-         return;
-         }
-         
-         if (place.geometry.viewport) {
-         map.fitBounds(place.geometry.viewport);
-         } else {
-         map.setCenter(place.geometry.location);
-         map.setZoom(17);
-         }
-         
-         // Set the position of the marker using the place ID and location.
-         marker.setPlace(/** @type {!google.maps.Place} *//* ({
-          placeId: place.place_id,
-          location: place.geometry.location
-          }));
-          marker.setVisible(true);
-          
-          infowindow.setContent('<div><strong>' + place.name + '</strong><br>' +
-          'Place ID: ' + place.place_id + '<br>' +
-          place.formatted_address + '</div>');
-          infowindow.open(map, marker);
-          });*/
+        var infowindow = new vars.googleMaps.InfoWindow();
+        var marker = new vars.googleMaps.Marker({
+            map: vars.map
+        });
+        vars.googleMaps.event.addListener(marker, 'click', function () {
+            infowindow.open(vars.map, marker);
+        });
 
+        vars.googleMaps.event.addListener(autocomplete, 'place_changed', function () {
+            infowindow.close();
+            var place = autocomplete.getPlace();
+            if (!place.geometry) {
+                return;
+            }
+
+            if (place.geometry.viewport) {
+                vars.map.fitBounds(place.geometry.viewport);
+            } else {
+                vars.map.setCenter(place.geometry.location);
+                //vars.map.setZoom(17);
+            }
+
+            // Set the position of the marker using the place ID and location.
+            marker.setPlace(/** @type {!google.maps.Place} */ ({
+                placeId: place.place_id,
+                location: place.geometry.location
+            }));
+            marker.setVisible(true);
+
+            infowindow.setContent('<div><strong>' + place.name + '</strong><br>' +
+                   // 'Place ID: ' + place.place_id + '<br>' +
+                    place.formatted_address + 
+                            '</div>');
+            infowindow.open(vars.map, marker);
+        });
+
+        vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(icoSpan);
         vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(input);
 
         //also request to get nearby locations from server and display
@@ -276,6 +285,7 @@ $(function () {
         console.log('rightclick');
     }
     function onMaptilesloaded() {
+        new Place(vars.myLoc, vars.map, 'BUSTOP', 'info');
         console.log('tilesloaded');
     }
     function onMaptilt_changed() {

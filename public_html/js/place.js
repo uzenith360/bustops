@@ -1,6 +1,6 @@
 'use strict';
 //u can link a busroute to a location that u could make a bustop(i dnt thunk the fact that bustops at a certain location makes it compulsory for u to call it a bustop, e.g busses could stop in from of shoprite, does that make shoprite a bustop, the fact is that buses wouldn't stop inside shop rite o, maybe just infront or adjacent to shoprite, so u could make shoprite a diff place, and the bustop infront or by d side of the place, so two places)
-function Place(loc, type, info) {
+function Place(loc, map, type, info) {
     //type would determine the type of marker to be used and other info sha
     switch (type) {
         case 'BUSTOP':
@@ -128,12 +128,27 @@ function Place(loc, type, info) {
             break;
 
     }
+    /*var marker = new Marker({
+	map: map,
+	position: loc,
+	icon: {
+		path: SQUARE_PIN,
+		fillColor: '#00CCBB',
+		fillOpacity: 1,
+		strokeColor: '',
+		strokeWeight: 0
+	},
+	map_icon_label: '<span class="map-icon map-icon-bus-station"></span>'
+});*/
     var infowindow = new google.maps.InfoWindow();
     var marker = new google.maps.Marker({
         map: map
     });
+    google.maps.event.addListener(marker, 'click', function () {
+        infowindow.open(map, marker);
+    });
 }
 
 Place.prototype.remove = function () {
-
+//remove the listener
 };
