@@ -49,7 +49,7 @@ $(function () {
 
         //if the accuracy is too low, info the person that he's gps accuracy is low and he should select he's current position
         if (pos.coords.accuracy > config.minAccuracy) {
-            new Dialog('GPS inaccurate', 'Your gps accuracy is too low, please select your current location from the map, or switch to a device with a higher GPS accuracy');
+            new Dialog('Low GPS accuracy', 'Your gps accuracy is too low, please select your current location from the map, or switch to a device with a higher GPS accuracy');
         }
 
         onMyLocationChange(pos);
@@ -97,10 +97,35 @@ $(function () {
     }
 
     function initMap(latlng) {
+        //eventually wen our map is very complete, we would hide all google's map styles so that users dnt confuse it with ours
+        var styles/* = [
+                {
+                    featureType: "poi",
+                    elementType: "labels",
+                    stylers: [
+                        {visibility: "off"}
+                    ]
+                },{
+                    featureType: "transit",
+                    elementType: "labels",
+                    stylers: [
+                        {visibility: "off"}
+                    ]
+                },{
+                    featureType: "transit",
+                    elementType: "labels",
+                    stylers: [
+                        {visibility: "off"}
+                    ]
+                }
+            ]*/;
+        
         vars.map = new vars.googleMaps.Map(document.getElementById('map'), {
             center: latlng,
             zoom: config.zoom, //set other map options, i.e wen dnt want default controls to show on d map, and we want to set handlers for when d person clicks or scrolls the map
-            mapTypeControl:false,
+            mapTypeControl: false,
+            streetViewControl: false, 
+            styles: styles
             //disableDefaultUI: true
         });
 
@@ -126,6 +151,52 @@ $(function () {
         vars.googleMaps.event.addListener(vars.map, 'tilt_changed', onMaptilt_changed);
         vars.googleMaps.event.addListener(vars.map, 'zoom_changed', onMapzoom_changed);
 
+        var input = document.createElement("input");
+        input.setAttribute('type', 'text');
+        input.setAttribute('placeholder', 'Enter a location');
+        input.setAttribute('class', 'controls');
+        input.setAttribute('autocomplete', 'off');
+
+        var autocomplete = new vars.googleMaps.places.Autocomplete(input);
+        autocomplete.bindTo('bounds', vars.map);
+
+        /*var infowindow = new google.maps.InfoWindow();
+         var marker = new google.maps.Marker({
+         map: map
+         });
+         google.maps.event.addListener(marker, 'click', function () {
+         infowindow.open(map, marker);
+         });
+         
+         google.maps.event.addListener(autocomplete, 'place_changed', function () {
+         infowindow.close();
+         var place = autocomplete.getPlace();
+         if (!place.geometry) {
+         return;
+         }
+         
+         if (place.geometry.viewport) {
+         map.fitBounds(place.geometry.viewport);
+         } else {
+         map.setCenter(place.geometry.location);
+         map.setZoom(17);
+         }
+         
+         // Set the position of the marker using the place ID and location.
+         marker.setPlace(/** @type {!google.maps.Place} *//* ({
+          placeId: place.place_id,
+          location: place.geometry.location
+          }));
+          marker.setVisible(true);
+          
+          infowindow.setContent('<div><strong>' + place.name + '</strong><br>' +
+          'Place ID: ' + place.place_id + '<br>' +
+          place.formatted_address + '</div>');
+          infowindow.open(map, marker);
+          });*/
+
+        vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(input);
+
         //also request to get nearby locations from server and display
     }
 
@@ -144,11 +215,16 @@ $(function () {
          Prevents this event from propagating further.
          */
         console.log({t: e.latLng.lat(), n: e.latLng.lng()});
-        var d = new Dialog('', '<input type="text">', '<button z-dialog-send>send</button>', {send:['click', function(){alert('Send');return true;}]});
-        setTimeout(function(){
+        var d = new Dialog('', '<input type="text">', '<button z-dialog-send>send</button>', {send: ['click', function () {
+                    alert('Send');
+                    return true;
+                }]});
+        setTimeout(function () {
             d.close();
         }, 7000);
-        d.onclose = function(){console.log('wow closed');};
+        d.onclose = function () {
+            console.log('wow closed');
+        };
         console.log('click');
     }
     function onMapdblclick() {
