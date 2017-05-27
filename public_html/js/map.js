@@ -240,7 +240,7 @@ $(function () {
          */
         console.log({t: e.latLng.lat(), n: e.latLng.lng()});
         //wen thinking of fields to send to server for a location look at d json google returns for a location, we'll nt only save d coordinates of a place, we'll also save other details to make searching and bounds searching easily, either strict bounds or biased bounds searching
-        new Dialog('', '<input type="text">', '<button z-dialog-send>send</button><button z-dialog-cancel>cancel</button>', {send: ['click', function () {
+        new Dialog('<div class="dh">Save location</div>', '<div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span><input id="email" type="text" class="form-control" name="email" placeholder="Email"></div>', '<button type="button" z-dialog-cancel class="btn btn-default">Cancel</button><button type="button" z-dialog-send class="btn btn-primary">Save</button>', {send: ['click', function () {
                     //after sending ajax request and req is success create the pin and close the dialog
                     Place({name: '', type: 'BUSTOP'}, {map: vars.map, loc: {lat: e.latLng.lat(), lng: e.latLng.lng()}, title: 'test'});
 
