@@ -3,7 +3,7 @@
 //exports
 var map = {};
 
-$(function () {
+window.onload = function () {
     if (!navigator.geolocation) {//new Dialog('', '<input type="text">', '<button z-dialog-send>send</button>', {send:['click', function(){alert('Send');return true;}]})
         new Dialog('Upgrade your browser', 'Bustops is not supported by your browser, please upgrade your browser to the latest version, or use chrome');
         return;
@@ -12,7 +12,7 @@ $(function () {
     var config = {
         minAccuracy: 150,
         zoom: 16, //15
-        loadingTimeout: 20000
+        loadingTimeout: 10000
     };
     var vars = {
         loadStart: Date.now(),
@@ -25,8 +25,8 @@ $(function () {
 
     //init
     //get google.maps
-    $(function _() {
-        if ((vars.loadStart - Date.now()) > config.loadingTimeout) {
+    (function _() {
+        if ((Date.now() - vars.loadStart) > config.loadingTimeout) {
             alert('The page is taking too long to load. Check your internet connection, then click ok to refresh');
             location.reload();
             return;
@@ -34,14 +34,14 @@ $(function () {
 
         setTimeout(function () {
             //make sure all the required libraries are loaded
-            if (typeof google !== 'object' || !google.maps || !$) {
+            if (typeof google !== 'object' || !google.maps || typeof $ !== 'object') {
                 return _();
             }
 
             vars.googleMaps = google.maps;
             init();
         }, 100);
-    });
+    })();
 
     function init() {
         watchMyLocation();
@@ -240,13 +240,50 @@ $(function () {
          */
         console.log({t: e.latLng.lat(), n: e.latLng.lng()});
         //wen thinking of fields to send to server for a location look at d json google returns for a location, we'll nt only save d coordinates of a place, we'll also save other details to make searching and bounds searching easily, either strict bounds or biased bounds searching
-        new Dialog('<div class="dh">Save location</div>', '<div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span><input id="email" type="text" class="form-control" name="email" placeholder="Email"></div>', '<button type="button" z-dialog-cancel class="btn btn-default">Cancel</button><button type="button" z-dialog-send class="btn btn-primary">Save</button>', {send: ['click', function () {
+        new Dialog('<div class="dh">Save location</div>', '<div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span><select class="form-control" z-dialog-type><option disabled>Location type</option><option value="BUSTOP"><img alt="icon">Bustop</option><option value="MARKET"><img alt="icon">Market</option><option value="SHOP"><img alt="icon">Shop</option><option value="BANK"><img alt="icon">Bank</option><option value="ATM"><img alt="icon">Atm</option></select></div><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span><input z-dialog-name type="text" class="form-control" placeholder="Location name"></div><div class="form-group"><textarea class="form-control" rows="5" z-dialog-description placeholder="Description"></textarea></div><div class="form-group"><textarea class="form-control" rows="5" z-dialog-extra_info placeholder="Extra information"></textarea></div>', '<button type="button" z-dialog-cancel class="btn btn-default">Cancel</button><button type="button" z-dialog-send class="btn btn-primary">Save</button>', {send: ['click', function (e) {
                     //after sending ajax request and req is success create the pin and close the dialog
-                    Place({name: '', type: 'BUSTOP'}, {map: vars.map, loc: {lat: e.latLng.lat(), lng: e.latLng.lng()}, title: 'test'});
+                    var zDialog = e['z-dialog'], elemPrefix = zDialog.id + 'z-dialog-',
+                            type = document.getElementById(elemPrefix + 'type'), name = document.getElementById(elemPrefix + 'name'), description = document.getElementById(elemPrefix + 'description'), extra_info = document.getElementById(elemPrefix + 'extra_info'),
+                            data = {name: name, type: type, description: description, extra_info: extra_info};
 
-                    //close the dialog by returning true
-                    return true;
+                    $.ajax({
+                        type: "POST",
+                        url: "",
+                        data: data,
+                        dataType: 'JSON',
+                        success: function (data) {
+                            if (!data.err) {
+                                //Display submitted
+
+                                //on success
+                                Place(data, {map: vars.map, loc: {lat: e.latLng.lat(), lng: e.latLng.lng()}, title: 'test'});
+
+                                zDialog.close();
+                            } else {
+                                var msg;
+
+                                switch (data.err.type) {
+                                    case 'VALIDATIONERROR':
+                                        msg = data.err.error.message;
+                                        document.getElementById(elemPrefix + data.err.error.field).classList.add('parsley-error');
+                                        break;
+                                    case 'MAILSENDERROR':
+                                        msg = data.err.error.message;
+                                        break;
+                                }
+
+                                document.getElementById("status").innerHTML = '<div class="alert alert-warning alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' + msg + '</div>';
+                            }
+                        }, error: function () {
+//say problem saving pls check ur network and retry
+//check d text on d save button to retry and change the class to btn-danger or sth, remember to change it back wen d dialog is closed!!!
+
+                        }, complete: function () {
+
+                        }
+                    });
                 }], cancel: ['click', function () {
+                    //close the dialog by returning true
                     return true;
                 }]}, true);
 
@@ -310,4 +347,4 @@ $(function () {
     function onMapzoom_changed() {
         console.log('zoom_changed');
     }
-});
+};

@@ -35,7 +35,7 @@ function Dialog(header, body, footer, eventHandlers, backdropStatic) {
     if (eventHandlers && Object.keys(eventHandlers).length) {
         for (var suffixId in eventHandlers) {
             document.getElementById(id + 'z-dialog-' + suffixId).addEventListener(eventHandlers[suffixId][0], function (e) {
-                e['z-dialog-id'] = id;
+                e['z-dialog'] = {id:id, close:self.close};
                 if (eventHandlers[this][1](e)) {
                     self.close();
                 }
