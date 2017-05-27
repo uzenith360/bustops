@@ -94,7 +94,8 @@ $(function () {
         !vars.myMarker && (vars.myMarker = new vars.googleMaps.Marker({
             position: vars.myLoc,
             map: vars.map,
-            title: 'me'
+            title: 'me',
+            icon: 'http://maps.google.com/mapfiles/kml/paddle/blu-circle_maps.png'
         }));
 
         vars.myMarker.setPosition(vars.myLoc);
