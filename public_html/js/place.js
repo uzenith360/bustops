@@ -1,8 +1,9 @@
 'use strict';
 //u can link a busroute to a location that u could make a bustop(i dnt thunk the fact that bustops at a certain location makes it compulsory for u to call it a bustop, e.g busses could stop in from of shoprite, does that make shoprite a bustop, the fact is that buses wouldn't stop inside shop rite o, maybe just infront or adjacent to shoprite, so u could make shoprite a diff place, and the bustop infront or by d side of the place, so two places)
-function Place(loc, map, type, info) {
+function Place(info, options) {
     //type would determine the type of marker to be used and other info sha
-    switch (type) {
+    //use lean names, like t instead of type
+    switch (info.type) {
         case 'BUSTOP':
             break;
         case 'BAR':
@@ -129,23 +130,37 @@ function Place(loc, map, type, info) {
 
     }
     /*var marker = new Marker({
-	map: map,
-	position: loc,
-	icon: {
-		path: SQUARE_PIN,
-		fillColor: '#00CCBB',
-		fillOpacity: 1,
-		strokeColor: '',
-		strokeWeight: 0
-	},
-	map_icon_label: '<span class="map-icon map-icon-bus-station"></span>'
-});*/
-    var infowindow = new google.maps.InfoWindow();
-    var marker = new google.maps.Marker({
-        map: map
+     map: map,
+     position: loc,
+     icon: {
+     path: SQUARE_PIN,
+     fillColor: '#00CCBB',
+     fillOpacity: 1,
+     strokeColor: '',
+     strokeWeight: 0
+     },
+     map_icon_label: '<span class="map-icon map-icon-bus-station"></span>'
+     });*/
+
+    var address;
+    if (info.address_components) {
+        address += [
+            (info.address_components[0] && info.address_components[0].short_name || ''),
+            (info.address_components[1] && info.address_components[1].short_name || ''),
+            (info.address_components[2] && info.address_components[2].short_name || '')
+        ].join(' ');
+    }
+
+    var googleMaps = google.maps, infowindow = new googleMaps.InfoWindow({
+        content: '<div style="display: inline;">' + (info.icon ? '<img src="' + info.icon + '" width="16" height="16">' : '') + (String(info.name) ? '<span style="font-weight: bold;">' + info.name + '</span>' : '') + (address ? '<br><span>' + address + '</span>' : '') + '</div>'
+    }), marker = new googleMaps.Marker({
+        position: options.loc,
+        map: options.map,
+        title: options.title,
+        anchorPoint: new googleMaps.Point(0, -29)
     });
-    google.maps.event.addListener(marker, 'click', function () {
-        infowindow.open(map, marker);
+    googleMaps.event.addListener(marker, 'click', function () {
+        infowindow.open(options.map, marker);
     });
 }
 

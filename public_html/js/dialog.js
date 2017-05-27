@@ -27,7 +27,7 @@ function Dialog(header, body, footer, eventHandlers, backdropStatic) {
 
     self = this;
 
-    this._dialog = $('#' + id).modal(backdropStatic ? {backdrop: 'static'} : {});
+    this._dialog = $('#' + id).modal(backdropStatic ? {backdrop: 'static', keyboard: false} : {});
     this._dialog.on('hidden.bs.modal', function (e) {
         self.close();
     });
@@ -52,8 +52,9 @@ Dialog.prototype.close = function () {
 
     this._closed = true;
     $('.modal-backdrop').remove();
+    //wen an element is deleted the event handlers are deleted too ?
     this._dialog.hide().remove();
     delete this;
-    
+
     this.onclose && this.onclose();
 };

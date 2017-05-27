@@ -11,9 +11,11 @@ $(function () {
 
     var config = {
         minAccuracy: 150,
-        zoom: 16//15
+        zoom: 16,//15
+        loadingTimeout:20000
     };
     var vars = {
+        loadStart:Date.now(),
         map: null,
         myMarker: null,
         googleMaps: null,
@@ -24,8 +26,15 @@ $(function () {
     //init
     //get google.maps
     $(function _() {
+        if((vars.loadStart - Date.now())>config.loadingTimeout){
+            alert('The page is taking too long to load. Check your internet connection, then click ok to refresh');
+            location.reload();
+            return;
+        }
+        
         setTimeout(function () {
-            if (typeof google !== 'object' || !google.maps) {
+            //make sure all the required libraries are loaded
+            if (typeof google !== 'object' || !google.maps || !$) {
                 return _();
             }
 
@@ -98,6 +107,7 @@ $(function () {
 
     function initMap(latlng) {
         //eventually wen our map is very complete, we would hide all google's map styles so that users dnt confuse it with ours
+        //on the users end that's whr i need to hide all google map locations, i'll leave d locations on d admin part so that d admins can use them as landmarks to easily identify places
         var styles/* = [
          {
          featureType: "poi",
@@ -126,7 +136,7 @@ $(function () {
             mapTypeControl: false,
             streetViewControl: false,
             styles: styles
-                    //disableDefaultUI: true
+            //disableDefaultUI: true
         });
 
         vars.googleMaps.event.addListener(vars.map, 'bounds_changed', onMapbounds_changed);
@@ -157,12 +167,15 @@ $(function () {
         input.setAttribute('class', 'controls');
         input.setAttribute('style', 'margin-left:2px;');
         input.setAttribute('autocomplete', 'off');
-        icoSpan.setAttribute('style', 'width:29px;height:29px;padding:3px');
+        icoSpan.setAttribute('style', 'width:29px;height:29px;padding:.3% 4px');
         icoSpan.classList.add('controls');
         ico.setAttribute('height', '20px');
         ico.setAttribute('src', 'img/map-search.png');
         ico.setAttribute('alt', 'search map');
         icoSpan.appendChild(ico);
+
+        vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(icoSpan);
+        vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(input);
 
         var autocomplete = new vars.googleMaps.places.Autocomplete(input);
         autocomplete.bindTo('bounds', vars.map);
@@ -203,9 +216,6 @@ $(function () {
             infowindow.open(vars.map, marker);
         });
 
-        vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(icoSpan);
-        vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(input);
-
         //also request to get nearby locations from server and display
     }
 
@@ -216,15 +226,16 @@ $(function () {
     }
     function onMapcenter_changed() {
         console.log('center_changed');
-    }
-    function onMapclick(e) {
+    }var a = 0;
+    function onMapclick(e) {console.log(e);
         /*
          * stop()	
          Return Value:  None
          Prevents this event from propagating further.
          */
-        console.log({t: e.latLng.lat(), n: e.latLng.lng()});
-        var d = new Dialog('', '<input type="text">', '<button z-dialog-send>send</button>', {send: ['click', function () {
+        console.log({t: e.latLng.lat(), n: e.latLng.lng()});Place({name:a++, type:'BUSTOP'}, {map:vars.map, loc:{lat:e.latLng.lat(), lng: e.latLng.lng()}, title:'test'});
+        //wen thinking of fields to send to server for a location look at d json google returns for a location, we'll nt only save d coordinates of a place, we'll also save other details to make searching and bounds searching easily, either strict bounds or biased bounds searching
+        /*var d = new Dialog('', '<input type="text">', '<button z-dialog-send>send</button>', {send: ['click', function () {
                     alert('Send');
                     return true;
                 }]});
@@ -233,7 +244,7 @@ $(function () {
         }, 7000);
         d.onclose = function () {
             console.log('wow closed');
-        };
+        };*/
         console.log('click');
     }
     function onMapdblclick() {
