@@ -11,11 +11,11 @@ $(function () {
 
     var config = {
         minAccuracy: 150,
-        zoom: 16,//15
-        loadingTimeout:20000
+        zoom: 16, //15
+        loadingTimeout: 20000
     };
     var vars = {
-        loadStart:Date.now(),
+        loadStart: Date.now(),
         map: null,
         myMarker: null,
         googleMaps: null,
@@ -26,12 +26,12 @@ $(function () {
     //init
     //get google.maps
     $(function _() {
-        if((vars.loadStart - Date.now())>config.loadingTimeout){
+        if ((vars.loadStart - Date.now()) > config.loadingTimeout) {
             alert('The page is taking too long to load. Check your internet connection, then click ok to refresh');
             location.reload();
             return;
         }
-        
+
         setTimeout(function () {
             //make sure all the required libraries are loaded
             if (typeof google !== 'object' || !google.maps || !$) {
@@ -107,6 +107,10 @@ $(function () {
     }
 
     function initMap(latlng) {
+        if (vars.map) {
+            return;
+        }
+
         //eventually wen our map is very complete, we would hide all google's map styles so that users dnt confuse it with ours
         //on the users end that's whr i need to hide all google map locations, i'll leave d locations on d admin part so that d admins can use them as landmarks to easily identify places
         var styles/* = [
@@ -137,7 +141,7 @@ $(function () {
             mapTypeControl: false,
             streetViewControl: false,
             styles: styles
-            //disableDefaultUI: true
+                    //disableDefaultUI: true
         });
 
         vars.googleMaps.event.addListener(vars.map, 'bounds_changed', onMapbounds_changed);
@@ -211,9 +215,9 @@ $(function () {
             marker.setVisible(true);
 
             infowindow.setContent('<div><strong>' + place.name + '</strong><br>' +
-                   // 'Place ID: ' + place.place_id + '<br>' +
-                    place.formatted_address + 
-                            '</div>');
+                    // 'Place ID: ' + place.place_id + '<br>' +
+                    place.formatted_address +
+                    '</div>');
             infowindow.open(vars.map, marker);
         });
 
@@ -227,25 +231,25 @@ $(function () {
     }
     function onMapcenter_changed() {
         console.log('center_changed');
-    }var a = 0;
-    function onMapclick(e) {console.log(e);
+    }
+    function onMapclick(e) {//console.log(e);
         /*
          * stop()	
          Return Value:  None
          Prevents this event from propagating further.
          */
-        console.log({t: e.latLng.lat(), n: e.latLng.lng()});Place({name:a++, type:'BUSTOP'}, {map:vars.map, loc:{lat:e.latLng.lat(), lng: e.latLng.lng()}, title:'test'});
+        console.log({t: e.latLng.lat(), n: e.latLng.lng()});
         //wen thinking of fields to send to server for a location look at d json google returns for a location, we'll nt only save d coordinates of a place, we'll also save other details to make searching and bounds searching easily, either strict bounds or biased bounds searching
-        /*var d = new Dialog('', '<input type="text">', '<button z-dialog-send>send</button>', {send: ['click', function () {
-                    alert('Send');
+        new Dialog('', '<input type="text">', '<button z-dialog-send>send</button><button z-dialog-cancel>cancel</button>', {send: ['click', function () {
+                    //after sending ajax request and req is success create the pin and close the dialog
+                    Place({name: '', type: 'BUSTOP'}, {map: vars.map, loc: {lat: e.latLng.lat(), lng: e.latLng.lng()}, title: 'test'});
+
+                    //close the dialog by returning true
                     return true;
-                }]});
-        setTimeout(function () {
-            d.close();
-        }, 7000);
-        d.onclose = function () {
-            console.log('wow closed');
-        };*/
+                }], cancel: ['click', function () {
+                    return true;
+                }]}, true);
+
         console.log('click');
     }
     function onMapdblclick() {

@@ -32,13 +32,14 @@ function Dialog(header, body, footer, eventHandlers, backdropStatic) {
         self.close();
     });
 
-    if (eventHandlers) {
+    if (eventHandlers && Object.keys(eventHandlers).length) {
         for (var suffixId in eventHandlers) {
             document.getElementById(id + 'z-dialog-' + suffixId).addEventListener(eventHandlers[suffixId][0], function (e) {
-                if (eventHandlers[suffixId][1](e)) {
+                e['z-dialog-id'] = id;
+                if (eventHandlers[this][1](e)) {
                     self.close();
                 }
-            });
+            }.bind(suffixId));
         }
     }
 }
