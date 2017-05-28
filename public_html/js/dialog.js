@@ -1,6 +1,6 @@
 'use strict';
 
-function Dialog(header, body, footer, eventHandlers, backdropStatic) {
+function Dialog(header, body, footer, eventHandlers, backdropStatic, showXbtnInheader) {
     this._dialog;
     this._closed = false;
     this.onclose;
@@ -23,7 +23,7 @@ function Dialog(header, body, footer, eventHandlers, backdropStatic) {
         });
     }
 
-    $('body').append('<div id="' + id + '" class="modal fade" role="dialog"><div class="modal-dialog"><div class="modal-content">' + (header ? '<div class="modal-header">' + header + '<button type="button" class="close" data-dismiss="modal">&times;</button></div>' : '') + (body ? '<div class="modal-body">' + body + '</div>' : '') + (footer ? '<div class="modal-footer">' + footer + '</div>' : '') + '</div></div></div>');
+    $('body').append('<div id="' + id + '" class="modal fade" role="dialog"><div class="modal-dialog"><div class="modal-content">' + (header ? '<div class="modal-header">' + header + (showXbtnInheader?'<button type="button" class="close" data-dismiss="modal">&times;</button>':'')+'</div>' : '') + (body ? '<div class="modal-body">' + body + '</div>' : '') + (footer ? '<div class="modal-footer">' + footer + '</div>' : '') + '</div></div></div>');
 
     self = this;
 
@@ -52,9 +52,9 @@ Dialog.prototype.close = function () {
     }
 
     this._closed = true;
-    $('.modal-backdrop').remove();
     //wen an element is deleted the event handlers are deleted too ?
     this._dialog.hide().remove();
+    $('.modal-backdrop').remove();
     delete this;
 
     this.onclose && this.onclose();

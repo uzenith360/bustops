@@ -34,7 +34,7 @@ window.onload = function () {
 
         setTimeout(function () {
             //make sure all the required libraries are loaded
-            if (typeof google !== 'object' || !google.maps || typeof $ !== 'object') {
+            if (typeof google !== 'object' || !google.maps || typeof $ !== 'function') {
                 return _();
             }
 
@@ -240,19 +240,26 @@ window.onload = function () {
          */
         console.log({t: e.latLng.lat(), n: e.latLng.lng()});
         //wen thinking of fields to send to server for a location look at d json google returns for a location, we'll nt only save d coordinates of a place, we'll also save other details to make searching and bounds searching easily, either strict bounds or biased bounds searching
-        new Dialog('<div class="dh">Save location</div>', '<div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span><select class="form-control" z-dialog-type><option disabled>Location type</option><option value="BUSTOP"><img alt="icon">Bustop</option><option value="MARKET"><img alt="icon">Market</option><option value="SHOP"><img alt="icon">Shop</option><option value="BANK"><img alt="icon">Bank</option><option value="ATM"><img alt="icon">Atm</option></select></div><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span><input z-dialog-name type="text" class="form-control" placeholder="Location name"></div><div class="form-group"><textarea class="form-control" rows="5" z-dialog-description placeholder="Description"></textarea></div><div class="form-group"><textarea class="form-control" rows="5" z-dialog-extra_info placeholder="Extra information"></textarea></div>', '<button type="button" z-dialog-cancel class="btn btn-default">Cancel</button><button type="button" z-dialog-send class="btn btn-primary">Save</button>', {send: ['click', function (e) {
+        new Dialog('<div class="dh">Save location</div>', '<form z-dialog-save_location_form><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><select data-parsley-required class="form-control" name="type"><option disabled selected>Location type</option><option value="BUSTOP">Bustop</option><option value="MARKET"><img alt="icon">Market</option><option value="SHOP">Shop</option><option value="BANK">Bank</option><option value="ATM">ATM</option><option value="GOVT">Government</option></select></div></div><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span><input data-parsley-required name="name" type="text" class="form-control" placeholder="Location name"></div></div><div class="form-group"><input data-parsley-required class="form-control" multiple name="location_pictures[]" type="file" accept="image/jpeg,image/jpg,image/png" data-parsley-filemaxmegabytes="2" data-parsley-trigger="change" data-parsley-dimensions="true" data-parsley-dimensions-options="{\'min_width\': \'100\',\'min_height\': \'100\'}" data-parsley-filemimetypes="image/jpeg,image/jpg,image/png"></div><div class="form-group"><textarea data-parsley-required class="form-control" rows="5" name="description" placeholder="Description"></textarea></div><div class="form-group"><textarea data-parsley-required class="form-control" rows="5" name="extra_info" placeholder="Extra information"></textarea></div></form>', '<button type="button" z-dialog-cancel class="btn btn-default">Cancel</button><button type="button" z-dialog-send class="btn btn-primary">Save</button>', {send: ['click', function (e) {
                     //after sending ajax request and req is success create the pin and close the dialog
-                    var zDialog = e['z-dialog'], elemPrefix = zDialog.id + 'z-dialog-',
-                            type = document.getElementById(elemPrefix + 'type'), name = document.getElementById(elemPrefix + 'name'), description = document.getElementById(elemPrefix + 'description'), extra_info = document.getElementById(elemPrefix + 'extra_info'),
+                    var zDialog = e['z-dialog'], elemPrefix = zDialog.id + 'z-dialog-', form = document.getElementById(elemPrefix + 'save_location_form'), formElements = form.elements,
+                            type = formElements['type'].value, name = formElements['name'].value, description = formElements['description'].value, extra_info = formElements['extra_info'].value,
                             data = {name: name, type: type, description: description, extra_info: extra_info};
-
+                            
+                            //u can save everything with php, from php to mongo. i dnt think that needs nodejs
+                            
                     $.ajax({
                         type: "POST",
-                        url: "",
-                        data: data,
+                        url: "save_location.php",
+                        data: new FormData(form),
                         dataType: 'JSON',
-                        success: function (data) {
-                            if (!data.err) {
+                        /*** Options to tell JQuery not to process data or worry about content-type ****/
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        /****************************************/
+                        success: function (response) {
+                            if (!response.err) {
                                 //Display submitted
 
                                 //on success
@@ -262,13 +269,13 @@ window.onload = function () {
                             } else {
                                 var msg;
 
-                                switch (data.err.type) {
+                                switch (response.err.type) {
                                     case 'VALIDATIONERROR':
-                                        msg = data.err.error.message;
-                                        document.getElementById(elemPrefix + data.err.error.field).classList.add('parsley-error');
+                                        msg = response.err.error.message;
+                                        formElements[elemPrefix + response.err.error.field].classList.add('parsley-error');
                                         break;
                                     case 'MAILSENDERROR':
-                                        msg = data.err.error.message;
+                                        msg = response.err.error.message;
                                         break;
                                 }
 
