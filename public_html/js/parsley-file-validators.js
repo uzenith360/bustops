@@ -9,15 +9,17 @@ window.Parsley
                     return true;
                 }
 
-                var file = parsleyInstance.$element[0].files;
-                var maxBytes = requirement * 1048576;
+                var files = parsleyInstance.$element[0].files, maxBytes = requirement * 1048576, err = false;
 
-                if (file.length == 0) {
-                    return true;
+                for (var i = 0; i < files.length; i++) {
+                    // get item
+                    if (files.item(i).size > maxBytes) {
+                        err = true;
+                        break;
+                    }
                 }
 
-                return file.length === 1 && file[0].size <= maxBytes;
-
+                return !err;
             },
             messages: {
                 en: 'File is to big, max size 2MB'

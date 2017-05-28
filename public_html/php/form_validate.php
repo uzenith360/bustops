@@ -10,17 +10,17 @@ $_form_validate_minions0 = [
     }, 'null' => function ($subject, $formInputField) {
         return !$subject || is_null($subject) ? false : ['message' => $formInputField . ' is not a null', 'field' => $formInputField, 'err' => 'null'];
     }, 'long' => function ($subject, $formInputField) {
-        return !$subject || is_long($subject) ? false : ['message' => $formInputField . ' is not a long', 'field' => $formInputField, 'err' => 'long'];
+        return !$subject || is_long(+$subject) ? false : ['message' => $formInputField . ' is not a long', 'field' => $formInputField, 'err' => 'long'];
     }, 'integer' => function ($subject, $formInputField) {
-        return !$subject || is_integer($subject) ? false : ['message' => $formInputField . ' is not an integer', 'field' => $formInputField, 'err' => 'integer'];
+        return !$subject || is_integer(+$subject) ? false : ['message' => $formInputField . ' is not an integer', 'field' => $formInputField, 'err' => 'integer'];
     }, 'int' => function ($subject, $formInputField) {
-        return !$subject || is_int($subject) ? false : ['message' => $formInputField . ' is not an int', 'field' => $formInputField, 'err' => 'int'];
+        return !$subject || is_int(+$subject) ? false : ['message' => $formInputField . ' is not an int', 'field' => $formInputField, 'err' => 'int'];
     }, 'array' => function ($subject, $formInputField) {
         return !$subject || is_array($subject) ? false : ['message' => $formInputField . ' is not an array', 'field' => $formInputField, 'err' => 'array'];
     }, 'float' => function ($subject, $formInputField) {
-        return !$subject || is_float($subject) ? false : ['message' => $formInputField . ' is not a float', 'field' => $formInputField, 'err' => 'float'];
+        return !$subject || is_float(+$subject) ? false : ['message' => $formInputField . ' is not a float', 'field' => $formInputField, 'err' => 'float'];
     }, 'double' => function ($subject, $formInputField) {
-        return !$subject || is_double($subject) ? false : ['message' => $formInputField . ' is not a double', 'field' => $formInputField, 'err' => 'double'];
+        return !$subject || is_double(+$subject) ? false : ['message' => $formInputField . ' is not a double', 'field' => $formInputField, 'err' => 'double'];
     }, 'string' => function ($subject, $formInputField) {
         return !$subject || is_string($subject) ? false : ['message' => $formInputField . ' is not a string', 'field' => $formInputField, 'err' => 'string'];
     }, 'boolean' => function ($subject, $formInputField) {
