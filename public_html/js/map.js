@@ -34,9 +34,13 @@ window.onload = function () {
 
         setTimeout(function () {
             //make sure all the required libraries are loaded
-            if (typeof google !== 'object' || !google.maps || typeof $ !== 'function') {
+            if (typeof google !== 'object' || !google.maps || typeof $ !== 'function' || typeof Parsley !== 'object') {
                 return _();
             }
+
+            Parsley.addMessages('en', {
+                dimensions: 'The display picture dimensions should be a minimum of 100px by 100px'
+            });
 
             vars.googleMaps = google.maps;
             init();
@@ -238,61 +242,77 @@ window.onload = function () {
          Return Value:  None
          Prevents this event from propagating further.
          */
+        var lat = e.latLng.lat(), lng = e.latLng.lng();
         console.log({t: e.latLng.lat(), n: e.latLng.lng()});
         //wen thinking of fields to send to server for a location look at d json google returns for a location, we'll nt only save d coordinates of a place, we'll also save other details to make searching and bounds searching easily, either strict bounds or biased bounds searching
-        new Dialog('<div class="dh">Save location</div>', '<form z-dialog-save_location_form><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><select data-parsley-required class="form-control" name="type"><option disabled selected>Location type</option><option value="BUSTOP">Bustop</option><option value="MARKET"><img alt="icon">Market</option><option value="SHOP">Shop</option><option value="BANK">Bank</option><option value="ATM">ATM</option><option value="GOVT">Government</option></select></div></div><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span><input data-parsley-required name="name" type="text" class="form-control" placeholder="Location name"></div></div><div class="form-group"><input data-parsley-required class="form-control" multiple name="location_pictures[]" type="file" accept="image/jpeg,image/jpg,image/png" data-parsley-filemaxmegabytes="2" data-parsley-trigger="change" data-parsley-dimensions="true" data-parsley-dimensions-options="{\'min_width\': \'100\',\'min_height\': \'100\'}" data-parsley-filemimetypes="image/jpeg,image/jpg,image/png"></div><div class="form-group"><textarea data-parsley-required class="form-control" rows="5" name="description" placeholder="Description"></textarea></div><div class="form-group"><textarea data-parsley-required class="form-control" rows="5" name="extra_info" placeholder="Extra information"></textarea></div></form>', '<button type="button" z-dialog-cancel class="btn btn-default">Cancel</button><button type="button" z-dialog-send class="btn btn-primary">Save</button>', {send: ['click', function (e) {
-                    //after sending ajax request and req is success create the pin and close the dialog
-                    var zDialog = e['z-dialog'], elemPrefix = zDialog.id + 'z-dialog-', form = document.getElementById(elemPrefix + 'save_location_form'), formElements = form.elements,
-                            type = formElements['type'].value, name = formElements['name'].value, description = formElements['description'].value, extra_info = formElements['extra_info'].value,
-                            data = {name: name, type: type, description: description, extra_info: extra_info};
-                            
-                            //u can save everything with php, from php to mongo. i dnt think that needs nodejs
-                            
-                    $.ajax({
-                        type: "POST",
-                        url: "save_location.php",
-                        data: new FormData(form),
-                        dataType: 'JSON',
-                        /*** Options to tell JQuery not to process data or worry about content-type ****/
-                        cache: false,
-                        contentType: false,
-                        processData: false,
-                        /****************************************/
-                        success: function (response) {
-                            if (!response.err) {
-                                //Display submitted
-
-                                //on success
-                                Place(data, {map: vars.map, loc: {lat: e.latLng.lat(), lng: e.latLng.lng()}, title: 'test'});
-
-                                zDialog.close();
-                            } else {
-                                var msg;
-
-                                switch (response.err.type) {
-                                    case 'VALIDATIONERROR':
-                                        msg = response.err.error.message;
-                                        formElements[elemPrefix + response.err.error.field].classList.add('parsley-error');
-                                        break;
-                                    case 'MAILSENDERROR':
-                                        msg = response.err.error.message;
-                                        break;
-                                }
-
-                                document.getElementById("status").innerHTML = '<div class="alert alert-warning alert-dismissable"><a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>' + msg + '</div>';
-                            }
-                        }, error: function () {
-//say problem saving pls check ur network and retry
-//check d text on d save button to retry and change the class to btn-danger or sth, remember to change it back wen d dialog is closed!!!
-
-                        }, complete: function () {
-
-                        }
-                    });
+        new Dialog('<div class="dh">Save location</div>', '<form z-dialog-save_location_form><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span><select data-parsley-required class="form-control" name="type"><option disabled selected>Location type</option><option value="BUSTOP">Bustop</option><option value="MARKET"><img alt="icon">Market</option><option value="SHOP">Shop</option><option value="BANK">Bank</option><option value="ATM">ATM</option><option value="GOVT">Government</option></select></div></div><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><input data-parsley-required name="name" type="text" class="form-control" placeholder="Location name"></div></div><div class="form-group"><input data-parsley-required class="form-control" multiple name="pictures[]" type="file" accept="image/jpeg,image/jpg,image/png" data-parsley-filemaxmegabytes="2" data-parsley-trigger="change" data-parsley-dimensions="true" data-parsley-dimensions-options="{\'min_width\': \'100\',\'min_height\': \'100\'}" data-parsley-filemimetypes="image/jpeg,image/jpg,image/png"></div><div class="form-group"><textarea data-parsley-required class="form-control" rows="5" name="description" placeholder="Description"></textarea></div><div class="form-group"><textarea class="form-control" rows="5" name="extra_info" placeholder="Extra information"></textarea></div></form>', '<button type="button" z-dialog-cancel class="btn btn-default">Cancel</button><button type="button" z-dialog-send class="btn btn-primary">Save</button>', {send: ['click', function (e) {
+                    //trigger form submission to invoke parsley validation
+                    $('#' + e['z-dialog'].id + 'z-dialog-save_location_form').trigger('submit');
                 }], cancel: ['click', function () {
                     //close the dialog by returning true
                     return true;
-                }]}, true);
+                }]}, true, function (e) {
+            var zDialog = e;
+            //On Dialog Create
+            $('#' + e.id + 'z-dialog-save_location_form').parsley().on('form:submit', function (e) {
+                //after sending ajax request and req is success create the pin and close the dialog
+                var elemPrefix = zDialog.id + 'z-dialog-', form = document.getElementById(elemPrefix + 'save_location_form'), formElements = form.elements,
+                        type = formElements['type'].value, name = formElements['name'].value, description = formElements['description'].value, extra_info = formElements['extra_info'].value,
+                        data = {name: name, type: type, description: description, extra_info: extra_info}, formData = new FormData(form);
+
+                //Test value for admin id, admin_id is supposed to be saved to seesion on login
+                formData.append('admin_id', '2');
+                formData.append('lat', lat);
+                formData.append('lng', lng);
+
+                //Make the button change color and display saving
+                
+                //u can save everything with php, from php to mongo. i dnt think that needs nodejs
+                $.ajax({
+                    type: "POST",
+                    url: "save_location.php",
+                    data: formData,
+                    dataType: 'JSON',
+                    /*** Options to tell JQuery not to process data or worry about content-type ****/
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    /****************************************/
+                    success: function (response) {
+                        if (!response.err) {
+                            //Display submitted
+
+                            //on success
+                            Place(data, {map: vars.map, loc: {lat: lat, lng: lng}, title: 'test'});
+
+                            zDialog.close();
+                        } else {
+                            var msg;
+
+                            switch (response.err.error) {
+                                case 'VALIDATION':
+                                    msg = response.err.msg.message;
+                                    formElements[response.err.msg.field] && formElements[response.err.msg.field].classList.add('parsley-error');
+                                    break;
+                                default:
+                                    msg = response.err.msg.message;
+                                    break;
+                            }
+
+                            //display msg
+                        }
+                    }, error: function () {
+//say problem saving pls check ur network and retry
+//check d text on d save button to retry and change the class to btn-danger or sth, remember to change it back wen d dialog is closed!!!
+
+                    }, complete: function () {
+
+                    }
+                });
+
+                return false;
+            });
+        });
 
         console.log('click');
     }

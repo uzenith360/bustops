@@ -1,6 +1,6 @@
 'use strict';
 
-function Dialog(header, body, footer, eventHandlers, backdropStatic, showXbtnInheader) {
+function Dialog(header, body, footer, eventHandlers, backdropStatic, onCreate, showXbtnInheader) {
     this._dialog;
     this._closed = false;
     this.onclose;
@@ -42,6 +42,8 @@ function Dialog(header, body, footer, eventHandlers, backdropStatic, showXbtnInh
             }.bind(suffixId));
         }
     }
+    
+    onCreate && onCreate({id:id, close:this.close});
 }
 
 Dialog.prototype._id = 0;
