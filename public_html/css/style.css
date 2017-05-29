@@ -28,3 +28,43 @@ body {
     padding: 6px 12px;
     border-radius: 4px;
 }
+.widget-mylocation{width:29px;height:29px;position:relative}
+.my-location{background-color:rgba(255,255,255,1);border-radius:2px;box-shadow:0 1px 4px rgba(0,0,0,0.3);display:block;width: 28px; height: 27px;overflow:hidden;cursor:pointer;transition:background-color 0.16s ease-out}
+.my-location:focus{
+    outline: none;
+}
+.my-location[disabled]{cursor:default}
+.my-location-icon-common{display:block;height:18px;left:5px;margin:0;padding:0;position:absolute;top:5px;width:18px}
+.my-location .my-location-cookie{background-image:url(../img/my-location.png);background-size:180px 18px}
+
+.my-location .my-location-cookieless{background-image:url(../img/my-location-cookieless.png);background-size:180px 18px}
+.my-location .my-location-normal{background-position:0 0}
+.my-location:hover .my-location-normal{background-position:-36px 0}
+.my-location:active .my-location-normal{background-position:-54px 0}
+.my-location .my-location-disabled{background-position:-18px 0}
+.my-location .my-location-blue{background-position:-144px 0}
+.my-location:hover .my-location-blue,.my-location:active .my-location-blue{background-position:-162px 0}
+/*
+.widget-mylocation-tooltip{position:absolute;transition:opacity 0.13s ease-out 0.109s;vertical-align:baseline;line-height:normal;right:100%;top:-1px}
+.widget-mylocation-tooltip-visible{opacity:1;visibility:visible}
+.widget-mylocation-tooltip-invisible{opacity:0;visibility:hidden}
+.widget-mylocation-tooltip-label-wrapper{background:#262626;box-shadow:rgba(0,0,0,0.2) 1px 2px 4px 0;border-radius:2px;min-width:40px}
+.widget-mylocation-tooltip-label{cursor:pointer;padding:8px 15px;color:#fff;font-size:12px;min-width:100px;font-weight:normal}
+.widget-mylocation-tooltip-pointer{position:absolute;width:0;height:0;z-index:1;border:6px solid transparent;border-left:6px solid #262626;right:-11px;top:9px}
+.widget-mylocation-tooltip-label .blue-link{display:block}
+.widget-mylocation-update-button{margin-top:10px}
+.widget-mylocation-learn-more-button{font-weight:400;line-height:17px}*/
+/*
+.app-globe-mode .my-location .my-location-normal{background-position:-72px 0}
+.app-globe-mode .my-location:hover .my-location-normal{background-position:-108px 0}
+.app-globe-mode .my-location:active .my-location-normal{background-position:-126px 0}
+.app-globe-mode .my-location .my-location-disabled{background-position:-90px 0}
+.app-globe-mode .my-location .my-location-acquiring{background-image:url(//maps.gstatic.com/tactile/mylocation/mylocation-sprite-acquiring-globe-1x.png)}
+
+.app-imagery-mode .my-location{background-color:#222;color:#fff}
+
+.highres .my-location .widget-mylocation-cookieless{background-image:url(//maps.gstatic.com/tactile/mylocation/mylocation-sprite-cookieless-v2-2x.png)}
+.highres .my-location .my-location-acquiring{background-image:url(//maps.gstatic.com/tactile/mylocation/mylocation-sprite-acquiring-2x.png)}
+.highres .my-location .widget-mylocation-cookie{background-image:url(//maps.gstatic.com/tactile/mylocation/mylocation-sprite-2x.png)}
+.highres .app-globe-mode .my-location .my-location-acquiring{background-image:url(//maps.gstatic.com/tactile/mylocation/mylocation-sprite-acquiring-globe-2x.png)}@-webkit-keyframes acquiring-animation {0%{background-position:0 0}50%{background-position:-18px 0}100%{background-position:0 0}}@keyframes acquiring-animation {0%{background-position:0 0}50%{background-position:-18px 0}100%{background-position:0 0}}
+*/

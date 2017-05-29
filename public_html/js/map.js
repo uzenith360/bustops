@@ -145,7 +145,7 @@ window.onload = function () {
             mapTypeControl: false,
             streetViewControl: false,
             styles: styles
-                    //disableDefaultUI: true
+            //disableDefaultUI: true
         });
 
         vars.googleMaps.event.addListener(vars.map, 'bounds_changed', onMapbounds_changed);
@@ -170,7 +170,7 @@ window.onload = function () {
         vars.googleMaps.event.addListener(vars.map, 'tilt_changed', onMaptilt_changed);
         vars.googleMaps.event.addListener(vars.map, 'zoom_changed', onMapzoom_changed);
 
-        var input = document.createElement("input"), icoSpan = document.createElement("span"), ico = document.createElement("img");
+        var input = document.createElement("input"), icoSpan = document.createElement("span"), ico = document.createElement("img"), meCntrl = document.createElement("div"), icoMe = document.createElement("div"), icoMeBtn = document.createElement("button");
         input.setAttribute('type', 'text');
         input.setAttribute('placeholder', 'Enter a location');
         input.setAttribute('class', 'controls');
@@ -178,13 +178,38 @@ window.onload = function () {
         input.setAttribute('autocomplete', 'off');
         icoSpan.setAttribute('style', 'width:29px;height:29px;padding:.3% 4px');
         icoSpan.classList.add('controls');
+        icoSpan.setAttribute('title', 'Search');
         ico.setAttribute('height', '20px');
         ico.setAttribute('src', 'img/map-search.png');
         ico.setAttribute('alt', 'search map');
         icoSpan.appendChild(ico);
+        //meCntrl.setAttribute('style','padding:.3% 4px;margin-right:10px;background-color: rgba(255,255,255,1);border-radius: 2px;box-shadow: 0 1px 4px rgba(0,0,0,0.3);display: block;width: 29px;height: 29px;overflow: hidden;cursor: pointer;transition: background-color 0.16s ease-out;');
+        meCntrl.setAttribute('style', 'margin-right:10px;');
+        icoMeBtn.classList.add('btn');
+        icoMeBtn.classList.add('my-location');
+        //icoMe.setAttribute('style', 'margin: 0;padding: 0;border: 0;outline: 0;font: inherit;vertical-align: baseline;background: transparent;list-style: none;');
+        icoMe.classList.add('my-location-icon-common');
+        icoMe.classList.add('my-location-normal');
+        icoMe.classList.add('my-location-cookie');
+        icoMe.setAttribute('title', 'Go to my location');
+        //icoMe.setAttribute('src', 'img/my-location.png');
+        //icoMe.setAttribute('height', '20px');
+        icoMeBtn.appendChild(icoMe);
+        meCntrl.appendChild(icoMeBtn);
+
+        $(meCntrl).one('click', function () {
+            $(icoMe).remove('my-location-normal').addClass('my-location-icon-common my-location-blue');
+        });
+        meCntrl.addEventListener('click', function(){
+            if(vars.myLoc.lat){
+                vars.map.setCenter(vars.myLoc);
+                vars.map.setZoom(17);
+            }
+        });
 
         vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(icoSpan);
         vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(input);
+        vars.map.controls[vars.googleMaps.ControlPosition.RIGHT_BOTTOM].push(meCntrl);
 
         var autocomplete = new vars.googleMaps.places.Autocomplete(input);
         autocomplete.bindTo('bounds', vars.map);
@@ -208,14 +233,16 @@ window.onload = function () {
                 vars.map.fitBounds(place.geometry.viewport);
             } else {
                 vars.map.setCenter(place.geometry.location);
-                //vars.map.setZoom(17);
+                vars.map.setZoom(17);
             }
 
+            //I dnt like the view in google maps link, so i use setPosition instead
             // Set the position of the marker using the place ID and location.
-            marker.setPlace(/** @type {!google.maps.Place} */ ({
-                placeId: place.place_id,
-                location: place.geometry.location
-            }));
+            /*marker.setPlace({
+             placeId: place.place_id,
+             location: place.geometry.location
+             });*/
+            marker.setPosition(place.geometry.location);
             marker.setVisible(true);
 
             infowindow.setContent('<div><strong>' + place.name + '</strong><br>' +
@@ -243,7 +270,6 @@ window.onload = function () {
          Prevents this event from propagating further.
          */
         var lat = e.latLng.lat(), lng = e.latLng.lng();
-        console.log({t: e.latLng.lat(), n: e.latLng.lng()});
         //wen thinking of fields to send to server for a location look at d json google returns for a location, we'll nt only save d coordinates of a place, we'll also save other details to make searching and bounds searching easily, either strict bounds or biased bounds searching
         new Dialog('<div z-dialog-heading class="dh">Save location</div>', '<form z-dialog-save_location_form><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span><select data-parsley-required class="form-control" name="type"><option disabled selected>Location type</option><option value="BUSTOP">Bustop</option><option value="MARKET"><img alt="icon">Market</option><option value="SHOP">Shop</option><option value="BANK">Bank</option><option value="ATM">ATM</option><option value="GOVT">Government</option></select></div></div><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><input data-parsley-required name="name" type="text" class="form-control" placeholder="Location name"></div></div><div class="form-group"><input data-parsley-required class="form-control" multiple name="pictures[]" type="file" accept="image/jpeg,image/jpg,image/png" data-parsley-filemaxmegabytes="2" data-parsley-trigger="change" data-parsley-dimensions="true" data-parsley-dimensions-options="{\'min_width\': \'100\',\'min_height\': \'100\'}" data-parsley-filemimetypes="image/jpeg,image/jpg,image/png"></div><div class="form-group"><textarea data-parsley-required class="form-control" rows="5" name="address" placeholder="Address"></textarea></div><div class="form-group"><textarea class="form-control" rows="5" name="description" placeholder="Description"></textarea></div></form>', '<button type="button" z-dialog-cancel class="btn btn-default">Cancel</button><button type="button" z-dialog-send class="btn btn-primary">Save</button>', {send: ['click', function (e) {
                     //trigger form submission to invoke parsley validation
