@@ -22,15 +22,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         //FIRST UPLOAD FILE BEFORE SUBMITTING TO DATA MONGO
         $cleanedUserInputMap = array_map(function($value) {
             return htmlspecialchars(strip_tags(trim(isset($_POST[$value]) ? $_POST[$value] : '')));
-        }, ['name' => 'name', 'type' => 'type', 'description' => 'description', 'extra_info' => 'extra_info', 'admin_id' => 'admin_id', 'lat' => 'lat', 'lng' => 'lng']);
+        }, ['name' => 'name', 'type' => 'type', 'address' => 'address', 'description' => 'description', 'admin_id' => 'admin_id', 'lat' => 'lat', 'lng' => 'lng']);
         $validationResult = $form_validate([
             'admin_id' => 'required',
             'name' => 'required',
             'type' => 'required',
-            'description' => 'required',
+            'address' => 'required',
             'lat' => 'required|double',
             'lng' => 'required|double'
-                //'extra_info' => ''
+                //'description' => ''
                 ], $cleanedUserInputMap);
 
         if (empty($validationResult)) {
@@ -58,13 +58,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if (!$fileError) {
-                require_once 'php/mongodb_collection-locations.php';
+                require_once 'php/mongodb.php';
                 //submit to db
                 try {
-                    if (!($collection->insert(array_merge(['pictures' => $pictures], $cleanedUserInputMap))) . ok) {
-                        $response ['err'] = ['error' => 'DB', 'msg' => ['message' => 'An error occurred, please retry']];
-                    }
-                } catch (Exception $e) {
+                    $bulk = new MongoDB\Driver\BulkWrite();
+                    $bulk->insert(array_merge(['pictures' => $pictures], $cleanedUserInputMap));
+                    $result = $mongoDB->executeBulkWrite('bustops.locations', $bulk);
+                 } catch (MongoDB\Driver\Exception\Exception $e) {echo print_r($e);
                     //Catch all exceptions
                     $response ['err'] = ['error' => 'DB', 'msg' => ['message' => 'An error occurred, please retry']];
                 }

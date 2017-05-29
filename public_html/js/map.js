@@ -245,20 +245,19 @@ window.onload = function () {
         var lat = e.latLng.lat(), lng = e.latLng.lng();
         console.log({t: e.latLng.lat(), n: e.latLng.lng()});
         //wen thinking of fields to send to server for a location look at d json google returns for a location, we'll nt only save d coordinates of a place, we'll also save other details to make searching and bounds searching easily, either strict bounds or biased bounds searching
-        new Dialog('<div class="dh">Save location</div>', '<form z-dialog-save_location_form><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span><select data-parsley-required class="form-control" name="type"><option disabled selected>Location type</option><option value="BUSTOP">Bustop</option><option value="MARKET"><img alt="icon">Market</option><option value="SHOP">Shop</option><option value="BANK">Bank</option><option value="ATM">ATM</option><option value="GOVT">Government</option></select></div></div><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><input data-parsley-required name="name" type="text" class="form-control" placeholder="Location name"></div></div><div class="form-group"><input data-parsley-required class="form-control" multiple name="pictures[]" type="file" accept="image/jpeg,image/jpg,image/png" data-parsley-filemaxmegabytes="2" data-parsley-trigger="change" data-parsley-dimensions="true" data-parsley-dimensions-options="{\'min_width\': \'100\',\'min_height\': \'100\'}" data-parsley-filemimetypes="image/jpeg,image/jpg,image/png"></div><div class="form-group"><textarea data-parsley-required class="form-control" rows="5" name="description" placeholder="Description"></textarea></div><div class="form-group"><textarea class="form-control" rows="5" name="extra_info" placeholder="Extra information"></textarea></div></form>', '<button type="button" z-dialog-cancel class="btn btn-default">Cancel</button><button type="button" z-dialog-send class="btn btn-primary">Save</button>', {send: ['click', function (e) {
+        new Dialog('<div z-dialog-heading class="dh">Save location</div>', '<form z-dialog-save_location_form><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span><select data-parsley-required class="form-control" name="type"><option disabled selected>Location type</option><option value="BUSTOP">Bustop</option><option value="MARKET"><img alt="icon">Market</option><option value="SHOP">Shop</option><option value="BANK">Bank</option><option value="ATM">ATM</option><option value="GOVT">Government</option></select></div></div><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><input data-parsley-required name="name" type="text" class="form-control" placeholder="Location name"></div></div><div class="form-group"><input data-parsley-required class="form-control" multiple name="pictures[]" type="file" accept="image/jpeg,image/jpg,image/png" data-parsley-filemaxmegabytes="2" data-parsley-trigger="change" data-parsley-dimensions="true" data-parsley-dimensions-options="{\'min_width\': \'100\',\'min_height\': \'100\'}" data-parsley-filemimetypes="image/jpeg,image/jpg,image/png"></div><div class="form-group"><textarea data-parsley-required class="form-control" rows="5" name="address" placeholder="Address"></textarea></div><div class="form-group"><textarea class="form-control" rows="5" name="description" placeholder="Description"></textarea></div></form>', '<button type="button" z-dialog-cancel class="btn btn-default">Cancel</button><button type="button" z-dialog-send class="btn btn-primary">Save</button>', {send: ['click', function (e) {
                     //trigger form submission to invoke parsley validation
                     $('#' + e['z-dialog'].id + 'z-dialog-save_location_form').trigger('submit');
                 }], cancel: ['click', function () {
                     //close the dialog by returning true
                     return true;
-                }]}, true, function (e) {
-            var zDialog = e;
+                }]}, true, function (zDialog) {
             //On Dialog Create
-            $('#' + e.id + 'z-dialog-save_location_form').parsley().on('form:submit', function (e) {
+            $('#' + zDialog.id + 'z-dialog-save_location_form').parsley().on('form:submit', function (e) {
                 //after sending ajax request and req is success create the pin and close the dialog
                 var elemPrefix = zDialog.id + 'z-dialog-', form = document.getElementById(elemPrefix + 'save_location_form'), formElements = form.elements,
-                        type = formElements['type'].value, name = formElements['name'].value, description = formElements['description'].value, extra_info = formElements['extra_info'].value,
-                        data = {name: name, type: type, description: description, extra_info: extra_info}, formData = new FormData(form);
+                        type = formElements['type'].value, name = formElements['name'].value, address = formElements['address'].value, description = formElements['description'].value,
+                        data = {name: name, type: type, address: address, description: description}, formData = new FormData(form), sendBtn = document.getElementById(elemPrefix + 'send'), heading = document.getElementById(elemPrefix + 'heading');
 
                 //Test value for admin id, admin_id is supposed to be saved to seesion on login
                 formData.append('admin_id', '2');
@@ -266,7 +265,11 @@ window.onload = function () {
                 formData.append('lng', lng);
 
                 //Make the button change color and display saving
-                
+                sendBtn.classList.remove('btn-primary');
+                sendBtn.classList.add('btn-warning');
+                sendBtn.innerHTML = 'Saving';
+                heading.innerHTML = 'Saving...';
+
                 //u can save everything with php, from php to mongo. i dnt think that needs nodejs
                 $.ajax({
                     type: "POST",
@@ -282,29 +285,42 @@ window.onload = function () {
                         if (!response.err) {
                             //Display submitted
 
+                            /*
+                             * No need to change the button class back to primary since were closing the dialog anyway
+                             */
+                            sendBtn.classList.remove('btn-warning');
+                            sendBtn.classList.add('btn-success');
+                            sendBtn.innerHTML = 'Success';
+                            heading.innerHTML = 'Saved';
+
                             //on success
                             Place(data, {map: vars.map, loc: {lat: lat, lng: lng}, title: 'test'});
 
                             zDialog.close();
                         } else {
-                            var msg;
+                            var field = formElements[response.err.msg.field];
 
                             switch (response.err.error) {
                                 case 'VALIDATION':
-                                    msg = response.err.msg.message;
-                                    formElements[response.err.msg.field] && formElements[response.err.msg.field].classList.add('parsley-error');
+                                    heading.innerHTML = 'Review some field(s)';
                                     break;
                                 default:
-                                    msg = response.err.msg.message;
+                                    heading.innerHTML = 'Problem Saving';
                                     break;
                             }
 
-                            //display msg
+                            sendBtn.classList.remove('btn-warning');
+                            sendBtn.classList.add('btn-danger');
+                            sendBtn.innerHTML = 'Try again';
+                            field && $(field).parsley().addError('error', {message: response.err.msg.message});
                         }
                     }, error: function () {
 //say problem saving pls check ur network and retry
 //check d text on d save button to retry and change the class to btn-danger or sth, remember to change it back wen d dialog is closed!!!
-
+                        sendBtn.classList.remove('btn-warning');
+                        sendBtn.classList.add('btn-danger');
+                        sendBtn.innerHTML = 'Try again';
+                        heading.innerHTML = 'Try saving again';
                     }, complete: function () {
 
                     }

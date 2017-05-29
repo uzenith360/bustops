@@ -142,7 +142,7 @@ function Place(info, options) {
      });*/
 
     var address;
-    if (info.address_components) {
+    if (!(address = info.address) && info.address_components) {
         address += [
             (info.address_components[0] && info.address_components[0].short_name || ''),
             (info.address_components[1] && info.address_components[1].short_name || ''),
@@ -151,7 +151,7 @@ function Place(info, options) {
     }
 
     var googleMaps = google.maps, infowindow = new googleMaps.InfoWindow({
-        content: '<div style="display: inline;">' + (info.icon ? '<img src="' + info.icon + '" width="16" height="16">' : '') + (String(info.name) ? '<span style="font-weight: bold;">' + info.name + '</span>' : '') + (address ? '<br><span>' + address + '</span>' : '') + '</div>'
+        content: '<div style="display: inline;">' + (info.icon ? '<img src="' + info.icon + '" width="16" height="16">' : '') + (String(info.name) ? '<span style="font-weight: bold;">' + info.name + '</span>' : '') + (address ? '<br><span>' + address + '</span>' : '')+ (info.description ? '<br><br><span style="color: #999;">' + info.description + '</span>' : '') + '</div>'
     }), marker = new googleMaps.Marker({
         position: options.loc,
         map: options.map,
