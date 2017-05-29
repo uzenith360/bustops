@@ -178,7 +178,7 @@ window.onload = function () {
         input.setAttribute('autocomplete', 'off');
         icoSpan.setAttribute('style', 'width:29px;height:29px;padding:.3% 4px');
         icoSpan.classList.add('controls');
-        icoSpan.setAttribute('title', 'Search');
+        icoSpan.setAttribute('title', 'Search for a location');
         ico.setAttribute('height', '20px');
         ico.setAttribute('src', 'img/map-search.png');
         ico.setAttribute('alt', 'search map');
