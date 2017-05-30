@@ -464,19 +464,36 @@ window.onload = function () {
     }
 
     function saveCurrentLocation() {
-        saveCurrentLocationToServer();
-        saveCurrentLocationToLocalStorage();
+        var pos = {
+            coords: {
+                accuracy: vars.myPos.coords.accuracy,
+                altitude: vars.myPos.coords.altitude,
+                altitudeAccuracy: vars.myPos.coords.altitudeAccuracy,
+                heading: vars.myPos.coords.heading,
+                latitude: vars.myPos.coords.latitude,
+                longitude: vars.myPos.coords.longitude,
+                speed: vars.myPos.coords.speed
+            },
+            timestamp: vars.myPos.coords.timestamp
+        };
+
+        saveCurrentLocationToServer(pos);
+        saveCurrentLocationToLocalStorage(pos);
     }
-    function saveCurrentLocationToServer() {
+    function saveCurrentLocationToServer(pos) {
         //it saves all the location info, nt jst latlng
 
     }
-    function saveCurrentLocationToLocalStorage() {
+    function saveCurrentLocationToLocalStorage(pos) {
         //it saves all the location info, nt jst latlng
-        typeof (Storage) !== "undefined" && localStorage.setItem("_lp", vars.myPos);
+        typeof (Storage) !== "undefined" && localStorage.setItem("_lp", JSON.pruned(pos));
     }
     function getLastLocationFromLocalStorage() {
-        return typeof (Storage) !== "undefined" ? localStorage.setItem("_lp", vars.myPos) || {} : {};
+        try {
+            return typeof (Storage) !== "undefined" ? JSON.parse(localStorage.getItem("_lp")) || {} : {};
+        } catch (e) {
+            return {};
+        }
     }
     function getLastLocationFromLocalServer(cb) {
 
