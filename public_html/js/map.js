@@ -61,9 +61,9 @@ window.onload = function () {
         //i think wen d script gets the users current location, it should jst put a marker thr, save current location to server and wait till the person requests a route or clicks go to my current location
         //u should setCenter of d map, because user might be current looking at sth on d map, then u just change am for d person?!
         var lastLocationFrmStorage = getLastLocation(function (pos) {
-            if (!vars.myLoc.lat && locationIsDiff(pos)) {
+            if (!vars.acquiredCurrentLoc && locationIsDiff(pos) && vars.myLoc.lat === config.defaultLocation.lat && vars.myLoc.lng === config.defaultLocation.lng) {
                 vars.myPos = pos;
-                vars.myLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude};
+                vars.map.setCenter(vars.myLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude});
             }
         });
 
@@ -129,10 +129,10 @@ window.onload = function () {
         saveCurrentLocation();
 
         (function _() {
-            if(!document.getElementById('iM')){
-                return setTimeout(_, 100);
+            if (!document.getElementById('iM')) {
+                return setTimeout(_, 5);
             }
-            
+
             if (!vars.acquiredCurrentLoc) {
                 vars.acquiredCurrentLoc = true;
                 var iconMe = document.getElementById('iM');
