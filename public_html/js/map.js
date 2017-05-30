@@ -12,7 +12,8 @@ window.onload = function () {
     var config = {
         minAccuracy: 150,
         zoom: 16, //15
-        loadingTimeout: 10000
+        loadingTimeout: 10000,
+        defaultLocation: {lat: 6.5179, lng: 3.3712}//yabatech coordinates
     };
     var vars = {
         loadStart: Date.now(),
@@ -20,7 +21,9 @@ window.onload = function () {
         myMarker: null,
         googleMaps: null,
         myLoc: {}, //{lat: -34.397, lng: 150.644}
-        myPos: {} //full position information returned by geolocation api
+        myPos: {}, //full position information returned by geolocation api
+        myHeading: {},
+        acquiredCurrentLoc: false
     };
 
     //init
@@ -48,7 +51,28 @@ window.onload = function () {
     })();
 
     function init() {
+        if (vars.map) {
+            return;
+        }
+
         watchMyLocation();
+
+        //first init map with last location stored in localStorage, also cheack server and update the vars.loc/vars.pos if the location from server is diff, means wen location changes, i shoud tell d localStorage/server
+        //i think wen d script gets the users current location, it should jst put a marker thr, save current location to server and wait till the person requests a route or clicks go to my current location
+        //u should setCenter of d map, because user might be current looking at sth on d map, then u just change am for d person?!
+        var lastLocationFrmStorage = getLastLocation(function (pos) {
+            if (!vars.myLoc.lat && locationIsDiff(pos)) {
+                vars.myPos = pos;
+                vars.myLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude};
+            }
+        });
+
+        if (!vars.myLoc.lat && locationIsDiff(lastLocationFrmStorage)) {
+            vars.myPos = lastLocationFrmStorage;
+            vars.myLoc = {lat: lastLocationFrmStorage.coords.latitude, lng: lastLocationFrmStorage.coords.longitude};
+        }
+
+        initMap();
     }
 
 
@@ -56,29 +80,41 @@ window.onload = function () {
         navigator.geolocation.watchPosition(myLocSuccess, myLocError, {enableHighAccuracy: true, maximumAge: 30000, timeout: 27000});
     }
     function myLocSuccess(pos) {
-        if (pos.coords.latitude === vars.myLoc.lat && pos.coords.longitude === vars.myLoc.lng) {
-            return;
+        if (locationIsDiff(pos)) {
+            //if the accuracy is too low, info the person that he's location accuracy is low and he should select he's current position
+            if (pos.coords.accuracy > config.minAccuracy) {
+                new Dialog('Low location accuracy', 'Your location accuracy is too low, please select or search your current location from the map, or switch to a device with a better location accuracy');
+            }
+
+            onMyLocationChange(pos);
         }
 
-        //if the accuracy is too low, info the person that he's gps accuracy is low and he should select he's current position
-        if (pos.coords.accuracy > config.minAccuracy) {
-            new Dialog('Low GPS accuracy', 'Your gps accuracy is too low, please select your current location from the map, or switch to a device with a higher GPS accuracy');
-        }
-
-        onMyLocationChange(pos);
+        headingChangedListener(pos);
     }
     function myLocError(err) {
         //maybe on error, if google maps has nt initialised , check server or local storage and get the last location d user was and display it in the map, or if u hv nt used d app bfr, then it'll use ur ip address to determine ur location and display that location, then also tell the user to turn on location or select hes location on d map
 
         console.error('Get location err: ' + JSON.stringify(err));
 
+        var heading, body;
+
         switch (err.code) {
+            case err.PERMISSION_DENIED:
+                heading = 'Allow location';
+                body = 'Permission denied, please allow this site to use your location';
+                break;
+            case err.POSITION_UNAVAILABLE:
+                heading = 'No Location';
+                body = 'Location unavailable, please turn on location or use a device with location support';
+                break;
             case err.TIMEOUT:
-                //"Timeout!";
+            case err.UNKNOWN_ERROR:
+                heading = 'Turn on location';
+                body = 'Problem getting your current location, please check if your location is switched on';
                 break;
         }
         //dnt refresh map, inform users that thrs a problem getting he's current location, either he should switch on location e.t.c
-        new Dialog('Turn on location', 'Problem getting your current location, please check if your location is switched on');
+        new Dialog(heading, body);
     }
 
     function onMyLocationChange(pos) {
@@ -88,11 +124,26 @@ window.onload = function () {
         vars.myLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude};
 
         updateMyMarker();
+
+        //save info to server
+        saveCurrentLocation();
+
+        (function _() {
+            if(!document.getElementById('iM')){
+                return setTimeout(_, 100);
+            }
+            
+            if (!vars.acquiredCurrentLoc) {
+                vars.acquiredCurrentLoc = true;
+                var iconMe = document.getElementById('iM');
+                iconMe.classList.remove('my-location-normal');
+                iconMe.classList.add('my-location-icon-common');
+                iconMe.classList.add('my-location-blue');
+            }
+        })();
     }
 
     function updateMyMarker() {
-        !vars.map && initMap(vars.myLoc);
-
         //lol did we really do this?
         //to prevent the location marker from having d blinking effect, first save the reference to the old marker, put the new marker, then delete the old marker
         !vars.myMarker && (vars.myMarker = new vars.googleMaps.Marker({
@@ -110,7 +161,8 @@ window.onload = function () {
         //to prevent the location marker from having d blinking effect, first save the reference to the old marker, put the new marker, then delete the old marker
     }
 
-    function initMap(latlng) {
+    function initMap() {
+        //jst in case
         if (vars.map) {
             return;
         }
@@ -140,12 +192,12 @@ window.onload = function () {
          ]*/;
 
         vars.map = new vars.googleMaps.Map(document.getElementById('map'), {
-            center: latlng,
+            center: vars.myLoc.lat ? vars.myLoc : config.defaultLocation,
             zoom: config.zoom, //set other map options, i.e wen dnt want default controls to show on d map, and we want to set handlers for when d person clicks or scrolls the map
             mapTypeControl: false,
             streetViewControl: false,
             styles: styles
-            //disableDefaultUI: true
+                    //disableDefaultUI: true
         });
 
         vars.googleMaps.event.addListener(vars.map, 'bounds_changed', onMapbounds_changed);
@@ -183,25 +235,19 @@ window.onload = function () {
         ico.setAttribute('src', 'img/map-search.png');
         ico.setAttribute('alt', 'search map');
         icoSpan.appendChild(ico);
-        //meCntrl.setAttribute('style','padding:.3% 4px;margin-right:10px;background-color: rgba(255,255,255,1);border-radius: 2px;box-shadow: 0 1px 4px rgba(0,0,0,0.3);display: block;width: 29px;height: 29px;overflow: hidden;cursor: pointer;transition: background-color 0.16s ease-out;');
         meCntrl.setAttribute('style', 'margin-right:10px;');
         icoMeBtn.classList.add('btn');
         icoMeBtn.classList.add('my-location');
-        //icoMe.setAttribute('style', 'margin: 0;padding: 0;border: 0;outline: 0;font: inherit;vertical-align: baseline;background: transparent;list-style: none;');
+        icoMe.setAttribute('id', 'iM');
         icoMe.classList.add('my-location-icon-common');
         icoMe.classList.add('my-location-normal');
         icoMe.classList.add('my-location-cookie');
         icoMe.setAttribute('title', 'Go to my location');
-        //icoMe.setAttribute('src', 'img/my-location.png');
-        //icoMe.setAttribute('height', '20px');
         icoMeBtn.appendChild(icoMe);
         meCntrl.appendChild(icoMeBtn);
 
-        $(meCntrl).one('click', function () {
-            $(icoMe).remove('my-location-normal').addClass('my-location-icon-common my-location-blue');
-        });
-        meCntrl.addEventListener('click', function(){
-            if(vars.myLoc.lat){
+        meCntrl.addEventListener('click', function () {
+            if (vars.acquiredCurrentLoc) {
                 vars.map.setCenter(vars.myLoc);
                 vars.map.setZoom(17);
             }
@@ -415,5 +461,47 @@ window.onload = function () {
     }
     function onMapzoom_changed() {
         console.log('zoom_changed');
+    }
+
+    function saveCurrentLocation() {
+        saveCurrentLocationToServer();
+        saveCurrentLocationToLocalStorage();
+    }
+    function saveCurrentLocationToServer() {
+        //it saves all the location info, nt jst latlng
+
+    }
+    function saveCurrentLocationToLocalStorage() {
+        //it saves all the location info, nt jst latlng
+        typeof (Storage) !== "undefined" && localStorage.setItem("_lp", vars.myPos);
+    }
+    function getLastLocationFromLocalStorage() {
+        return typeof (Storage) !== "undefined" ? localStorage.setItem("_lp", vars.myPos) || {} : {};
+    }
+    function getLastLocationFromLocalServer(cb) {
+
+    }
+    function getLastLocation(cb) {
+        //Also make an ajax request and return the last location that server has and call cb with the lastlocation or {} on error
+        getLastLocationFromLocalServer(cb);
+
+        return getLastLocationFromLocalStorage();
+    }
+    function locationIsDiff(newPos) {
+        if (!newPos.coords || !newPos.coords.latitude || !newPos.coords.longitude) {
+            return null;
+        }
+
+        return !vars.myLoc.lat || vars.myPos.latitude !== newPos.coords.latitude || vars.myPos.longitude !== newPos.coords.longitude ? true : false;
+    }
+
+    function headingChangedListener(pos) {
+        if (vars.myHeading !== pos.heading) {
+            onheadingChanged(vars.myHeading = pos.heading);
+        }
+    }
+    function onheadingChanged() {
+        alert('Heading changed: ' + vars.myHeading);
+        console.log('Heading changed!');
     }
 };
