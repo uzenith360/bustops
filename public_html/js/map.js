@@ -323,9 +323,12 @@ window.onload = function () {
                 if (vars.acquiredCurrentLoc) {
                     //Move map to my location
                     vars.map.panTo(vars.myLoc);
-                    vars.map.setZoom(17);
+                    setTimeout(function () {
+                        //running this immediately after the previous panTo, causes andriod browser to freeze
+                        vars.map.setZoom(17);
+                    }, 0);
 
-                    tripCntlIcon.style.color = '#68A1E3';
+                    tripCntlIcon.setAttribute('style', 'color:#68A1E3;');
 
                     vars.tripMode = true;
                 }
