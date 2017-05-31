@@ -13,7 +13,9 @@ window.onload = function () {
         //minAccuracy: 150,
         zoom: 16, //15
         loadingTimeout: 10000,
-        defaultLocation: {lat: 6.5179, lng: 3.3712}//yabatech coordinates
+        defaultLocation: {lat: 6.5179, lng: 3.3712}, //yabatech coordinates
+        locMaxAgeTime: 30000,//if my marker still jumps thru points in d map, increase this to 45000
+        maxLocPrecision:150 //adjust this value too if map still jumps
     };
     var vars = {
         loadStart: Date.now(),
@@ -26,7 +28,9 @@ window.onload = function () {
         acquiredCurrentLoc: false,
         accuracy: null,
         accuracyInfowindowElem: null,
-        tripMode: false
+        tripMode: false,
+        lastLocTimestamp: null,
+        watchingMyLoc:false
     };
 
     //init
@@ -58,8 +62,6 @@ window.onload = function () {
             return;
         }
 
-        watchMyLocation();
-
         //first init map with last location stored in localStorage, also cheack server and update the vars.loc/vars.pos if the location from server is diff, means wen location changes, i shoud tell d localStorage/server
         //i think wen d script gets the users current location, it should jst put a marker thr, save current location to server and wait till the person requests a route or clicks go to my current location
         //u should setCenter of d map, because user might be current looking at sth on d map, then u just change am for d person?!
@@ -80,17 +82,20 @@ window.onload = function () {
 
 
     function watchMyLocation() {
-        navigator.geolocation.watchPosition(myLocSuccess, myLocError, {enableHighAccuracy: true, maximumAge: 30000, timeout: 27000});
+        navigator.geolocation.watchPosition(myLocSuccess, myLocError, {enableHighAccuracy: true/*, maximumAge: 30000, timeout: 27000*/});
     }
     function myLocSuccess(pos) {
-        if (locationIsDiff(pos)) {
-            //if the accuracy is too low, info the person that he's location accuracy is low and he should select he's current position
-            /*if (pos.coords.accuracy > config.minAccuracy) {
-             new Dialog('Low location accuracy', 'Your location accuracy is too low, please select or search your current location from the map, or switch to a device with a better location accuracy');
-             }
-             */
-            vars.myLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude};
-            onMyLocationChange(pos);
+        //check d location change if its within reasonable limits
+        if ((Date.now() - vars.lastLocTimestamp) >= config.locMaxAgeTime || getDistanceBtwPoints(vars.myLoc, {lat: pos.coords.latitude, lng: pos.coords.longitude}) < vars.maxLocPrecision) {
+            if (locationIsDiff(pos)) {
+                //if the accuracy is too low, info the person that he's location accuracy is low and he should select he's current position
+                /*if (pos.coords.accuracy > config.minAccuracy) {
+                 new Dialog('Low location accuracy', 'Your location accuracy is too low, please select or search your current location from the map, or switch to a device with a better location accuracy');
+                 }
+                 */
+                vars.myLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude};
+                onMyLocationChange(pos);
+            }
         }
 
         if (vars.accuracy !== pos.coords.accuracy) {
@@ -101,7 +106,7 @@ window.onload = function () {
             onheadingChanged(vars.myHeading = pos.heading);
         }
 
-
+        vars.lastLocTimestamp = Date.now();
     }
     function myLocError(err) {
         //maybe on error, if google maps has nt initialised , check server or local storage and get the last location d user was and display it in the map, or if u hv nt used d app bfr, then it'll use ur ip address to determine ur location and display that location, then also tell the user to turn on location or select hes location on d map
@@ -127,6 +132,14 @@ window.onload = function () {
         }
         //dnt refresh map, inform users that thrs a problem getting he's current location, either he should switch on location e.t.c
         new Dialog(heading, body);
+
+        if (vars.acquiredCurrentLoc) {
+            var iconMe = document.getElementById('iM');
+            iconMe.classList.remove('my-location-blue');
+            iconMe.classList.add('my-location-normal');
+            iconMe.setAttribute('title', 'Go to my last reported location');
+            vars.acquiredCurrentLoc = false;
+        }
     }
 
     function onMyLocationAccuracyChange() {
@@ -145,19 +158,19 @@ window.onload = function () {
         //save info to server
         saveCurrentLocation();
 
-        (function _() {
-            if (!document.getElementById('iM')) {
-                return setTimeout(_, 5);
-            }
+        if (!vars.acquiredCurrentLoc) {
+            vars.acquiredCurrentLoc = true;
+            (function _() {
+                if (!document.getElementById('iM')) {
+                    return setTimeout(_, 5);
+                }
 
-            if (!vars.acquiredCurrentLoc) {
-                vars.acquiredCurrentLoc = true;
                 var iconMe = document.getElementById('iM');
                 iconMe.classList.remove('my-location-normal');
-                iconMe.classList.add('my-location-icon-common');
                 iconMe.classList.add('my-location-blue');
-            }
-        })();
+                iconMe.setAttribute('title', 'Go to my current location');
+            })();
+        }
     }
 
     function updateLocationAccuracy() {//accuracySpec
@@ -312,6 +325,13 @@ window.onload = function () {
         tripCntl.appendChild(tripCntlIcon);
 
         meCntrl.addEventListener('click', function () {
+            if(!vars.watchingMyLoc){
+                vars.watchingMyLoc = true;
+                
+                watchMyLocation();
+                return;
+            }
+            
             if (vars.acquiredCurrentLoc) {
                 vars.map.panTo(vars.myLoc);
                 vars.map.setZoom(17);
@@ -331,6 +351,8 @@ window.onload = function () {
                     tripCntlIcon.setAttribute('style', 'color:#68A1E3;');
 
                     vars.tripMode = true;
+                }else{
+                   meCntrl.click(); 
                 }
             } else {
                 tripCntlIcon.style.color = '';
@@ -601,5 +623,22 @@ window.onload = function () {
     function onheadingChanged() {
         //alert('Heading changed: ' + vars.myHeading);
         console.log('Heading changed!');
+    }
+
+    function rad(x) {
+        return x * Math.PI / 180;
+    }
+    function getDistanceBtwPoints(p1, p2) {
+        //Haversine formula
+
+        var R = 6378137; // Earth’s mean radius in meter
+        var dLat = rad(p2.lat() - p1.lat());
+        var dLong = rad(p2.lng() - p1.lng());
+        var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(rad(p1.lat())) * Math.cos(rad(p2.lat())) *
+                Math.sin(dLong / 2) * Math.sin(dLong / 2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        var d = R * c;
+        return d; // returns the distance in meter
     }
 };
