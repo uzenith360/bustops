@@ -10,7 +10,7 @@ window.onload = function () {
     }
 
     var config = {
-        minAccuracy: 150,
+        //minAccuracy: 150,
         zoom: 16, //15
         loadingTimeout: 10000,
         defaultLocation: {lat: 6.5179, lng: 3.3712}//yabatech coordinates
@@ -23,7 +23,10 @@ window.onload = function () {
         myLoc: {}, //{lat: -34.397, lng: 150.644}
         myPos: {}, //full position information returned by geolocation api
         myHeading: {},
-        acquiredCurrentLoc: false
+        acquiredCurrentLoc: false,
+        accuracy: null,
+        accuracyInfowindowElem: null,
+        tripMode: false
     };
 
     //init
@@ -63,7 +66,7 @@ window.onload = function () {
         var lastLocationFrmStorage = getLastLocation(function (pos) {
             if (!vars.acquiredCurrentLoc && locationIsDiff(pos) && vars.myLoc.lat === config.defaultLocation.lat && vars.myLoc.lng === config.defaultLocation.lng) {
                 vars.myPos = pos;
-                vars.map.setCenter(vars.myLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude});
+                vars.map.panTo(vars.myLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude});
             }
         });
 
@@ -82,14 +85,23 @@ window.onload = function () {
     function myLocSuccess(pos) {
         if (locationIsDiff(pos)) {
             //if the accuracy is too low, info the person that he's location accuracy is low and he should select he's current position
-            if (pos.coords.accuracy > config.minAccuracy) {
-                new Dialog('Low location accuracy', 'Your location accuracy is too low, please select or search your current location from the map, or switch to a device with a better location accuracy');
-            }
-
+            /*if (pos.coords.accuracy > config.minAccuracy) {
+             new Dialog('Low location accuracy', 'Your location accuracy is too low, please select or search your current location from the map, or switch to a device with a better location accuracy');
+             }
+             */
+            vars.myLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude};
             onMyLocationChange(pos);
         }
 
-        headingChangedListener(pos);
+        if (vars.accuracy !== pos.coords.accuracy) {
+            onMyLocationAccuracyChange(vars.accuracy = pos.coords.accuracy);
+        }
+
+        if (vars.myHeading !== pos.heading) {
+            onheadingChanged(vars.myHeading = pos.heading);
+        }
+
+
     }
     function myLocError(err) {
         //maybe on error, if google maps has nt initialised , check server or local storage and get the last location d user was and display it in the map, or if u hv nt used d app bfr, then it'll use ur ip address to determine ur location and display that location, then also tell the user to turn on location or select hes location on d map
@@ -117,11 +129,16 @@ window.onload = function () {
         new Dialog(heading, body);
     }
 
+    function onMyLocationAccuracyChange() {
+        updateLocationAccuracy();
+    }
+
     function onMyLocationChange(pos) {
         vars.myPos = pos;
         //maybe if u are moving fast(Max/min speed), i can adjust(reduce) the maximum age of the watchPosition and if u slow down, i'll adjust(increase) the maximum age again
         //i dnt kw wht to do with altitude infomation, u dey fly ni, go use another app :-D
-        vars.myLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude};
+
+        vars.tripMode && vars.map.panTo(vars.myLoc);
 
         updateMyMarker();
 
@@ -143,15 +160,56 @@ window.onload = function () {
         })();
     }
 
+    function updateLocationAccuracy() {//accuracySpec
+        var accuracy;
+        if (vars.accuracy < 50) {
+            accuracy = ['blu', '#0275d8', 'Excellent'];
+        } else if (vars.accuracy < 100) {
+            accuracy = ['grn', '#5cb85c', 'Good'];
+        } else if (vars.accuracy < 200) {
+            accuracy = ['orange', '#f0ad4e', 'Fair'];
+        } else if (vars.accuracy < 350) {
+            accuracy = ['ylw', '#FFFF00', 'Poor'];
+        } else if (vars.accuracy < 550) {
+            accuracy = ['red', '#d9534f', 'Bad'];
+        } else {
+            accuracy = ['pink', '#C71585', 'Out of range'];
+        }
+
+        vars.myMarker.setIcon('http://maps.google.com/mapfiles/kml/paddle/' + accuracy[0] + '-circle_maps.png');
+        !isNaN(vars.accuracy) && (vars.accuracyInfowindowElem.innerHTML = '<span>Location accuracy: ' + (vars.accuracy < 150 ? vars.accuracy.toLocaleString() + 'm' : '<span style="color:#d9534f;">' + vars.accuracy.toLocaleString() + 'm</span>') + '</span><br><span style="color:' + accuracy[1] + ';">' + accuracy[2] + '</span>' + (vars.accuracy < 150 ? '' : '<hr style="margin-top:6.5px;margin-bottom:6.5px;"><span>Switch to a device with better accuracy</span>'));
+    }
+
     function updateMyMarker() {
         //lol did we really do this?
         //to prevent the location marker from having d blinking effect, first save the reference to the old marker, put the new marker, then delete the old marker
-        !vars.myMarker && (vars.myMarker = new vars.googleMaps.Marker({
-            position: vars.myLoc,
-            map: vars.map,
-            title: 'me',
-            icon: 'http://maps.google.com/mapfiles/kml/paddle/blu-circle_maps.png'
-        }));
+        if (!vars.myMarker) {
+            vars.myMarker = new vars.googleMaps.Marker({
+                position: vars.myLoc,
+                map: vars.map,
+                title: 'me',
+                icon: 'http://maps.google.com/mapfiles/kml/paddle/blu-circle_maps.png'/*,
+                 anchorPoint: vars.googleMaps.Point(0, -29)*/
+            });
+            var contentContainer = document.createElement('div'), contentHeading = document.createElement('strong'), contentBody = document.createElement('div');
+
+            vars.accuracyInfowindowElem = contentBody;
+
+            contentHeading.innerHTML = 'You are here';
+            contentContainer.appendChild(contentHeading);
+            contentContainer.appendChild(contentBody);
+
+
+            var infowindow = new vars.googleMaps.InfoWindow({
+                content: contentContainer
+            });
+
+            vars.googleMaps.event.addListener(vars.myMarker, 'click', function () {
+                infowindow.open(vars.map, vars.myMarker);
+            });
+
+            return;
+        }
 
         vars.myMarker.setPosition(vars.myLoc);
     }
@@ -222,7 +280,7 @@ window.onload = function () {
         vars.googleMaps.event.addListener(vars.map, 'tilt_changed', onMaptilt_changed);
         vars.googleMaps.event.addListener(vars.map, 'zoom_changed', onMapzoom_changed);
 
-        var input = document.createElement("input"), icoSpan = document.createElement("span"), ico = document.createElement("img"), meCntrl = document.createElement("div"), icoMe = document.createElement("div"), icoMeBtn = document.createElement("button");
+        var input = document.createElement("input"), icoSpan = document.createElement("span"), ico = document.createElement("img"), meCntrl = document.createElement("div"), icoMe = document.createElement("div"), icoMeBtn = document.createElement("button"), tripCntl = document.createElement("div"), tripCntlIcon = document.createElement("span");
         input.setAttribute('type', 'text');
         input.setAttribute('placeholder', 'Enter a location');
         input.setAttribute('class', 'controls');
@@ -245,17 +303,40 @@ window.onload = function () {
         icoMe.setAttribute('title', 'Go to my location');
         icoMeBtn.appendChild(icoMe);
         meCntrl.appendChild(icoMeBtn);
+        tripCntl.setAttribute('title', 'Trip mode');
+        tripCntl.setAttribute('style', 'cursor:pointer;margin-right:10px;margin-bottom:10px;width: 28px; height: 27px;padding:6px 6px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;font-family: Roboto;font-size: 100%;font-weight: 300;');
+        tripCntlIcon.setAttribute('id', 'tCI');
+        tripCntlIcon.classList.add('glyphicon');
+        tripCntlIcon.classList.add('glyphicon-record');
+        tripCntl.appendChild(tripCntlIcon);
 
         meCntrl.addEventListener('click', function () {
             if (vars.acquiredCurrentLoc) {
-                vars.map.setCenter(vars.myLoc);
+                vars.map.panTo(vars.myLoc);
                 vars.map.setZoom(17);
+            }
+        });
+
+        tripCntl.addEventListener('click', function () {
+            if (!vars.tripMode) {
+                if (vars.acquiredCurrentLoc) {
+                    //Move map to my location
+                    vars.map.panTo(vars.myLoc);
+
+                    tripCntlIcon.style.color = '#68A1E3';
+
+                    vars.tripMode = true;
+                }
+            } else {
+                tripCntlIcon.style.color = '';
+                vars.tripMode = false;
             }
         });
 
         vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(icoSpan);
         vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(input);
         vars.map.controls[vars.googleMaps.ControlPosition.RIGHT_BOTTOM].push(meCntrl);
+        vars.map.controls[vars.googleMaps.ControlPosition.RIGHT_BOTTOM].push(tripCntl);
 
         var autocomplete = new vars.googleMaps.places.Autocomplete(input);
         autocomplete.bindTo('bounds', vars.map);
@@ -278,7 +359,7 @@ window.onload = function () {
             if (place.geometry.viewport) {
                 vars.map.fitBounds(place.geometry.viewport);
             } else {
-                vars.map.setCenter(place.geometry.location);
+                vars.map.panTo(place.geometry.location);
                 vars.map.setZoom(17);
             }
 
@@ -505,20 +586,15 @@ window.onload = function () {
         return getLastLocationFromLocalStorage();
     }
     function locationIsDiff(newPos) {
-        if (!newPos.coords || !newPos.coords.latitude || !newPos.coords.longitude) {
+        if (!newPos.coords || isNaN(newPos.coords.latitude) || isNaN(newPos.coords.longitude)) {
             return null;
         }
 
         return !vars.myLoc.lat || vars.myPos.latitude !== newPos.coords.latitude || vars.myPos.longitude !== newPos.coords.longitude ? true : false;
     }
 
-    function headingChangedListener(pos) {
-        if (vars.myHeading !== pos.heading) {
-            onheadingChanged(vars.myHeading = pos.heading);
-        }
-    }
     function onheadingChanged() {
-        alert('Heading changed: ' + vars.myHeading);
+        //alert('Heading changed: ' + vars.myHeading);
         console.log('Heading changed!');
     }
 };
