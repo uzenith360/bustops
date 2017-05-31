@@ -303,6 +303,7 @@ window.onload = function () {
         icoMe.setAttribute('title', 'Go to my location');
         icoMeBtn.appendChild(icoMe);
         meCntrl.appendChild(icoMeBtn);
+        tripCntl.setAttribute('id', 'tC');
         tripCntl.setAttribute('title', 'Trip mode');
         tripCntl.setAttribute('style', 'cursor:pointer;margin-right:10px;margin-bottom:10px;width: 28px; height: 27px;padding:6px 6px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;font-family: Roboto;font-size: 100%;font-weight: 300;');
         tripCntlIcon.setAttribute('id', 'tCI');
@@ -322,6 +323,7 @@ window.onload = function () {
                 if (vars.acquiredCurrentLoc) {
                     //Move map to my location
                     vars.map.panTo(vars.myLoc);
+                    vars.map.setZoom(17);
 
                     tripCntlIcon.style.color = '#68A1E3';
 

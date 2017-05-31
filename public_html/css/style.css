@@ -30,8 +30,13 @@ body {
 }
 #tCI:hover{
     -webkit-filter: brightness(0.9);
-filter: brightness(0.9);
-    }
+    filter: brightness(0.9);
+}
+#tC:active{
+  outline: thin dotted;
+  outline: 5px auto -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
 .widget-mylocation{width:29px;height:29px;position:relative}
 .my-location{background-color:rgba(255,255,255,1);border-radius:2px;box-shadow:0 1px 4px rgba(0,0,0,0.3);display:block;width: 28px; height: 27px;overflow:hidden;cursor:pointer;transition:background-color 0.16s ease-out}
 .my-location:focus{
