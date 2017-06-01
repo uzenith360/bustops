@@ -182,7 +182,7 @@ window.onload = function () {
         var X = Math.cos(toLoc.lat) * Math.sin(L);
         var Y = Math.cos(frmLoc.lat) * Math.sin(toLoc.lat) - Math.sin(frmLoc.lat) * Math.cos(toLoc.lat) * Math.cos(L);
         var β = Math.atan2(X, Y);
-        var rotate =(β > 0 ? β : (2*Math.PI + β)) * 360 / (2*Math.PI);//calculate the b ranges and rotateDeg ranges and convert btw the two
+        var rotate =(β > 0 ? β : (2*Math.PI + β)) * 360 / (2*Math.PI);
 
         document.getElementById('h').setAttribute('style', '-o-transform: rotate('+rotate+'deg);-moz-transform: rotate('+rotate+'deg);-ms-transform: rotate('+rotate+'deg);-webkit-transform: rotate('+rotate+'deg);transform: rotate('+rotate+'deg);');
     }
