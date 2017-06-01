@@ -14,8 +14,9 @@ window.onload = function () {
         zoom: 16, //15
         loadingTimeout: 10000,
         defaultLocation: {lat: 6.5179, lng: 3.3712}, //yabatech coordinates
-        locMaxAgeTime: 30000, //if my marker still jumps thru points in d map, increase this to 45000
-        maxLocPrecision: 150 //adjust this value too if map still jumps
+        locMaxAgeTime: 30000,
+        maxLocPrecision: 400, //reduce this value too if map still jumps, if map doesnt jump again, but delays for long, then jumps to a long distance, then increase it. Keep adjusting until we get a fine tuned value
+        accuracyCutoffPoint: 600
     };
     var vars = {
         loadStart: Date.now(),
@@ -85,32 +86,35 @@ window.onload = function () {
         navigator.geolocation.watchPosition(myLocSuccess, myLocError, {enableHighAccuracy: true/*, maximumAge: 30000, timeout: 27000*/});
     }
     function myLocSuccess(pos) {
-        //check d location change if its within reasonable limits
-        if ((Date.now() - vars.lastLocTimestamp) >= config.locMaxAgeTime || getDistanceBtwPoints(vars.myLoc, {lat: pos.coords.latitude, lng: pos.coords.longitude}) < vars.maxLocPrecision) {
-            if (locationIsDiff(pos)) {
-                //if the accuracy is too low, info the person that he's location accuracy is low and he should select he's current position
-                /*if (pos.coords.accuracy > config.minAccuracy) {
-                 new Dialog('Low location accuracy', 'Your location accuracy is too low, please select or search your current location from the map, or switch to a device with a better location accuracy');
-                 }
-                 */
-                var newLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude};
-
-                vars.tripMode && vars.myLoc && updateHeading(vars.myLoc, newLoc);
-
-                vars.myLoc = newLoc;
-                onMyLocationChange(pos);
-            }
-        }
-
         if (vars.accuracy !== pos.coords.accuracy) {
             onMyLocationAccuracyChange(vars.accuracy = pos.coords.accuracy);
         }
 
-        if (vars.myHeading !== pos.heading) {
-            onheadingChanged(vars.myHeading = pos.heading);
-        }
+        //if the accuracy is very bad dnt call anymore event handlers, we cant trust d coordinates
+        if (pos.coords.accuracy < config.accuracyCutoffPoint) {
+            //check d location change if its within reasonable limits
+            if ((Date.now() - vars.lastLocTimestamp) >= config.locMaxAgeTime || getDistanceBtwPoints(vars.myLoc, {lat: pos.coords.latitude, lng: pos.coords.longitude}) < vars.maxLocPrecision) {
+                if (locationIsDiff(pos)) {
+                    //if the accuracy is too low, info the person that he's location accuracy is low and he should select he's current position
+                    /*if (pos.coords.accuracy > config.minAccuracy) {
+                     new Dialog('Low location accuracy', 'Your location accuracy is too low, please select or search your current location from the map, or switch to a device with a better location accuracy');
+                     }
+                     */
+                    var newLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude};
 
-        vars.lastLocTimestamp = Date.now();
+                    vars.tripMode && vars.myLoc && updateHeading(vars.myLoc, newLoc);
+
+                    vars.myLoc = newLoc;
+                    onMyLocationChange(pos);
+                }
+            }
+
+            if (vars.myHeading !== pos.heading) {
+                onheadingChanged(vars.myHeading = pos.heading);
+            }
+
+            vars.lastLocTimestamp = Date.now();
+        }
     }
     function myLocError(err) {
         //maybe on error, if google maps has nt initialised , check server or local storage and get the last location d user was and display it in the map, or if u hv nt used d app bfr, then it'll use ur ip address to determine ur location and display that location, then also tell the user to turn on location or select hes location on d map
@@ -182,9 +186,9 @@ window.onload = function () {
         var X = Math.cos(toLoc.lat) * Math.sin(L);
         var Y = Math.cos(frmLoc.lat) * Math.sin(toLoc.lat) - Math.sin(frmLoc.lat) * Math.cos(toLoc.lat) * Math.cos(L);
         var β = Math.atan2(X, Y);
-        var rotate =(β > 0 ? β : (2*Math.PI + β)) * 360 / (2*Math.PI);
+        var rotate = (β > 0 ? β : (2 * Math.PI + β)) * 360 / (2 * Math.PI);
 
-        document.getElementById('h').setAttribute('style', '-o-transform: rotate('+rotate+'deg);-moz-transform: rotate('+rotate+'deg);-ms-transform: rotate('+rotate+'deg);-webkit-transform: rotate('+rotate+'deg);transform: rotate('+rotate+'deg);');
+        document.getElementById('h').setAttribute('style', '-o-transform: rotate(' + rotate + 'deg);-moz-transform: rotate(' + rotate + 'deg);-ms-transform: rotate(' + rotate + 'deg);-webkit-transform: rotate(' + rotate + 'deg);transform: rotate(' + rotate + 'deg);');
     }
 
     function updateLocationAccuracy() {//accuracySpec
@@ -197,7 +201,7 @@ window.onload = function () {
             accuracy = ['orange', '#f0ad4e', 'Fair'];
         } else if (vars.accuracy < 350) {
             accuracy = ['ylw', '#FFFF00', 'Poor'];
-        } else if (vars.accuracy < 550) {
+        } else if (vars.accuracy < config.accuracyCutoffPoint) {
             accuracy = ['red', '#d9534f', 'Bad'];
         } else {
             accuracy = ['pink', '#C71585', 'Out of range'];
