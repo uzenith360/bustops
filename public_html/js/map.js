@@ -5,7 +5,7 @@ var map = {};
 
 window.onload = function () {
     if (!navigator.geolocation) {//new Dialog('', '<input type="text">', '<button z-dialog-send>send</button>', {send:['click', function(){alert('Send');return true;}]})
-        new Dialog('Upgrade your browser', 'Bustops is not supported by your browser, please upgrade your browser to the latest version, or use chrome');
+        new Dialog('Location not supported by your browser', 'Bustops needs location to work properly, please upgrade your browser to the latest version, or use chrome');
         return;
     }
 
@@ -515,7 +515,7 @@ window.onload = function () {
                                     heading.innerHTML = 'Review some field(s)';
                                     break;
                                 default:
-                                    heading.innerHTML = 'Problem Saving';
+                                    heading.innerHTML = 'Problem Saving, please try again';
                                     break;
                             }
 
