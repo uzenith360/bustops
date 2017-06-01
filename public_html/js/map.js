@@ -14,8 +14,8 @@ window.onload = function () {
         zoom: 16, //15
         loadingTimeout: 10000,
         defaultLocation: {lat: 6.5179, lng: 3.3712}, //yabatech coordinates
-        locMaxAgeTime: 30000,//if my marker still jumps thru points in d map, increase this to 45000
-        maxLocPrecision:150 //adjust this value too if map still jumps
+        locMaxAgeTime: 30000, //if my marker still jumps thru points in d map, increase this to 45000
+        maxLocPrecision: 150 //adjust this value too if map still jumps
     };
     var vars = {
         loadStart: Date.now(),
@@ -30,7 +30,7 @@ window.onload = function () {
         accuracyInfowindowElem: null,
         tripMode: false,
         lastLocTimestamp: null,
-        watchingMyLoc:false
+        watchingMyLoc: false
     };
 
     //init
@@ -93,7 +93,11 @@ window.onload = function () {
                  new Dialog('Low location accuracy', 'Your location accuracy is too low, please select or search your current location from the map, or switch to a device with a better location accuracy');
                  }
                  */
-                vars.myLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude};
+                var newLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude};
+
+                vars.tripMode && vars.myLoc && updateHeading(vars.myLoc, newLoc);
+
+                vars.myLoc = newLoc;
                 onMyLocationChange(pos);
             }
         }
@@ -171,6 +175,16 @@ window.onload = function () {
                 iconMe.setAttribute('title', 'Go to my current location');
             })();
         }
+    }
+
+    function updateHeading(frmLoc, toLoc) {
+        var L = toLoc.lng - frmLoc.lng;
+        var X = Math.cos(toLoc.lat) * Math.sin(L);
+        var Y = Math.cos(frmLoc.lat) * Math.sin(toLoc.lat) - Math.sin(frmLoc.lat) * Math.cos(toLoc.lat) * Math.cos(L);
+        var β = Math.atan2(X, Y);
+        var rotate =(β > 0 ? β : (2*Math.PI + β)) * 360 / (2*Math.PI);//calculate the b ranges and rotateDeg ranges and convert btw the two
+
+        document.getElementById('h').setAttribute('style', '-o-transform: rotate('+rotate+'deg);-moz-transform: rotate('+rotate+'deg);-ms-transform: rotate('+rotate+'deg);-webkit-transform: rotate('+rotate+'deg);transform: rotate('+rotate+'deg);');
     }
 
     function updateLocationAccuracy() {//accuracySpec
@@ -293,7 +307,7 @@ window.onload = function () {
         vars.googleMaps.event.addListener(vars.map, 'tilt_changed', onMaptilt_changed);
         vars.googleMaps.event.addListener(vars.map, 'zoom_changed', onMapzoom_changed);
 
-        var input = document.createElement("input"), icoSpan = document.createElement("span"), ico = document.createElement("img"), meCntrl = document.createElement("div"), icoMe = document.createElement("div"), icoMeBtn = document.createElement("button"), tripCntl = document.createElement("div"), tripCntlIcon = document.createElement("span");
+        var input = document.createElement("input"), icoSpan = document.createElement("span"), ico = document.createElement("img"), meCntrl = document.createElement("div"), icoMe = document.createElement("div"), icoMeBtn = document.createElement("button"), tripCntl = document.createElement("div"), tripCntlIcon = document.createElement("span"), dirCntl = document.createElement("div"), dir = document.createElement("img");
         input.setAttribute('type', 'text');
         input.setAttribute('placeholder', 'Enter a location');
         input.setAttribute('class', 'controls');
@@ -323,15 +337,21 @@ window.onload = function () {
         tripCntlIcon.classList.add('glyphicon');
         tripCntlIcon.classList.add('glyphicon-record');
         tripCntl.appendChild(tripCntlIcon);
+        dir.setAttribute('alt', 'heading');
+        dir.setAttribute('src', 'img/heading.png');
+        dir.setAttribute('style', '-webkit-transition: 300ms ease all;-moz-transition: 300ms ease all;-o-transition: 300ms ease all;-ms-transition: 300ms ease all;transition: 300ms ease all;');
+        dir.setAttribute('id', 'h');
+        dirCntl.setAttribute('style', 'display:none;margin-right:10px;margin-bottom:10px;width: 28px; height: 27px;padding:4px 4px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
+        dirCntl.appendChild(dir);
 
         meCntrl.addEventListener('click', function () {
-            if(!vars.watchingMyLoc){
+            if (!vars.watchingMyLoc) {
                 vars.watchingMyLoc = true;
-                
+
                 watchMyLocation();
                 return;
             }
-            
+
             if (vars.acquiredCurrentLoc) {
                 vars.map.panTo(vars.myLoc);
                 vars.map.setZoom(17);
@@ -349,13 +369,16 @@ window.onload = function () {
                     }, 0);
 
                     tripCntlIcon.setAttribute('style', 'color:#68A1E3;');
+                    dirCntl.style.display = 'block';
 
                     vars.tripMode = true;
-                }else{
-                   meCntrl.click(); 
+                } else {
+                    meCntrl.click();
                 }
             } else {
                 tripCntlIcon.style.color = '';
+                dirCntl.style.display = 'none';
+                dir.setAttribute('style', '-o-transform: rotate(0deg);-moz-transform: rotate(0deg);-ms-transform: rotate(0deg);-webkit-transform: rotate(0deg);transform: rotate(0deg);');
                 vars.tripMode = false;
             }
         });
@@ -364,6 +387,7 @@ window.onload = function () {
         vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(input);
         vars.map.controls[vars.googleMaps.ControlPosition.RIGHT_BOTTOM].push(meCntrl);
         vars.map.controls[vars.googleMaps.ControlPosition.RIGHT_BOTTOM].push(tripCntl);
+        vars.map.controls[vars.googleMaps.ControlPosition.RIGHT_BOTTOM].push(dirCntl);
 
         var autocomplete = new vars.googleMaps.places.Autocomplete(input);
         autocomplete.bindTo('bounds', vars.map);
