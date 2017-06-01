@@ -340,6 +340,7 @@ window.onload = function () {
         dir.setAttribute('alt', 'heading');
         dir.setAttribute('src', 'img/heading.png');
         dir.setAttribute('id', 'h');
+        dirCntl.setAttribute('title', 'Your heading');
         dirCntl.setAttribute('style', 'display:none;margin-right:10px;margin-bottom:10px;width: 28px; height: 27px;padding:4px 4px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
         dirCntl.appendChild(dir);
 
