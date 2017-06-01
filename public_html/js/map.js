@@ -86,12 +86,7 @@ window.onload = function () {
         navigator.geolocation.watchPosition(myLocSuccess, myLocError, {enableHighAccuracy: true/*, maximumAge: 30000, timeout: 27000*/});
     }
     function myLocSuccess(pos) {
-        if (vars.accuracy !== pos.coords.accuracy) {
-            onMyLocationAccuracyChange(vars.accuracy = pos.coords.accuracy);
-        }
-
-        //if the accuracy is very bad dnt call anymore event handlers, we cant trust d coordinates
-        if (pos.coords.accuracy < config.accuracyCutoffPoint) {
+        if (pos.coords.accuracy < config.accuracyCutoffPoint || !vars.acquiredCurrentLoc) {
             //check d location change if its within reasonable limits
             if ((Date.now() - vars.lastLocTimestamp) >= config.locMaxAgeTime || getDistanceBtwPoints(vars.myLoc, {lat: pos.coords.latitude, lng: pos.coords.longitude}) < vars.maxLocPrecision) {
                 if (locationIsDiff(pos)) {
@@ -115,6 +110,13 @@ window.onload = function () {
 
             vars.lastLocTimestamp = Date.now();
         }
+        
+        if (vars.accuracy !== pos.coords.accuracy) {
+            onMyLocationAccuracyChange(vars.accuracy = pos.coords.accuracy);
+        }
+
+        //if the accuracy is very bad dnt call anymore event handlers, we cant trust d coordinates
+        
     }
     function myLocError(err) {
         //maybe on error, if google maps has nt initialised , check server or local storage and get the last location d user was and display it in the map, or if u hv nt used d app bfr, then it'll use ur ip address to determine ur location and display that location, then also tell the user to turn on location or select hes location on d map
