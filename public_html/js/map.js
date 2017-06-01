@@ -339,7 +339,6 @@ window.onload = function () {
         tripCntl.appendChild(tripCntlIcon);
         dir.setAttribute('alt', 'heading');
         dir.setAttribute('src', 'img/heading.png');
-        dir.setAttribute('style', '-webkit-transition: 300ms ease all;-moz-transition: 300ms ease all;-o-transition: 300ms ease all;-ms-transition: 300ms ease all;transition: 300ms ease all;');
         dir.setAttribute('id', 'h');
         dirCntl.setAttribute('style', 'display:none;margin-right:10px;margin-bottom:10px;width: 28px; height: 27px;padding:4px 4px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
         dirCntl.appendChild(dir);
