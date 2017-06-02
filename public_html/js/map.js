@@ -15,7 +15,7 @@ window.onload = function () {
         loadingTimeout: 10000,
         defaultLocation: {lat: 6.5179, lng: 3.3712}, //yabatech coordinates
         locMaxAgeTime: 30000,
-        maxLocPrecision: 400, //reduce this value too if map still jumps, if map doesnt jump again, but delays for long, then jumps to a long distance, then increase it. Keep adjusting until we get a fine tuned value
+        maxLocPrecision: 120, //reduce this value too if map still jumps, if map doesnt jump again, but delays for long, then jumps to a long distance, then increase it. Keep adjusting until we get a fine tuned value
         accuracyCutoffPoint: 600
     };
     var vars = {
