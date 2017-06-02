@@ -32,13 +32,21 @@ body {
     -webkit-filter: brightness(0.9);
     filter: brightness(0.9);
 }
-#tC:active{
+#tC:active, .addLocationInfo:active{
     outline: thin dotted;
     outline: 5px auto -webkit-focus-ring-color;
     outline-offset: -2px;
 }
 #h{
     -webkit-transition: all 1s ease;-moz-transition: all 1s ease;-o-transition: all 1s ease;-ms-transition: all 1s ease;transition: all 1s ease;
+}
+.addLocationInfo{
+    color: #337ab7;
+    cursor: pointer;
+    margin: 5px 0 0 0;
+}
+.addLocationInfo:hover{
+    text-decoration: underline;
 }
 .widget-mylocation{width:29px;height:29px;position:relative}
 .my-location{background-color:rgba(255,255,255,1);border-radius:2px;box-shadow:0 1px 4px rgba(0,0,0,0.3);display:block;width: 28px; height: 27px;overflow:hidden;cursor:pointer;transition:background-color 0.16s ease-out}

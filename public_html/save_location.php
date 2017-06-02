@@ -22,12 +22,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         //FIRST UPLOAD FILE BEFORE SUBMITTING TO DATA MONGO
         $cleanedUserInputMap = array_map(function($value) {
             return htmlspecialchars(strip_tags(trim(isset($_POST[$value]) ? $_POST[$value] : '')));
-        }, ['name' => 'name', 'type' => 'type', 'address' => 'address', 'description' => 'description', 'admin_id' => 'admin_id', 'lat' => 'lat', 'lng' => 'lng']);
+        }, ['names' => 'names', 'type' => 'type', 'addresses' => 'addresses', 'description' => 'description', 'admin_id' => 'admin_id', 'lat' => 'lat', 'lng' => 'lng']);
         $validationResult = $form_validate([
             'admin_id' => 'required',
-            'name' => 'required',
+            'names' => 'required',//array now
             'type' => 'required',
-            'address' => 'required',
+            'addresses' => 'required',//array now
             'lat' => 'required|double',
             'lng' => 'required|double'
                 //'description' => ''

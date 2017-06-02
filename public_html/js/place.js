@@ -141,17 +141,21 @@ function Place(info, options) {
      map_icon_label: '<span class="map-icon map-icon-bus-station"></span>'
      });*/
 
-    var address;
-    if (!(address = info.address) && info.address_components) {
-        address += [
+    var addresses;
+    if (info.address_components) {
+        addresses += [
             (info.address_components[0] && info.address_components[0].short_name || ''),
             (info.address_components[1] && info.address_components[1].short_name || ''),
             (info.address_components[2] && info.address_components[2].short_name || '')
         ].join(' ');
+    } else if (info.address) {
+        addresses = info.address.reduce(function (addreses, address) {
+            return addreses + (addreses ? '<br/>' : '') + address;
+        }, '');
     }
 
     var googleMaps = google.maps, infowindow = new googleMaps.InfoWindow({
-        content: '<div style="display: inline;">' + (info.icon ? '<img src="' + info.icon + '" width="16" height="16">' : '') + (String(info.name) ? '<span style="font-weight: bold;">' + info.name + '</span>' : '') + (address ? '<br><span>' + address + '</span>' : '')+ (info.description ? '<br><br><span style="color: #999;">' + info.description + '</span>' : '') + '</div>'
+        content: '<div style="display: inline;">' + (info.icon ? '<img src="' + info.icon + '" width="16" height="16">' : '') + (String(info.names) ? '<span style="font-weight: bold;">' + info.names + '</span>' : '') + (addresses ? '<br><span>' + addresses + '</span>' : '') + (info.description ? '<br><br><span style="color: #999;">' + info.description + '</span>' : '') + '</div>'
     }), marker = new googleMaps.Marker({
         position: options.loc,
         map: options.map,
