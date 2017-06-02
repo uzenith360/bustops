@@ -102,13 +102,14 @@ window.onload = function () {
                     vars.myLoc = newLoc;
                     onMyLocationChange(pos);
                 }
+                
+                vars.lastLocTimestamp = Date.now();
             }
-
-            if (vars.myHeading !== pos.heading) {
+            
+            //Heading doesnt return anything useful, so i dnt even use it for anything
+            /*if (vars.myHeading !== pos.heading) {
                 onheadingChanged(vars.myHeading = pos.heading);
-            }
-
-            vars.lastLocTimestamp = Date.now();
+            }*/
         }
         
         if (vars.accuracy !== pos.coords.accuracy) {
@@ -657,7 +658,7 @@ window.onload = function () {
 
         return !vars.myLoc.lat || vars.myPos.latitude !== newPos.coords.latitude || vars.myPos.longitude !== newPos.coords.longitude ? true : false;
     }
-
+    //Heading doesnt return anything useful, so i dnt even use it for anything
     function onheadingChanged() {
         //alert('Heading changed: ' + vars.myHeading);
         console.log('Heading changed!');
