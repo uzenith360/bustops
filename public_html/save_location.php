@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $bulk = new MongoDB\Driver\BulkWrite();
                     $bulk->insert(array_merge(['pictures' => $pictures], $cleanedUserInputMap));
                     $result = $mongoDB->executeBulkWrite('bustops.locations', $bulk);
-                 } catch (MongoDB\Driver\Exception\Exception $e) {echo print_r($e);
+                 } catch (MongoDB\Driver\Exception\Exception $e) {
                     //Catch all exceptions
                     $response ['err'] = ['error' => 'DB', 'msg' => ['message' => 'An error occurred, please retry']];
                 }
