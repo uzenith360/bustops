@@ -475,35 +475,8 @@ window.onload = function () {
     //U can trigger events: google.maps.event.trigger(map, 'resize')
     function onMapbounds_changed(e) {
         console.log('bounds_changed');
-
-        //call the php script to get a locations within this bounds
-        //the ajax request would be a get request, since its a light and frequently called request
-        //throttle the requests from like 500/700ms to 1 second
-
-        $.ajax({
-            type: "GET",
-            url: "get_places.php",
-            data: vars.map.getBounds().toJSON(),
-            dataType: 'TEXT',
-            success: function (response) {
-                if(response){
-                    try{
-                        response = JSON.parse(response);
-                        console.log(response);
-                    }catch(e){
-                        //parse error, probable caused by server spitting out error instead of data
-                    }
-                }else{
-                    //no results
-                }
-            }, error: function (jqXHR, textStatus, errorThrown) {
-                console.log(textStatus);
-            }, complete: function () {
-
-            }
-        });
     }
-    function onMapcenter_changed() {
+    function onMapcenter_changed() {console.error('centre');
         console.log('center_changed');
     }
     function onMapclick(e) {//console.log(e);
@@ -664,8 +637,35 @@ window.onload = function () {
         console.log('rightclick');
     }
     function onMaptilesloaded() {
-        new Place(vars.myLoc, vars.map, 'BUSTOP', 'info');
         console.log('tilesloaded');
+        
+        //call the php script to get a locations within this bounds
+        //the ajax request would be a get request, since its a light and frequently called request
+        //throttle the requests from like 500/700ms to 1 second
+        //i guess putting it in the tiles loaded event handler ensures that its only called wen necessary
+        
+        $.ajax({
+            type: "GET",
+            url: "get_places.php",
+            data: vars.map.getBounds().toJSON(),
+            dataType: 'TEXT',
+            success: function (response) {
+                if(response){
+                    try{
+                        response = JSON.parse(response);
+                        console.log(response);
+                    }catch(e){
+                        //parse error, probable caused by server spitting out error instead of data
+                    }
+                }else{
+                    //no results
+                }
+            }, error: function (jqXHR, textStatus, errorThrown) {
+                console.log(textStatus);
+            }, complete: function () {
+
+            }
+        });
     }
     function onMaptilt_changed() {
         console.log('tilt_changed');
