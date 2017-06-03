@@ -31,7 +31,8 @@ window.onload = function () {
         accuracyInfowindowElem: null,
         tripMode: false,
         lastLocTimestamp: null,
-        watchingMyLoc: false
+        watchingMyLoc: false,
+        locationWatch: null
     };
 
     //init
@@ -83,41 +84,41 @@ window.onload = function () {
 
 
     function watchMyLocation() {
-        navigator.geolocation.watchPosition(myLocSuccess, myLocError, {enableHighAccuracy: true/*, maximumAge: 30000, timeout: 27000*/});
+        vars.locationWatch = navigator.geolocation.watchPosition(myLocSuccess, myLocError, {enableHighAccuracy: true/*, maximumAge: 30000, timeout: 27000*/});
     }
     function myLocSuccess(pos) {
         if (pos.coords.accuracy < config.accuracyCutoffPoint || !vars.acquiredCurrentLoc) {
+            var newLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude};
+
             //check d location change if its within reasonable limits
-            if ((Date.now() - vars.lastLocTimestamp) >= config.locMaxAgeTime || getDistanceBtwPoints(vars.myLoc, {lat: pos.coords.latitude, lng: pos.coords.longitude}) < vars.maxLocPrecision) {
+            if ((Date.now() - vars.lastLocTimestamp) >= config.locMaxAgeTime || getDistanceBtwPoints(vars.myLoc, newLoc) < vars.maxLocPrecision) {
                 if (locationIsDiff(pos)) {
                     //if the accuracy is too low, info the person that he's location accuracy is low and he should select he's current position
                     /*if (pos.coords.accuracy > config.minAccuracy) {
                      new Dialog('Low location accuracy', 'Your location accuracy is too low, please select or search your current location from the map, or switch to a device with a better location accuracy');
                      }
                      */
-                    var newLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude};
-
                     vars.tripMode && vars.myLoc && updateHeading(vars.myLoc, newLoc);
 
                     vars.myLoc = newLoc;
                     onMyLocationChange(pos);
                 }
-                
+
                 vars.lastLocTimestamp = Date.now();
             }
-            
+
             //Heading doesnt return anything useful, so i dnt even use it for anything
             /*if (vars.myHeading !== pos.heading) {
-                onheadingChanged(vars.myHeading = pos.heading);
-            }*/
+             onheadingChanged(vars.myHeading = pos.heading);
+             }*/
         }
-        
+
         if (vars.accuracy !== pos.coords.accuracy) {
             onMyLocationAccuracyChange(vars.accuracy = pos.coords.accuracy);
         }
 
         //if the accuracy is very bad dnt call anymore event handlers, we cant trust d coordinates
-        
+
     }
     function myLocError(err) {
         //maybe on error, if google maps has nt initialised , check server or local storage and get the last location d user was and display it in the map, or if u hv nt used d app bfr, then it'll use ur ip address to determine ur location and display that location, then also tell the user to turn on location or select hes location on d map
@@ -168,13 +169,15 @@ window.onload = function () {
 
         //save info to server
         saveCurrentLocation();
-
+        
         if (!vars.acquiredCurrentLoc) {
             vars.acquiredCurrentLoc = true;
             (function _() {
                 if (!document.getElementById('iM')) {
                     return setTimeout(_, 5);
                 }
+
+                vars.myMarker.setMap(vars.map);
 
                 var iconMe = document.getElementById('iM');
                 iconMe.classList.remove('my-location-normal');
@@ -220,7 +223,7 @@ window.onload = function () {
         if (!vars.myMarker) {
             vars.myMarker = new vars.googleMaps.Marker({
                 position: vars.myLoc,
-                map: vars.map,
+                //map: vars.map,
                 title: 'me',
                 icon: 'http://maps.google.com/mapfiles/kml/paddle/blu-circle_maps.png'/*,
                  anchorPoint: vars.googleMaps.Point(0, -29)*/
@@ -364,6 +367,34 @@ window.onload = function () {
                 vars.map.setZoom(17);
             }
         });
+        $(meCntrl).on('dblclick', function (e) {
+            if (!vars.watchingMyLoc) {
+                return;
+            }
+            
+            //for some reason setting the watchid to null makes it not possible to watch location again
+            vars.lastLocTimestamp = /*vars.locationWatch = */vars.accuracy = null;
+            vars.watchingMyLoc = vars.acquiredCurrentLoc = false;
+            vars.myLoc = vars.myPos = vars.myHeading = {};
+
+            vars.tripMode && tripCntl.click();
+
+            vars.myMarker.setMap(null);
+
+            var iconMe = document.getElementById('iM');
+            iconMe.classList.remove('my-location-blue');
+            iconMe.classList.add('my-location-normal');
+            iconMe.setAttribute('title', 'Go to my last reported location');
+
+            navigator.geolocation.clearWatch(vars.locationWatch);
+        });
+
+        meCntrl.addEventListener('mousedown', function () {
+            vars._eventsStuff_startMouseDownTime = Date.now();
+        });
+        meCntrl.addEventListener('mouseup', function () {
+            (Date.now() - vars._eventsStuff_startMouseDownTime) >= 500 && $(meCntrl).dblclick();
+        });
 
         tripCntl.addEventListener('click', function () {
             if (!vars.tripMode) {
@@ -463,19 +494,19 @@ window.onload = function () {
                     //close the dialog by returning true
                     return true;
                 }], add_location: ['click', function (e) {
-                    $('#'+e['z-dialog'].id + 'z-dialog-locations').append('<div style="margin-top:5px;" class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><input data-parsley-required name="name[]" type="text" class="form-control" placeholder="Location name"></div>');
+                    $('#' + e['z-dialog'].id + 'z-dialog-locations').append('<div style="margin-top:5px;" class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><input data-parsley-required name="name[]" type="text" class="form-control" placeholder="Location name"></div>');
                 }], add_address: ['click', function (e) {
-                    $('#'+e['z-dialog'].id + 'z-dialog-addresses').append('<textarea style="margin-top:5px;" data-parsley-required class="form-control" rows="2" name="address[]" placeholder="Address"></textarea>');
+                    $('#' + e['z-dialog'].id + 'z-dialog-addresses').append('<textarea style="margin-top:5px;" data-parsley-required class="form-control" rows="2" name="address[]" placeholder="Address"></textarea>');
                 }]}, true, function (zDialog) {
             //On Dialog Create
             $('#' + zDialog.id + 'z-dialog-save_location_form').parsley().on('form:submit', function (e) {
                 //after sending ajax request and req is success create the pin and close the dialog
                 var elemPrefix = zDialog.id + 'z-dialog-', form = document.getElementById(elemPrefix + 'save_location_form'), formElements = form.elements,
-                        type = formElements['type'].value, names = formElements['name'].map(function(address){
-                            return address.value;
-                        }), addresses = formElements['address'].map(function(address){
-                            return address.value;
-                        }), description = formElements['description'].value,
+                        type = formElements['type'].value, names = formElements['name'].map(function (address) {
+                    return address.value;
+                }), addresses = formElements['address'].map(function (address) {
+                    return address.value;
+                }), description = formElements['description'].value,
                         data = {names: names, type: type, addresses: addresses, description: description}, formData = new FormData(form), sendBtn = document.getElementById(elemPrefix + 'send'), heading = document.getElementById(elemPrefix + 'heading');
 
                 //Test value for admin id, admin_id is supposed to be saved to seesion on login
@@ -669,12 +700,11 @@ window.onload = function () {
     }
     function getDistanceBtwPoints(p1, p2) {
         //Haversine formula
-
         var R = 6378137; // Earth’s mean radius in meter
-        var dLat = rad(p2.lat() - p1.lat());
-        var dLong = rad(p2.lng() - p1.lng());
+        var dLat = rad(p2.lat - p1.lat);
+        var dLong = rad(p2.lng - p1.lng);
         var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(rad(p1.lat())) * Math.cos(rad(p2.lat())) *
+                Math.cos(rad(p1.lat)) * Math.cos(rad(p2.lat)) *
                 Math.sin(dLong / 2) * Math.sin(dLong / 2);
         var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         var d = R * c;
