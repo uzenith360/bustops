@@ -32,7 +32,8 @@ window.onload = function () {
         tripMode: false,
         lastLocTimestamp: null,
         watchingMyLoc: false,
-        locationWatch: null
+        locationWatch: null,
+        locations:{}
     };
 
     //init
@@ -476,7 +477,7 @@ window.onload = function () {
     function onMapbounds_changed(e) {
         console.log('bounds_changed');
     }
-    function onMapcenter_changed() {console.error('centre');
+    function onMapcenter_changed() {
         console.log('center_changed');
     }
     function onMapclick(e) {//console.log(e);
@@ -550,7 +551,7 @@ window.onload = function () {
                             heading.innerHTML = 'Saved';
 
                             //on success
-                            Place(data, {map: vars.map, loc: {lat: lat, lng: lng}, title: 'test'});
+                            (new Place(data, {map: vars.map, loc: {lat: lat, lng: lng}, title: 'New location'})).showInfo();
 
                             zDialog.close();
                         } else {
@@ -653,12 +654,20 @@ window.onload = function () {
                 if(response){
                     try{
                         response = JSON.parse(response);
-                        console.log(response);
+                        response.forEach(function(data){
+                            if(vars.locations.hasOwnProperty(data._id['$oid'])){
+                                return;
+                            }
+                            
+                            vars.locations[data._id['$oid']] = {data:data, marker:new Place(data, {map: vars.map, loc: data.latlng, title: 'saved location'})};
+                        });
                     }catch(e){
                         //parse error, probable caused by server spitting out error instead of data
+                        console.error('parse error');
                     }
                 }else{
-                    //no results
+                    //server didnt return anything
+                    console.error('no response');
                 }
             }, error: function (jqXHR, textStatus, errorThrown) {
                 console.log(textStatus);
