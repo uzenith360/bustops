@@ -148,14 +148,23 @@ function Place(info, options) {
             (info.address_components[1] && info.address_components[1].short_name || ''),
             (info.address_components[2] && info.address_components[2].short_name || '')
         ].join(' ');
-    } else if (info.address) {
-        addresses = info.address.reduce(function (addreses, address) {
+    } else if (info.addresses) {
+        addresses = info.addresses.reduce(function (addreses, address) {
             return addreses + (addreses ? '<br/>' : '') + address;
         }, '');
     }
 
+    var names;
+    if (Object.prototype.toString.call(info.names) === '[object Array]') {
+        names = info.names.reduce(function (names, name) {
+            return names + (names ? '<br/>' : '') + name;
+        }, '');
+    } else {
+        names = String(info.names);
+    }
+
     var googleMaps = google.maps, infowindow = new googleMaps.InfoWindow({
-        content: '<div style="display: inline;">' + (info.icon ? '<img src="' + info.icon + '" width="16" height="16">' : '') + (String(info.names) ? '<span style="font-weight: bold;">' + info.names + '</span>' : '') + (addresses ? '<br><span>' + addresses + '</span>' : '') + (info.description ? '<br><br><span style="color: #999;">' + info.description + '</span>' : '') + '</div>'
+        content: '<div style="display: inline;">' + (info.icon ? '<img src="' + info.icon + '" width="16" height="16">' : '') + (names ? '<span style="font-weight: bold;">' + names + '</span>' : '') + (addresses ? '<br><span>' + addresses + '</span>' : '') + (info.description ? '<br><br><span style="color: #999;">' + info.description + '</span>' : '') + '</div>'
     }), marker = new googleMaps.Marker({
         position: options.loc,
         map: options.map,

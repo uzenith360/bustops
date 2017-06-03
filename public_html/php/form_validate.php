@@ -150,6 +150,12 @@ $_form_validate_minions1 = [
         return !$subject || strlen($subject) >= $minlength ? false : ['message' => $formInputField . ' is shorter than ' . $minlength . ' characters long', 'field' => $formInputField, 'err' => 'minlength'];
     }, 'maxlength' => function ($subject, $maxlength, $formInputField) {
         return !$subject || strlen($subject) <= $maxlength ? false : ['message' => $formInputField . ' is longer than ' . $maxlength . ' characters long', 'field' => $formInputField, 'err' => 'maxlength'];
+    }, 'arraylength' => function ($subject, $length, $formInputField) {
+        return !$subject || count($subject) === (int) $length ? false : ['message' => $formInputField . ' is not ' . $length . ' items long', 'field' => $formInputField, 'err' => 'arraylength'];
+    }, 'arrayminlength' => function ($subject, $minlength, $formInputField) {
+        return !$subject || count($subject) >= $minlength ? false : ['message' => $formInputField . ' is shorter than ' . $minlength . ' items long', 'field' => $formInputField, 'err' => 'arrayminlength'];
+    }, 'arraymaxlength' => function ($subject, $maxlength, $formInputField) {
+        return !$subject || count($subject) <= $maxlength ? false : ['message' => $formInputField . ' is longer than ' . $maxlength . ' items long', 'field' => $formInputField, 'err' => 'arraymaxlength'];
     }];
 
 $_form_validate_minions2 = [

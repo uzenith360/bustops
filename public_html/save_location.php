@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $validationResult = $form_validate_multiple([
         'pictures[]' => 'filerequired|filemaxmegabytes:2|filemimetypes:image/jpeg,image/png,image/jpg'
-            ], ['pictures[]' => $_FILES['pictures']], ['pictures']);
+            ], ['pictures[]' => $_FILES['pictures']], ['pictures[]']);
 
 
 
@@ -25,9 +25,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }, ['names' => 'names', 'type' => 'type', 'addresses' => 'addresses', 'description' => 'description', 'admin_id' => 'admin_id', 'lat' => 'lat', 'lng' => 'lng']);
         $validationResult = $form_validate([
             'admin_id' => 'required',
-            'names' => 'required',//array now
+            'names' => 'required|array|arrayminlength:1',//array now
             'type' => 'required',
-            'addresses' => 'required',//array now
+            'addresses' => 'required|array|arrayminlength:1',//array now
             'lat' => 'required|double',
             'lng' => 'required|double'
                 //'description' => ''
