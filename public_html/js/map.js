@@ -484,9 +484,18 @@ window.onload = function () {
             type: "GET",
             url: "get_places.php",
             data: vars.map.getBounds().toJSON(),
-            dataType: 'JSON',
+            dataType: 'TEXT',
             success: function (response) {
-                console.log(response);
+                if(response){
+                    try{
+                        response = JSON.parse(response);
+                        console.log(response);
+                    }catch(e){
+                        //parse error, probable caused by server spitting out error instead of data
+                    }
+                }else{
+                    //no results
+                }
             }, error: function (jqXHR, textStatus, errorThrown) {
                 console.log(textStatus);
             }, complete: function () {

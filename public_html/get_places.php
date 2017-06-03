@@ -1,10 +1,13 @@
 <?php
-//this script extremely fast
+//make this script extremely fast
 
 /* session_start();
 
   if (!isset($_SESSION['id'])) {
   exit();
   } */
+require_once 'php/mongodb.php';
 
-echo print_r($mongo->executeQuery('bustops.locations', new MongoDB\Driver\Query(["$and"=>[["latlng.lat"=>["$gte"=>doubleval($_GET['south'])]], ["latlng.lat"=>["$lte"=>doubleval($_GET['north'])]], ["latlng.lng"=>["$gte"=>doubleval($_GET['west'])]], ["latlng.lng"=>["$lte"=>doubleval($_GET['east'])]]]], [])));
+foreach($mongoDB->executeQuery('bustops.locations', new MongoDB\Driver\Query(['$and'=>[["latlng.lat"=>['$gte'=> (+$_GET['south'])]], ["latlng.lat"=>['$lte'=>(+$_GET['north'])]], ["latlng.lng"=>['$gte'=>(+$_GET['west'])]], ["latlng.lng"=>['$lte'=>(+$_GET['east'])]]]], [])) as $r){
+   echo json_encode($r);
+}
