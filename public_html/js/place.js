@@ -164,7 +164,7 @@ function Place(info, options) {
     }
 
     var googleMaps = google.maps, infowindow = new googleMaps.InfoWindow({
-        content: '<div style="display: inline;">' + (info.icon ? '<img src="' + info.icon + '" width="16" height="16">' : '') + (names ? '<span style="font-weight: bold;">' + names + '</span>' : '') + (addresses ? '<br><span>' + addresses + '</span>' : '') + (info.description ? '<br><br><span style="color: #999;">' + info.description + '</span>' : '') + '</div>'
+        content: '<div style="display: inline;">' + (info.icon ? '<img src="' + info.icon + '" width="16" height="16">' : '') + (names ? '<span style="font-weight: bold;">' + names + '</span>' : '') + (addresses ? '<span style="margin-top:5px;">' + addresses + '</span>' : '') + (info.description ? '<br><br><span style="color: #999;">' + info.description + '</span>' : '') + '</div>'
     }), marker = new googleMaps.Marker({
         position: options.loc,
         map: options.map,
