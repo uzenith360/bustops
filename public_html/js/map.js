@@ -473,8 +473,26 @@ window.onload = function () {
 
     //Map Event handlers
     //U can trigger events: google.maps.event.trigger(map, 'resize')
-    function onMapbounds_changed() {
+    function onMapbounds_changed(e) {
         console.log('bounds_changed');
+
+        //call the php script to get a locations within this bounds
+        //the ajax request would be a get request, since its a light and frequently called request
+        //throttle the requests from like 500/700ms to 1 second
+
+        $.ajax({
+            type: "GET",
+            url: "get_places.php",
+            data: vars.map.getBounds().toJSON(),
+            dataType: 'JSON',
+            success: function (response) {
+                console.log(response);
+            }, error: function (jqXHR, textStatus, errorThrown) {
+                console.log(textStatus);
+            }, complete: function () {
+
+            }
+        });
     }
     function onMapcenter_changed() {
         console.log('center_changed');

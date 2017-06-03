@@ -38,8 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($validationResult)) {
             require_once 'php/mime_content_type.php';
-
-            $cleanedUserInputMap['latlng'] = ['lat' => $cleanedUserInputMap['lat'], 'lng' => $cleanedUserInputMap['lng']];
+            
+            $cleanedUserInputMap['latlng'] = ['lat' => doubleval($cleanedUserInputMap['lat']), 'lng' => doubleval($cleanedUserInputMap['lng'])];
             unset($cleanedUserInputMap['lat']);
             unset($cleanedUserInputMap['lng']);
 
