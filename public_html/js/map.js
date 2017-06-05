@@ -621,6 +621,7 @@ window.onload = function () {
     }
     function onMapidle() {
         console.log('idle');
+        loadLocations();
     }
     function onMapmaptypeid_changed() {
         console.log('maptypeid_changed');
@@ -639,42 +640,6 @@ window.onload = function () {
     }
     function onMaptilesloaded() {
         console.log('tilesloaded');
-        
-        //call the php script to get a locations within this bounds
-        //the ajax request would be a get request, since its a light and frequently called request
-        //throttle the requests from like 500/700ms to 1 second
-        //i guess putting it in the tiles loaded event handler ensures that its only called wen necessary
-        
-        $.ajax({
-            type: "GET",
-            url: "get_places.php",
-            data: vars.map.getBounds().toJSON(),
-            dataType: 'TEXT',
-            success: function (response) {
-                if(response){
-                    try{
-                        response = JSON.parse(response);
-                        response.forEach(function(data){
-                            if(vars.locations.hasOwnProperty(data._id['$oid'])){
-                                return;
-                            }
-                            
-                            vars.locations[data._id['$oid']] = {data:data, marker:new Place(data, {map: vars.map, loc: data.latlng, title: 'saved location'})};
-                        });
-                    }catch(e){
-                        //parse error, probable caused by server spitting out error instead of data
-                        console.error('parse error');
-                    }
-                }else{
-                    //server didnt return anything
-                    console.error('no response');
-                }
-            }, error: function (jqXHR, textStatus, errorThrown) {
-                console.log(textStatus);
-            }, complete: function () {
-
-            }
-        });
     }
     function onMaptilt_changed() {
         console.log('tilt_changed');
@@ -751,5 +716,44 @@ window.onload = function () {
         var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         var d = R * c;
         return d; // returns the distance in meter
+    }
+    
+    function loadLocations(){
+         //call the php script to get a locations within this bounds
+        //the ajax request would be a get request, since its a light and frequently called request
+        //throttle the requests from like 500/700ms to 1 second
+        //i guess putting it in the tiles loaded event handler ensures that its only called wen necessary
+        
+        $.ajax({
+            type: "GET",
+            url: "get_places.php",
+            data: vars.map.getBounds().toJSON(),
+            dataType: 'TEXT',
+            success: function (response) {
+                if(response){
+                    try{
+                        response = JSON.parse(response);
+                        response.forEach(function(data){
+                            //prevents duplicating markers in d map
+                            if(vars.locations.hasOwnProperty(data._id['$oid'])){
+                                return;
+                            }
+                            
+                            vars.locations[data._id['$oid']] = {data:data, marker:new Place(data, {map: vars.map, loc: data.latlng, title: 'saved location'})};
+                        });
+                    }catch(e){
+                        //parse error, probable caused by server spitting out error instead of data
+                        console.error('parse error');
+                    }
+                }else{
+                    //server didnt return anything
+                    console.error('no response');
+                }
+            }, error: function (jqXHR, textStatus, errorThrown) {
+                console.log(textStatus);
+            }, complete: function () {
+
+            }
+        });
     }
 };
