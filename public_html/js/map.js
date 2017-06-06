@@ -551,7 +551,7 @@ window.onload = function () {
                             heading.innerHTML = 'Saved';
 
                             //on success
-                            (new Place(data, {map: vars.map, loc: {lat: lat, lng: lng}, title: 'New location'})).showInfo();
+                            (vars.locations[response.result] = new Place(data, {map: vars.map, loc: {lat: lat, lng: lng}, title: 'New location'})).showInfo();
 
                             zDialog.close();
                         } else {

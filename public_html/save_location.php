@@ -25,12 +25,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }, ['type' => 'type', 'description' => 'description', 'admin_id' => 'admin_id', 'lat' => 'lat', 'lng' => 'lng']);
         $cleanedUserInputMap['names'] = isset($_POST['names']) ? $_POST['names'] : [];
         $cleanedUserInputMap['addresses'] = isset($_POST['addresses']) ? $_POST['addresses'] : [];
-        
+
         $validationResult = $form_validate([
             'admin_id' => 'required',
-            'names' => 'required|array|arrayminlength:1',//array now
+            'names' => 'required|array|arrayminlength:1', //array now
             'type' => 'required',
-            'addresses' => 'required|array|arrayminlength:1',//array now
+            'addresses' => 'required|array|arrayminlength:1', //array now
             'lat' => 'required|double',
             'lng' => 'required|double'
                 //'description' => ''
@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($validationResult)) {
             require_once 'php/mime_content_type.php';
-            
+
             $cleanedUserInputMap['latlng'] = ['lat' => doubleval($cleanedUserInputMap['lat']), 'lng' => doubleval($cleanedUserInputMap['lng'])];
             unset($cleanedUserInputMap['lat']);
             unset($cleanedUserInputMap['lng']);
@@ -61,14 +61,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if (!$fileError) {
-                require_once 'php/mongodb.php';
-                //submit to db
-                try {
-                    $bulk = new MongoDB\Driver\BulkWrite();
-                    $bulk->insert(array_merge(['pictures' => $pictures], $cleanedUserInputMap));
-                    $result = $mongoDB->executeBulkWrite('bustops.locations', $bulk);
-                 } catch (MongoDB\Driver\Exception\Exception $e) {
-                    //Catch all exceptions
+                require_once 'php/saveData.php';
+
+                if (!($response['result'] = saveData(array_merge(['pictures' => $pictures], $cleanedUserInputMap), ['names' => $cleanedUserInputMap['names'], 'addresses' => $cleanedUserInputMap['addresses']], $collection, $newBusRoute))) {
                     $response ['err'] = ['error' => 'DB', 'msg' => ['message' => 'An error occurred, please retry']];
                 }
             } else {
