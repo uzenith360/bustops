@@ -178,12 +178,12 @@ function Place(info, options, onGetData) {
 
     if (onGetData) {
         getDataElem = document.createElement('a');
-        getDataElem.setAttribute('style', 'cursor:pointer;display:block;text-align:right;');
+        getDataElem.setAttribute('style', 'cursor:pointer;display:block;text-align:right;margin-top:5px;');
         getDataElem.textContent = 'Get data';
         content.appendChild(getDataElem);
 
         getDataElem.addEventListener('click', function () {
-            onGetData({names:info.addresses||info.names, id:info.id});
+            onGetData({names:info.address_components||info.names, id:info.id});
         });
     }
 

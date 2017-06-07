@@ -502,7 +502,6 @@ window.onload = function () {
                 }]}, true, function (zDialog) {
             //On Dialog Create
             $('#' + zDialog.id + 'z-dialog-save_location_form').parsley().on('form:submit', function (e) {
-                console.log(formElements);
                 //after sending ajax request and req is success create the pin and close the dialog
                 var elemPrefix = zDialog.id + 'z-dialog-', form = document.getElementById(elemPrefix + 'save_location_form'), formElements = form.elements,
                         type = formElements['type'].value, names = [], addresses = [], description = formElements['description'].value,
@@ -745,7 +744,7 @@ window.onload = function () {
                             data.id = data._id['$oid'];
                             delete data._id;
 
-                            vars.locations[data.id] = {data: data, marker: new Place(data, {map: vars.map, loc: data.latlng, title: 'saved location'}, getMarkerData)};
+                            vars.locations[data.id] = {data: data, marker: new Place(data, {map: vars.map, loc: data.latlng, title: 'saved location'}, data.type === 'BUSTOP' && getMarkerData)};
                         });
                     } catch (e) {
                         //parse error, probable caused by server spitting out error instead of data
@@ -764,7 +763,7 @@ window.onload = function () {
     }
 
     function getMarkerData(info) {
-        !vars.busRouteForm && (vars.busRouteForm = document.getElementById('busRouteForm'));
+        !vars.busRouteForm && (vars.busRouteForm = document.getElementById('busRouteForm').elements);
 
         //Location ID
         //Maybe write it to the last empty bus routes form
@@ -775,15 +774,19 @@ window.onload = function () {
 
 
         if (vars.busRouteForm['hubh'].value) {
-            for (var i = 0, list = vars.busRouteForm['stoph[]'], listh = vars.busRouteForm['stoph[]'], listLength = listh.length; i < listLength; ++i) {
-                if (!listh[i].value) {
-                    if((i ? listh[i - 1].value :vars.busRouteForm['hubh'].value)=== info.id){
+            if (vars.busRouteForm['stoph[]']) {
+                for (var i = 0, list = vars.busRouteForm['stop[]'], listh = vars.busRouteForm['stoph[]'], listLength = list.length || 1, listhi, listi; i < listLength; ++i) {
+                    listhi = listh[i] || listh, listi = list[i] || list;
+
+                    if (!listhi.value) {
+                        if ((i ? listh[i - 1].value : vars.busRouteForm['hubh'].value) === info.id) {
+                            break;
+                        }
+
+                        listhi.value = info.id;
+                        listi.value = info.names.join(' ,');
                         break;
                     }
-                    
-                    listh[i].value = info.id;
-                    list[i].value = info.names.join(' ,');
-                    break;
                 }
             }
         } else {
