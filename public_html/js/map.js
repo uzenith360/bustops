@@ -33,7 +33,8 @@ window.onload = function () {
         lastLocTimestamp: null,
         watchingMyLoc: false,
         locationWatch: null,
-        locations:{}
+        locations:{},
+        busRouteForm:null
     };
 
     //init
@@ -761,13 +762,17 @@ window.onload = function () {
             }
         });
     }
-};
-
-function getMarkerData(id){
+    
+    function getMarkerData(id){
+    !vars.busRouteForm && (vars.busRouteForm =  document.getElementById('busRouteForm'));
+    
     //Location ID
     //Maybe write it to the last empty bus routes form
     
     //if it sees an empty field and succeds in writing, then dnt return true;
     
     //Only allow automatic entrying of the id of already created busroutes
+    
+    document.getElementById('busRouteForm')['hub'].value = id;
 }
+};
