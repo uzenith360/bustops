@@ -62,8 +62,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (!$fileError) {
                 require_once 'php/saveData.php';
+                $newBusRoute=NULL;
+                
+                if($cleanedUserInputMap['type']==='BUSTOP'){
+                    $newBusRoute ;
+                }
 
-                if (!($response['result'] = saveData(array_merge(['pictures' => $pictures], $cleanedUserInputMap), ['names' => $cleanedUserInputMap['names'], 'addresses' => $cleanedUserInputMap['addresses']], $collection, $newBusRoute))) {
+                if (!($response['result'] = saveData(array_merge(['pictures' => $pictures], $cleanedUserInputMap), ['names' => $cleanedUserInputMap['names'], 'addresses' => $cleanedUserInputMap['addresses']], 'locations', $newBusRoute))) {
                     $response ['err'] = ['error' => 'DB', 'msg' => ['message' => 'An error occurred, please retry']];
                 }
             } else {

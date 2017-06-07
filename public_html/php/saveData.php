@@ -10,32 +10,42 @@ require_once 'map_routes.php';
 
 //submit to db
 function saveData($data, $index, $collection, $newBusRoute) {
+    global $mongoDB;
+    global $elasticsearchClient;
+    
     //MongoDB
     try {
         $bulk = new MongoDB\Driver\BulkWrite();
-        $bulk->insert(array_merge(['timecreated'=>''], $data));
-        $result = $mongoDB->executeBulkWrite('bustops' . $collection, $bulk);
+        $bulk->insert(array_merge(['timecreated' => (new DateTime())->format(DateTime::ISO8601), '_id' => $bsonOID = new MongoDB\BSON\ObjectID], $data));
+        $result = $mongoDB->executeBulkWrite('bustops.' . $collection, $bulk);
+        $id = $bsonOID->oid;
+        if (isset($index)) {//Elastic search
+            $params = [];
+            $params['body'] = array_merge(['id' => $id], $index);
+            //Database
+            $params['index'] = 'bustops';
+            //collection, table
+            $params['type'] = $collection;
 
-        //Elastic search
-        $params = [];
-        $params['body'] = array_merge(['id' => $result['_id']['$oid']], $params);
-        //Database
-        $params['index'] = 'bustops';
-        //collection, table
-        $params['type'] = $collection;
+            $elasticresult = $elasticsearchClient->index($params);
 
-        $elasticresult = $elasticsearchClient->index($params);
+            if (isset($elasticresult['error'])) {
+                //Roll back mongo insert
+                mongoDB_Delete($id, $collection);
+                return null;
+            } else {
+                //U may go ahead to put in graph db
+                //If its a bustop then u need to map routes
+                isset($newBusRoute) && mapRoutes($newBusRoute);
 
-        if (isset($elasticresult['error'])) {
-            //Roll back mongo insert
-            mongoDB_Delete($result['_id']['$oid'], $collection);
-            return null;
+                return $id;
+            }
         } else {
             //U may go ahead to put in graph db
             //If its a bustop then u need to map routes
-            $newBusRoute && mapRoutes($newBusRoute);
+            isset($newBusRoute) && mapRoutes($newBusRoute);
 
-            return $result['_id']['$oid'];
+            return $id;
         }
     } catch (MongoDB\Driver\Exception\Exception $e) {
         //Catch all exceptions

@@ -549,9 +549,11 @@ window.onload = function () {
                             sendBtn.classList.add('btn-success');
                             sendBtn.innerHTML = 'Success';
                             heading.innerHTML = 'Saved';
+                            
+                            data.id = response.result;
 
                             //on success
-                            (vars.locations[response.result] = new Place(data, {map: vars.map, loc: {lat: lat, lng: lng}, title: 'New location'})).showInfo();
+                            (vars.locations[response.result] = new Place(data, {map: vars.map, loc: {lat: lat, lng: lng}, title: 'New location'}, getMarkerData)).showInfo();
 
                             zDialog.close();
                         } else {
@@ -739,7 +741,10 @@ window.onload = function () {
                                 return;
                             }
                             
-                            vars.locations[data._id['$oid']] = {data:data, marker:new Place(data, {map: vars.map, loc: data.latlng, title: 'saved location'})};
+                            data.id =data._id['$oid'];
+                            delete data._id;
+                            
+                            vars.locations[data.id] = {data:data, marker:new Place(data, {map: vars.map, loc: data.latlng, title: 'saved location'}, getMarkerData)};
                         });
                     }catch(e){
                         //parse error, probable caused by server spitting out error instead of data
@@ -757,3 +762,12 @@ window.onload = function () {
         });
     }
 };
+
+function getMarkerData(id){
+    //Location ID
+    //Maybe write it to the last empty bus routes form
+    
+    //if it sees an empty field and succeds in writing, then dnt return true;
+    
+    //Only allow automatic entrying of the id of already created busroutes
+}

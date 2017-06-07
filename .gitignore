@@ -1,3 +1,6 @@
 /nbproject/
 /test/
 /public_html/img/l
+/public_html/php/vendor
+/public_html/php/composer.json
+/public_html/php/composer.lock
