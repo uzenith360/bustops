@@ -33,8 +33,8 @@ window.onload = function () {
         lastLocTimestamp: null,
         watchingMyLoc: false,
         locationWatch: null,
-        locations:{},
-        busRouteForm:null
+        locations: {},
+        busRouteForm: null
     };
 
     //init
@@ -550,7 +550,7 @@ window.onload = function () {
                             sendBtn.classList.add('btn-success');
                             sendBtn.innerHTML = 'Success';
                             heading.innerHTML = 'Saved';
-                            
+
                             data.id = response.result;
 
                             //on success
@@ -720,38 +720,38 @@ window.onload = function () {
         var d = R * c;
         return d; // returns the distance in meter
     }
-    
-    function loadLocations(){
-         //call the php script to get a locations within this bounds
+
+    function loadLocations() {
+        //call the php script to get a locations within this bounds
         //the ajax request would be a get request, since its a light and frequently called request
         //throttle the requests from like 500/700ms to 1 second
         //i guess putting it in the tiles loaded event handler ensures that its only called wen necessary
-        
+
         $.ajax({
             type: "GET",
             url: "get_places.php",
             data: vars.map.getBounds().toJSON(),
             dataType: 'TEXT',
             success: function (response) {
-                if(response){
-                    try{
+                if (response) {
+                    try {
                         response = JSON.parse(response);
-                        response.forEach(function(data){
+                        response.forEach(function (data) {
                             //prevents duplicating markers in d map
-                            if(vars.locations.hasOwnProperty(data._id['$oid'])){
+                            if (vars.locations.hasOwnProperty(data._id['$oid'])) {
                                 return;
                             }
-                            
-                            data.id =data._id['$oid'];
+
+                            data.id = data._id['$oid'];
                             delete data._id;
-                            
-                            vars.locations[data.id] = {data:data, marker:new Place(data, {map: vars.map, loc: data.latlng, title: 'saved location'}, getMarkerData)};
+
+                            vars.locations[data.id] = {data: data, marker: new Place(data, {map: vars.map, loc: data.latlng, title: 'saved location'}, getMarkerData)};
                         });
-                    }catch(e){
+                    } catch (e) {
                         //parse error, probable caused by server spitting out error instead of data
                         console.error('parse error');
                     }
-                }else{
+                } else {
                     //server didnt return anything
                     console.error('no response');
                 }
@@ -762,17 +762,33 @@ window.onload = function () {
             }
         });
     }
-    
-    function getMarkerData(id){
-    !vars.busRouteForm && (vars.busRouteForm =  document.getElementById('busRouteForm'));
-    
-    //Location ID
-    //Maybe write it to the last empty bus routes form
-    
-    //if it sees an empty field and succeds in writing, then dnt return true;
-    
-    //Only allow automatic entrying of the id of already created busroutes
-    
-    document.getElementById('busRouteForm')['hub'].value = id;
-}
+
+    function getMarkerData(info) {
+        !vars.busRouteForm && (vars.busRouteForm = document.getElementById('busRouteForm'));
+
+        //Location ID
+        //Maybe write it to the last empty bus routes form
+
+        //if it sees an empty field and succeds in writing, then dnt return true;
+
+        //Only allow automatic entrying of the id of already created busroutes
+
+
+        if (vars.busRouteForm['hubh'].value) {
+            for (var i = 0, list = vars.busRouteForm['stoph[]'], listh = vars.busRouteForm['stoph[]'], listLength = listh.length; i < listLength; ++i) {
+                if (!listh[i].value) {
+                    if((i ? listh[i - 1].value :vars.busRouteForm['hubh'].value)=== info.id){
+                        break;
+                    }
+                    
+                    listh[i].value = info.id;
+                    list[i].value = info.names.join(' ,');
+                    break;
+                }
+            }
+        } else {
+            vars.busRouteForm['hubh'].value = info.id;
+            vars.busRouteForm['hub'].value = info.names.join(' ,');
+        }
+    }
 };

@@ -41,11 +41,12 @@
                             <div class="input-group">
                                 <span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span>
                                 <input disabled  type="text" class="form-control" name="hub" placeholder="Hub">
+                                <input type="hidden" name='hubh'>
                             </div>
                         </div>
                         <div class="form-group">
-                            <div></div>
-                            <p id="add_stop" class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add stop</p>
+                            <div id="stops"></div>
+                            <p onclick='return function(){var div = document.createElement("div"), stops;div.setAttribute("class", "row");div.innerHTML = "<div "+((stops = document.getElementById("stops")).innerHTML?"style=\"margin-top:5px;\"":"")+" class=\"col-xs-6\"><input disabled  type=\"text\" class=\"form-control\" name=\"stop[]\" placeholder=\"Stop "+((!map.__c_t && (map.__c_t=0)) ||++map.__c_t)+"\"><input type=\"hidden\" name=\"stoph[]\"></div><div class=\"col-xs-2\">Price</div>";stops.appendChild(div);}()' class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add stop</p>
                         </div>
                     </form>
                 </div>

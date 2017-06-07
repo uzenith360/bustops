@@ -178,12 +178,12 @@ function Place(info, options, onGetData) {
 
     if (onGetData) {
         getDataElem = document.createElement('a');
-        getDataElem.setAttribute('style', 'cursor:pointer;');
+        getDataElem.setAttribute('style', 'cursor:pointer;display:block;text-align:right;');
         getDataElem.textContent = 'Get data';
         content.appendChild(getDataElem);
 
         getDataElem.addEventListener('click', function () {
-            onGetData(info.id);
+            onGetData({names:info.addresses||info.names, id:info.id});
         });
     }
 
@@ -200,9 +200,7 @@ function Place(info, options, onGetData) {
     googleMaps.event.addListener(marker, 'click', function () {
         infowindow.open(options.map, marker);
     });
-    console.log(document.getElementById('__place_infowindow' + info.id));
-
-
+    
     this._marker = marker;
     this._infowindow = infowindow;
 }
