@@ -6,10 +6,9 @@
 require_once 'mongodb.php';
 require_once 'elasticsearch_client.php';
 require_once 'mongodb_delete.php';
-require_once 'map_routes.php';
 
 //submit to db
-function saveData($data, $index, $collection, $newBusRoute) {
+function saveData($data, $index, $collection) {
     global $mongoDB;
     global $elasticsearchClient;
     
@@ -34,17 +33,9 @@ function saveData($data, $index, $collection, $newBusRoute) {
                 mongoDB_Delete($id, $collection);
                 return null;
             } else {
-                //U may go ahead to put in graph db
-                //If its a bustop then u need to map routes
-                isset($newBusRoute) && mapRoutes($newBusRoute);
-
                 return $id;
             }
         } else {
-            //U may go ahead to put in graph db
-            //If its a bustop then u need to map routes
-            isset($newBusRoute) && mapRoutes($newBusRoute);
-
             return $id;
         }
     } catch (MongoDB\Driver\Exception\Exception $e) {

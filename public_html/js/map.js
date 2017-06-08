@@ -34,8 +34,21 @@ window.onload = function () {
         watchingMyLoc: false,
         locationWatch: null,
         locations: {},
-        busRouteForm: null
+        busRouteForm: document.getElementById('busRouteForm').elements,
+        addStopCt:0
     };
+
+    document.getElementById('aS').addEventListener('click', function () {
+        var div = document.createElement("div"), stops = document.getElementById("stops");
+        div.setAttribute("class", "row");
+        vars.addStopCt ? div.setAttribute("style", "margin-top:5px;") : document.getElementById("rIs").innerHTML = "<div class=\"col-xs-10\"><button class=\"btn btn-primary form-control\">Save</button></div><div class=\"col-xs-2\"><input type=\"reset\" class=\"btn btn-warning\" value=\"Clear\"></div>";
+        div.innerHTML = "<div " + " class=\"col-xs-8\"><input disabled  type=\"text\" class=\"form-control\" name=\"stop[]\" placeholder=\"Stop " + ++vars.addStopCt + "\"><input type=\"hidden\" name=\"stoph[]\"></div><div class=\"col-xs-2\"><input class=\"form-control\" name=\"fares[]\" type=\"number\" placeholder=\"Fares (&#8358;)\"></div><div class=\"col-xs-2\"><button type=\"button\" class=\"btn btn-warning\" id=\"cSt-" + vars.addStopCt + "\">Clear</button></div>";
+        stops.appendChild(div);
+    });
+    $('body').on('click', '[id |= "cSt"]', function () {
+        var id = $(this).prop('id').split('-')[1]-1;
+        (vars.busRouteForm['fares[]'][id] || vars.busRouteForm['fares[]']).value = '', (vars.busRouteForm['stop[]'][id] || vars.busRouteForm['stop[]']).value = '', (vars.busRouteForm['stoph[]'][id] || vars.busRouteForm['stoph[]']).value = '';
+    });
 
     //init
     //get google.maps
@@ -763,8 +776,6 @@ window.onload = function () {
     }
 
     function getMarkerData(info) {
-        !vars.busRouteForm && (vars.busRouteForm = document.getElementById('busRouteForm').elements);
-
         //Location ID
         //Maybe write it to the last empty bus routes form
 
