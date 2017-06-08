@@ -42,6 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $cleanedUserInputMap['latlng'] = ['lat' => doubleval($cleanedUserInputMap['lat']), 'lng' => doubleval($cleanedUserInputMap['lng'])];
             unset($cleanedUserInputMap['lat']);
             unset($cleanedUserInputMap['lng']);
+            $cleanedUserInputMap['names'] = array_map(function($name){return strtoupper($name);}, $cleanedUserInputMap['names']);
+            $cleanedUserInputMap['addresses'] = array_map(function($address){return strtoupper($address);}, $cleanedUserInputMap['addresses']);
 
             //try to save files
             $dir = 'img/l/' . dechex(mt_rand(0, 1000)) . '/';

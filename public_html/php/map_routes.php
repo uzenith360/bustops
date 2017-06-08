@@ -9,5 +9,6 @@ require_once 'neo4j_client.php';
 function map_routes($routeInfo){
     global $neo4jClient;
     
-    
+    //if (a)-[r:{type:'Type', fare:50}]->(b) //do nothing, //if rel exists bt nt equal to that, update rel, if rel doesnt exist, onCreate create REL, 
+    //Use merge, because d route might nt actually exist
 }
