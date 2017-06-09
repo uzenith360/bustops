@@ -80,7 +80,7 @@ window.onload = function () {
             var id = $(this).prop('id').split('-')[1] - 1;
             (vars.busRouteForm['fares[]'][id] || vars.busRouteForm['fares[]']).value = '', (vars.busRouteForm['stop[]'][id] || vars.busRouteForm['stop[]']).value = '', (vars.busRouteForm['stoph[]'][id] || vars.busRouteForm['stoph[]']).value = '';
         });
-        $('#').parsley().on('form:submit', function (e) {
+        $('#busRouteForm').parsley().on('form:submit', function (e) {
             var form = document.getElementById('busRouteForm'), formElements = form.elements,
                     type = formElements['type'].value, admin_id = vars.adminId, hub = formElements['hubh'].value, stops = [], fares = [],
                     sendBtn = formElements['save'], heading = document.getElementById('busRouteFormHeading');
