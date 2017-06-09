@@ -35,20 +35,8 @@ window.onload = function () {
         locationWatch: null,
         locations: {},
         busRouteForm: document.getElementById('busRouteForm').elements,
-        addStopCt:0
+        addStopCt: 0
     };
-
-    document.getElementById('aS').addEventListener('click', function () {
-        var div = document.createElement("div"), stops = document.getElementById("stops");
-        div.setAttribute("class", "row");
-        vars.addStopCt ? div.setAttribute("style", "margin-top:5px;") : document.getElementById("rIs").innerHTML = "<div class=\"col-xs-10\"><button class=\"btn btn-primary form-control\">Save</button></div><div class=\"col-xs-2\"><input type=\"reset\" class=\"btn btn-warning\" value=\"Clear\"></div>";
-        div.innerHTML = "<div " + " class=\"col-xs-8\"><input disabled  type=\"text\" class=\"form-control\" name=\"stop[]\" placeholder=\"Stop " + ++vars.addStopCt + "\"><input type=\"hidden\" name=\"stoph[]\"></div><div class=\"col-xs-2\"><input class=\"form-control\" name=\"fares[]\" type=\"number\" placeholder=\"Fares (&#8358;)\"></div><div class=\"col-xs-2\"><button type=\"button\" class=\"btn btn-warning\" id=\"cSt-" + vars.addStopCt + "\">Clear</button></div>";
-        stops.appendChild(div);
-    });
-    $('body').on('click', '[id |= "cSt"]', function () {
-        var id = $(this).prop('id').split('-')[1]-1;
-        (vars.busRouteForm['fares[]'][id] || vars.busRouteForm['fares[]']).value = '', (vars.busRouteForm['stop[]'][id] || vars.busRouteForm['stop[]']).value = '', (vars.busRouteForm['stoph[]'][id] || vars.busRouteForm['stoph[]']).value = '';
-    });
 
     //init
     //get google.maps
@@ -78,6 +66,82 @@ window.onload = function () {
         if (vars.map) {
             return;
         }
+
+        //Attach the event handlers
+        document.getElementById('aS').addEventListener('click', function () {
+            var div = document.createElement("div"), stops = document.getElementById("stops");
+            div.setAttribute("class", "row");
+            vars.addStopCt ? div.setAttribute("style", "margin-top:5px;") : document.getElementById("rIs").innerHTML = "<div class=\"col-xs-10\"><button class=\"btn btn-primary name=\"save\" form-control\">Save</button></div><div class=\"col-xs-2\"><input type=\"reset\" class=\"btn btn-warning\" value=\"Clear\"></div>";
+            div.innerHTML = "<div " + " class=\"col-xs-8\"><input disabled  type=\"text\" class=\"form-control\" name=\"stop[]\" placeholder=\"Stop " + ++vars.addStopCt + "\"><input type=\"hidden\" name=\"stoph[]\"></div><div class=\"col-xs-2\"><input class=\"form-control\" name=\"fares[]\" type=\"number\" placeholder=\"Fares (&#8358;)\"></div><div class=\"col-xs-2\"><button type=\"button\" class=\"btn btn-warning\" id=\"cSt-" + vars.addStopCt + "\">Clear</button></div>";
+            stops.appendChild(div);
+        });
+        $('body').on('click', '[id |= "cSt"]', function () {
+            var id = $(this).prop('id').split('-')[1] - 1;
+            (vars.busRouteForm['fares[]'][id] || vars.busRouteForm['fares[]']).value = '', (vars.busRouteForm['stop[]'][id] || vars.busRouteForm['stop[]']).value = '', (vars.busRouteForm['stoph[]'][id] || vars.busRouteForm['stoph[]']).value = '';
+        });
+        $('#').parsley().on('form:submit', function (e) {
+            var form = document.getElementById('busRouteForm'), formElements = form.elements,
+                    type = formElements['type'].value, hub = formElements['hub'].value, stops = [], fares = [],
+                    sendBtn = formElements['save'], heading = document.getElementById('busRouteFormHeading');
+
+            for (var i = 0, list = formElements['stoph[]'], listLength = list.length; i < listLength; ++i) {
+                stops.push(list[i].value);
+            }
+            for (var i = 0, list = formElements['fares[]'], listLength = list.length; i < listLength; ++i) {
+                fares.push(list[i].value);
+            }
+
+            //Make the button change color and display saving
+            sendBtn.classList.remove('btn-primary');
+            sendBtn.classList.add('btn-warning');
+            sendBtn.innerHTML = 'Saving';
+            heading.innerHTML = 'Saving...';
+
+            $.ajax({
+                type: "POST",
+                url: 'save_route.php',
+                data: {type: type, stops: stops, hub: hub, fares:fares},
+                dataType: 'JSON',
+                success: function (response) {
+                    if (!response.err) {
+                        //Display submitted
+
+                        /*
+                         * No need to change the button class back to primary since were closing the dialog anyway
+                         */
+                        sendBtn.classList.remove('btn-warning');
+                        sendBtn.classList.add('btn-success');
+                        sendBtn.innerHTML = 'Success';
+                        heading.innerHTML = 'Saved';
+
+                        form.reset();
+                    } else {
+                        var field = formElements[response.err.msg.field];
+
+                        switch (response.err.error) {
+                            case 'VALIDATION':
+                                heading.innerHTML = 'Review some field(s)';
+                                break;
+                            default:
+                                heading.innerHTML = 'Problem Saving, please try again';
+                                break;
+                        }
+
+                        sendBtn.classList.remove('btn-warning');
+                        sendBtn.classList.add('btn-danger');
+                        sendBtn.innerHTML = 'Try again';
+                        field && $(field).parsley().addError('error', {message: response.err.msg.message});
+                    }
+                }, error: function (jqXHR, textStatus, errorThrown) {
+                    sendBtn.classList.remove('btn-warning');
+                    sendBtn.classList.add('btn-danger');
+                    sendBtn.innerHTML = 'Try again';
+                    heading.innerHTML = 'Try saving again';
+                }, complete: function () {
+
+                }
+            });
+        });
 
         //first init map with last location stored in localStorage, also cheack server and update the vars.loc/vars.pos if the location from server is diff, means wen location changes, i shoud tell d localStorage/server
         //i think wen d script gets the users current location, it should jst put a marker thr, save current location to server and wait till the person requests a route or clicks go to my current location
@@ -761,14 +825,14 @@ window.onload = function () {
                         });
                     } catch (e) {
                         //parse error, probable caused by server spitting out error instead of data
-                        console.error('parse error');
+                        console.error('location parse error');
                     }
                 } else {
                     //server didnt return anything
-                    console.error('no response');
+                    console.warn('no server location response');
                 }
             }, error: function (jqXHR, textStatus, errorThrown) {
-                console.log(textStatus);
+                console.error(textStatus);
             }, complete: function () {
 
             }
