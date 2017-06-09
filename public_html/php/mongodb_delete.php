@@ -1,7 +1,7 @@
 <?php
 require_once 'mongodb.php';
 
-function mongoDB_Delete($oid, $collection) {
+function mongoDB_delete($oid, $collection) {
     $bulk = new MongoDB\Driver\BulkWrite;
     $bulk->delete(['_id' => $oid]);
     try{

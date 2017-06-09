@@ -30,7 +30,7 @@ function saveData($data, $index, $collection) {
 
             if (isset($elasticresult['error'])) {
                 //Roll back mongo insert
-                mongoDB_Delete($id, $collection);
+                mongoDB_delete($id, $collection);
                 return null;
             } else {
                 return $id;

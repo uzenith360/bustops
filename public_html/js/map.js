@@ -19,6 +19,7 @@ window.onload = function () {
         accuracyCutoffPoint: 600
     };
     var vars = {
+        adminId: '2',
         loadStart: Date.now(),
         map: null,
         myMarker: null,
@@ -81,7 +82,7 @@ window.onload = function () {
         });
         $('#').parsley().on('form:submit', function (e) {
             var form = document.getElementById('busRouteForm'), formElements = form.elements,
-                    type = formElements['type'].value, hub = formElements['hub'].value, stops = [], fares = [],
+                    type = formElements['type'].value, admin_id = vars.adminId, hub = formElements['hubh'].value, stops = [], fares = [],
                     sendBtn = formElements['save'], heading = document.getElementById('busRouteFormHeading');
 
             for (var i = 0, list = formElements['stoph[]'], listLength = list.length; i < listLength; ++i) {
@@ -100,7 +101,7 @@ window.onload = function () {
             $.ajax({
                 type: "POST",
                 url: 'save_route.php',
-                data: {type: type, stops: stops, hub: hub, fares:fares},
+                data: {type: type, stops: stops, hub: hub, fares: fares, admin_id: admin_id},
                 dataType: 'JSON',
                 success: function (response) {
                     if (!response.err) {
@@ -594,7 +595,7 @@ window.onload = function () {
                 data = {names: names, type: type, addresses: addresses, description: description};
 
                 //Test value for admin id, admin_id is supposed to be saved to seesion on login
-                formData.append('admin_id', '2');
+                formData.append('admin_id', vars.adminId);
                 formData.append('lat', lat);
                 formData.append('lng', lng);
 

@@ -12,6 +12,7 @@ function map_routes($routeInfo) {
     $transportHub = $routeInfo['hub'];
     $query = '';
 
+    //Use could use a for loop instead
     foreach ($routeInfo['stops'] as $stop) {$routeInfo['fares'];
         $query .= 'MERGE (A:City {id: 1})
                    MERGE (B:City {id: 2})
