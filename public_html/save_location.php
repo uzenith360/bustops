@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (($response['result'] = saveData(array_merge(['pictures' => $pictures], $cleanedUserInputMap), ['names' => $cleanedUserInputMap['names'], 'addresses' => $cleanedUserInputMap['addresses']], 'locations'))) {
                     if ($cleanedUserInputMap['type'] === 'BUSTOP') {
                         require_once 'php/mongodb_insert.php';
-                        if (!mongoDB_insert(['_id' => new MongoDB\BSON\ObjectID($response['result']), 'names' => $cleanedUserInputMap['names'], 'latlng' => [$cleanedUserInputMap['latlng']['lat'], $cleanedUserInputMap['latlng']['lng']]], 'bustops')) {
+                        if (!mongoDB_insert(['_id' => new MongoDB\BSON\ObjectID($response['result']), 'names' => $cleanedUserInputMap['names'], 'loc' => ['type' => 'Point', 'coordinates' => [$cleanedUserInputMap['latlng']['lng'], $cleanedUserInputMap['latlng']['lat']]]], 'bustops')) {
                             require_once 'mongodb_delete.php';
                             mongoDB_delete($response['result'], 'bustops');
 
