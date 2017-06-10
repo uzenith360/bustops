@@ -2,7 +2,7 @@
 
 require_once 'mongodb.php';
 
-function mongoDB_Insert($data, $collection) {
+function mongoDB_insert($data, $collection) {
     global $mongoDB;
 
     try {

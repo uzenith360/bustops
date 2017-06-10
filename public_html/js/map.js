@@ -73,7 +73,7 @@ window.onload = function () {
             var div = document.createElement("div"), stops = document.getElementById("stops");
             div.setAttribute("class", "row");
             vars.addStopCt ? div.setAttribute("style", "margin-top:5px;") : document.getElementById("rIs").innerHTML = "<div class=\"col-xs-10\"><button class=\"btn btn-primary form-control\"  name=\"save\">Save</button></div><div class=\"col-xs-2\"><input type=\"reset\" class=\"btn btn-warning\" value=\"Clear\"></div>";
-            div.innerHTML = "<div " + " class=\"col-xs-8\"><input disabled  type=\"text\" class=\"form-control\" name=\"stop[]\" placeholder=\"Stop " + ++vars.addStopCt + "\"><input type=\"hidden\" name=\"stoph[]\"></div><div class=\"col-xs-2\"><input class=\"form-control\" name=\"fares[]\" type=\"number\" placeholder=\"Fares (&#8358;)\"></div><div class=\"col-xs-2\"><button type=\"button\" class=\"btn btn-warning\" id=\"cSt-" + vars.addStopCt + "\">Clear</button></div>";
+            div.innerHTML = "<div " + " class=\"col-xs-8\"><input disabled  type=\"text\" class=\"form-control\" name=\"stop[]\" placeholder=\"Stop " + ++vars.addStopCt + "\"><input type=\"text\" style=\"display:none\" name=\"stoph[]\"></div><div class=\"col-xs-2\"><input class=\"form-control\" name=\"fares[]\" type=\"number\" placeholder=\"Fares (&#8358;)\"></div><div class=\"col-xs-2\"><button type=\"button\" class=\"btn btn-warning\" id=\"cSt-" + vars.addStopCt + "\">Clear</button></div>";
             stops.appendChild(div);
         });
         $('body').on('click', '[id |= "cSt"]', function () {
@@ -86,10 +86,10 @@ window.onload = function () {
                     sendBtn = formElements['save'], heading = document.getElementById('busRouteFormHeading');
 
             for (var i = 0, list = formElements['stoph[]'], listLength = list.length || 1; i < listLength; ++i) {
-                stops.push((list[i]|| list).value);
+                stops.push((list[i] || list).value);
             }
             for (var i = 0, list = formElements['fares[]']/*, listLength = list.length || 1*/; i < listLength; ++i) {
-                fares.push((list[i]|| list).value);
+                fares.push((list[i] || list).value);
             }
 
             //Make the button change color and display saving
@@ -124,6 +124,9 @@ window.onload = function () {
                             case 'VALIDATION':
                                 heading.innerHTML = 'Review some field(s)';
                                 break;
+                            case 'MISSINGINFO':
+                                heading.innerHTML = 'Missing route information';
+                                break;
                             default:
                                 heading.innerHTML = 'Problem Saving, please try again';
                                 break;
@@ -143,7 +146,7 @@ window.onload = function () {
 
                 }
             });
-            
+
             return false;
         });
 
@@ -577,7 +580,7 @@ window.onload = function () {
                     //close the dialog by returning true
                     return true;
                 }], add_location: ['click', function (e) {
-                    $('#' + e['z-dialog'].id + 'z-dialog-locations').append('<div style="margin-top:5px;" class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><input data-parsley-required name="names[]" type="text" class="form-control" placeholder="Location name"></div>');
+                    $('#' + e['z-dialog'].id + 'z-dialog-locations').append('<div style="margin-top:5px;" class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><input data-parsley-required name="names[]" type="text" class="form-control" placeholder="Location name" autofocus></div>');
                 }], add_address: ['click', function (e) {
                     $('#' + e['z-dialog'].id + 'z-dialog-addresses').append('<textarea style="margin-top:5px;" data-parsley-required class="form-control" rows="2" name="addresses[]" placeholder="Address"></textarea>');
                 }]}, true, function (zDialog) {
@@ -589,10 +592,10 @@ window.onload = function () {
                         data, formData = new FormData(form), sendBtn = document.getElementById(elemPrefix + 'send'), heading = document.getElementById(elemPrefix + 'heading');
 
                 for (var i = 0, list = formElements['names[]'], listLength = list.length || 1; i < listLength; ++i) {
-                    names.push((list[i]|| list).value);
+                    names.push((list[i] || list).value);
                 }
                 for (var i = 0, list = formElements['addresses[]'], listLength = list.length || 1; i < listLength; ++i) {
-                    addresses.push((list[i]|| list).value);
+                    addresses.push((list[i] || list).value);
                 }
 
                 data = {names: names, type: type, addresses: addresses, description: description};
@@ -852,6 +855,7 @@ window.onload = function () {
 
         //Only allow automatic entrying of the id of already created busroutes
 
+        var edited = true;
 
         if (vars.busRouteForm['hubh'].value) {
             if (vars.busRouteForm['stoph[]']) {
@@ -860,6 +864,7 @@ window.onload = function () {
 
                     if (!listhi.value) {
                         if ((i ? listh[i - 1].value : vars.busRouteForm['hubh'].value) === info.id) {
+                            edited = false;
                             break;
                         }
 
@@ -873,8 +878,8 @@ window.onload = function () {
             vars.busRouteForm['hubh'].value = info.id;
             vars.busRouteForm['hub'].value = info.names.join(' ,');
         }
-        
-        //close the infowindow
-        return true;
+
+        //close the infowindow if d form was edited
+        return edited;
     }
 };
