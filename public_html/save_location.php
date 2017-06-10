@@ -41,10 +41,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $cleanedUserInputMap['latlng'] = ['lat' => doubleval($cleanedUserInputMap['lat']), 'lng' => doubleval($cleanedUserInputMap['lng'])];
             unset($cleanedUserInputMap['lat']);
-            unset($cleanedUserInputMap['lng']);          
+            unset($cleanedUserInputMap['lng']);
             $cleanedUserInputMap['type'] = strtoupper($cleanedUserInputMap['type']);
-            $cleanedUserInputMap['names'] = array_map(function($name){return ucwords($name);}, $cleanedUserInputMap['names']);
-            $cleanedUserInputMap['addresses'] = array_map(function($address){return ucwords($address);}, $cleanedUserInputMap['addresses']);
+            $cleanedUserInputMap['names'] = array_map(function($name) {
+                return ucwords($name);
+            }, $cleanedUserInputMap['names']);
+            $cleanedUserInputMap['addresses'] = array_map(function($address) {
+                return ucwords($address);
+            }, $cleanedUserInputMap['addresses']);
             isset($cleanedUserInputMap['description']) && $cleanedUserInputMap['description'] = ucwords($cleanedUserInputMap['description']);
 
             //try to save files
@@ -66,7 +70,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (!$fileError) {
                 require_once 'php/save_data.php';
-               if (!($response['result'] = saveData(array_merge(['pictures' => $pictures], $cleanedUserInputMap), ['names' => $cleanedUserInputMap['names'], 'addresses' => $cleanedUserInputMap['addresses']], 'locations'))) {
+                if (($response['result'] = saveData(array_merge(['pictures' => $pictures], $cleanedUserInputMap), ['names' => $cleanedUserInputMap['names'], 'addresses' => $cleanedUserInputMap['addresses']], 'locations'))) {
+                    if ($cleanedUserInputMap['type'] === 'BUSTOP') {
+                        if (!mongoDB_insert(['_id' => new MongoDB\BSON\ObjectID($response['result']), 'names' => $cleanedUserInputMap['names'], 'latlng' => [$cleanedUserInputMap['latlng']['lat'], $cleanedUserInputMap['latlng']['lng']]], 'bustops')) {
+                            require_once 'mongodb_delete.php';
+                            mongoDB_delete($response['result'], 'bustops');
+
+                            $response['result'] = null;
+                            $response ['err'] = ['error' => 'DB', 'msg' => ['message' => 'An error occurred, please retry']];
+                        }
+                    }
+                } else {
                     $response ['err'] = ['error' => 'DB', 'msg' => ['message' => 'An error occurred, please retry']];
                 }
             } else {

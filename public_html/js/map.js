@@ -855,7 +855,7 @@ window.onload = function () {
 
         //Only allow automatic entrying of the id of already created busroutes
 
-        var edited = true;
+        var edited = false;
 
         if (vars.busRouteForm['hubh'].value) {
             if (vars.busRouteForm['stoph[]']) {
@@ -864,12 +864,12 @@ window.onload = function () {
 
                     if (!listhi.value) {
                         if ((i ? listh[i - 1].value : vars.busRouteForm['hubh'].value) === info.id) {
-                            edited = false;
                             break;
                         }
 
                         listhi.value = info.id;
                         listi.value = info.names.join(' ,');
+                        edited = true;
                         break;
                     }
                 }
@@ -877,6 +877,7 @@ window.onload = function () {
         } else {
             vars.busRouteForm['hubh'].value = info.id;
             vars.busRouteForm['hub'].value = info.names.join(' ,');
+            edited = true;
         }
 
         //close the infowindow if d form was edited

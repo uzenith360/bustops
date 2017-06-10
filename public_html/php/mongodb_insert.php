@@ -7,7 +7,8 @@ function mongoDB_insert($data, $collection) {
 
     try {
         $bulk = new MongoDB\Driver\BulkWrite();
-        $bulk->insert(array_merge(['timecreated' => (new DateTime())->format(DateTime::ISO8601), '_id' => $bsonOID = new MongoDB\BSON\ObjectID], $data));
+//_id must be a BSON ObjectID
+        $bulk->insert(array_merge(['timecreated' => isset($data['timecreated']) ? $data['timecreated'] : (new DateTime())->format(DateTime::ISO8601), '_id' => $bsonOID = isset($data['_id']) ? $data['_id'] : new MongoDB\BSON\ObjectID], $data));
         $result = $mongoDB->executeBulkWrite('bustops.' . $collection, $bulk);
         return $bsonOID->oid;
     } catch (MongoDB\Driver\Exception\Exception $e) {
