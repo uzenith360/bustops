@@ -8,13 +8,16 @@
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_once 'php/form_validate.php';
-    require_once 'php/form_validate_multiple.php';
+    require_once 'php/form_validate.php';
+     require_once 'php/mongodb_delete.php';
 
     $response = ['err' => null, 'result' => null];
 
     $cleanedUserInputMap = array_map(function($value) {
         return htmlspecialchars(strip_tags(trim(isset($_POST[$value]) ? $_POST[$value] : '')));
-    }, ['type' => 'type', 'stops' => 'stops', 'admin_id' => 'admin_id', 'fares' => 'fares', 'hub' => 'hub']);
+    }, ['type' => 'type', 'admin_id' => 'admin_id', 'hub' => 'hub']);
+    $cleanedUserInputMap['stops'] = is_array($_POST['stops']) ? $_POST['stops'] : [];
+    $cleanedUserInputMap['fares'] = is_array($_POST['fares']) ? $_POST['fares'] : [];
 
     $validationResult = $form_validate([
         'admin_id' => 'required',
@@ -26,15 +29,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($validationResult)) {
         require_once 'php/mongodb_insert.php';
-        
+
+        //save to mongo store
         if (($id = mongoDB_Insert($cleanedUserInputMap, 'routes'))) {
             require_once 'php/map_routes.php';
-            if(!($response['result'] = map_routes($cleanedUserInputMap))){
+            //actually create the routes
+            if (!($response['result'] = map_routes($cleanedUserInputMap))) {
                 $response ['err'] = ['error' => 'DB', 'msg' => 'Problem saving data, please try again'];
+                mongoDB_delete($id, 'routes');
             }
         } else {
-            require_once 'php/mongodb_delete.php';
-            mongoDB_delete($id, 'routes');
             $response ['err'] = ['error' => 'DB', 'msg' => 'Problem saving data, please try again'];
         }
     } else {

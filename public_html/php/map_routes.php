@@ -6,29 +6,34 @@ require_once 'neo4j_client.php';
 //Map the bustops to other bustops that interlink
 //Save in mongodb too, incase thrs a problem and we'll need to rebuild the graph
 function map_routes($routeInfo) {
+    //Warning: This function wouldn't work well if the routes stops are more than 255
+
     global $neo4jClient;
 
+    $timecreated = (new DateTime())->format(DateTime::ISO8601);
     $transportType = $routeInfo['type'];
-    $transportHub = $routeInfo['hub'];
-    $query = '';
+    $transportStops = $routeInfo['stops'];
+    $transportFares = $routeInfo['fares'];
+    $stops = '';
+    $routes = '';
 
-    //Use could use a for loop instead
-    foreach ($routeInfo['stops'] as $stop) {$routeInfo['fares'];
-        $query .= 'MERGE (A:City {id: 1})
-                   MERGE (B:City {id: 2})
-                   MERGE (A)-[r:next]->(B)
-                   ON CREATE SET r.duration = newDuration
-                   ON MATCH  SET r.duration = CASE 
-                                 WHEN r.duration > newDuration 
-                                 THEN newDuration 
-                                 ELSE r.duration 
-                   END';
+    array_unshift($transportStops, $routeInfo['hub']);
+    for ($i = 0, $stopsLength = count($transportStops), $stopsLengthMinus1 = $stopsLength - 1, $relCt = 0; $i < $stopsLength; ++$i) {
+        $stoptag = 's' . $i;
+        $stops .= 'MERGE (' . $stoptag . '{i: "' . $transportStops[$i] . '"}) ON CREATE SET ' . $stoptag . '.c="' . $timecreated . '" ';
+        if ($i < $stopsLengthMinus1) {
+            for ($i0 = $i; $i0 < $stopsLengthMinus1; ++$i0) {
+                $reltag = 'r' . $relCt;
+                $routes .= 'MERGE (' . $stoptag . ')-[' . $reltag . ':' . $transportType . ']->(s' . ($i0 + 1) . ') SET ' . $reltag . '.f=' . $transportFares[$i] . ',' . $reltag . '.m="' . $timecreated . '" ';
+                ++$relCt;
+            }
+        }
     }
 
-    return $neo4jClient->run($query)->containsUpdates();
-
-//CREATE INDEX based on node id
-//Create an index on all nodes with a particular label and property.
-    //if (a)-[r:{type:'Type', fare:50}]->(b) //do nothing, //if rel exists bt nt equal to that, update rel, if rel doesnt exist, onCreate create REL, 
-    //Use merge, because d route might nt actually exist
+    try {
+        $neo4jClient->run($stops . $routes);
+        return true;
+    } catch (GraphAware\Neo4j\Client\Exception\Neo4jException $e) {
+        return false;
+    }
 }

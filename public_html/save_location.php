@@ -23,8 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cleanedUserInputMap = array_map(function($value) {
             return htmlspecialchars(strip_tags(trim(isset($_POST[$value]) ? $_POST[$value] : '')));
         }, ['type' => 'type', 'description' => 'description', 'admin_id' => 'admin_id', 'lat' => 'lat', 'lng' => 'lng']);
-        $cleanedUserInputMap['names'] = isset($_POST['names']) ? $_POST['names'] : [];
-        $cleanedUserInputMap['addresses'] = isset($_POST['addresses']) ? $_POST['addresses'] : [];
+        $cleanedUserInputMap['names'] = is_array($_POST['names']) ? $_POST['names'] : [];
+        $cleanedUserInputMap['addresses'] = is_array($_POST['addresses']) ? $_POST['addresses'] : [];
 
         $validationResult = $form_validate([
             'admin_id' => 'required',
@@ -41,9 +41,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $cleanedUserInputMap['latlng'] = ['lat' => doubleval($cleanedUserInputMap['lat']), 'lng' => doubleval($cleanedUserInputMap['lng'])];
             unset($cleanedUserInputMap['lat']);
-            unset($cleanedUserInputMap['lng']);
-            $cleanedUserInputMap['names'] = array_map(function($name){return strtoupper($name);}, $cleanedUserInputMap['names']);
-            $cleanedUserInputMap['addresses'] = array_map(function($address){return strtoupper($address);}, $cleanedUserInputMap['addresses']);
+            unset($cleanedUserInputMap['lng']);          
+            $cleanedUserInputMap['type'] = strtoupper($cleanedUserInputMap['type']);
+            $cleanedUserInputMap['names'] = array_map(function($name){return ucwords($name);}, $cleanedUserInputMap['names']);
+            $cleanedUserInputMap['addresses'] = array_map(function($address){return ucwords($address);}, $cleanedUserInputMap['addresses']);
+            isset($cleanedUserInputMap['description']) && $cleanedUserInputMap['description'] = ucwords($cleanedUserInputMap['description']);
 
             //try to save files
             $dir = 'img/l/' . dechex(mt_rand(0, 1000)) . '/';

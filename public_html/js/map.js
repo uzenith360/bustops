@@ -72,7 +72,7 @@ window.onload = function () {
         document.getElementById('aS').addEventListener('click', function () {
             var div = document.createElement("div"), stops = document.getElementById("stops");
             div.setAttribute("class", "row");
-            vars.addStopCt ? div.setAttribute("style", "margin-top:5px;") : document.getElementById("rIs").innerHTML = "<div class=\"col-xs-10\"><button class=\"btn btn-primary name=\"save\" form-control\">Save</button></div><div class=\"col-xs-2\"><input type=\"reset\" class=\"btn btn-warning\" value=\"Clear\"></div>";
+            vars.addStopCt ? div.setAttribute("style", "margin-top:5px;") : document.getElementById("rIs").innerHTML = "<div class=\"col-xs-10\"><button class=\"btn btn-primary form-control\"  name=\"save\">Save</button></div><div class=\"col-xs-2\"><input type=\"reset\" class=\"btn btn-warning\" value=\"Clear\"></div>";
             div.innerHTML = "<div " + " class=\"col-xs-8\"><input disabled  type=\"text\" class=\"form-control\" name=\"stop[]\" placeholder=\"Stop " + ++vars.addStopCt + "\"><input type=\"hidden\" name=\"stoph[]\"></div><div class=\"col-xs-2\"><input class=\"form-control\" name=\"fares[]\" type=\"number\" placeholder=\"Fares (&#8358;)\"></div><div class=\"col-xs-2\"><button type=\"button\" class=\"btn btn-warning\" id=\"cSt-" + vars.addStopCt + "\">Clear</button></div>";
             stops.appendChild(div);
         });
@@ -85,15 +85,16 @@ window.onload = function () {
                     type = formElements['type'].value, admin_id = vars.adminId, hub = formElements['hubh'].value, stops = [], fares = [],
                     sendBtn = formElements['save'], heading = document.getElementById('busRouteFormHeading');
 
-            for (var i = 0, list = formElements['stoph[]'], listLength = list.length; i < listLength; ++i) {
-                stops.push(list[i].value);
+            for (var i = 0, list = formElements['stoph[]'], listLength = list.length || 1; i < listLength; ++i) {
+                stops.push((list[i]|| list).value);
             }
-            for (var i = 0, list = formElements['fares[]'], listLength = list.length; i < listLength; ++i) {
-                fares.push(list[i].value);
+            for (var i = 0, list = formElements['fares[]']/*, listLength = list.length || 1*/; i < listLength; ++i) {
+                fares.push((list[i]|| list).value);
             }
 
             //Make the button change color and display saving
             sendBtn.classList.remove('btn-primary');
+            sendBtn.classList.remove('btn-danger');
             sendBtn.classList.add('btn-warning');
             sendBtn.innerHTML = 'Saving';
             heading.innerHTML = 'Saving...';
@@ -142,6 +143,8 @@ window.onload = function () {
 
                 }
             });
+            
+            return false;
         });
 
         //first init map with last location stored in localStorage, also cheack server and update the vars.loc/vars.pos if the location from server is diff, means wen location changes, i shoud tell d localStorage/server
@@ -585,11 +588,11 @@ window.onload = function () {
                         type = formElements['type'].value, names = [], addresses = [], description = formElements['description'].value,
                         data, formData = new FormData(form), sendBtn = document.getElementById(elemPrefix + 'send'), heading = document.getElementById(elemPrefix + 'heading');
 
-                for (var i = 0, list = formElements['names[]'], listLength = list.length; i < listLength; ++i) {
-                    names.push(list[i].value);
+                for (var i = 0, list = formElements['names[]'], listLength = list.length || 1; i < listLength; ++i) {
+                    names.push((list[i]|| list).value);
                 }
-                for (var i = 0, list = formElements['addresses[]'], listLength = list.length; i < listLength; ++i) {
-                    addresses.push(list[i].value);
+                for (var i = 0, list = formElements['addresses[]'], listLength = list.length || 1; i < listLength; ++i) {
+                    addresses.push((list[i]|| list).value);
                 }
 
                 data = {names: names, type: type, addresses: addresses, description: description};
@@ -601,6 +604,7 @@ window.onload = function () {
 
                 //Make the button change color and display saving
                 sendBtn.classList.remove('btn-primary');
+                sendBtn.classList.remove('btn-danger');
                 sendBtn.classList.add('btn-warning');
                 sendBtn.innerHTML = 'Saving';
                 heading.innerHTML = 'Saving...';
@@ -869,5 +873,8 @@ window.onload = function () {
             vars.busRouteForm['hubh'].value = info.id;
             vars.busRouteForm['hub'].value = info.names.join(' ,');
         }
+        
+        //close the infowindow
+        return true;
     }
 };

@@ -176,18 +176,6 @@ function Place(info, options, onGetData) {
     content.setAttribute('style', 'display: inline;');
     content.innerHTML = (info.icon ? '<img src="' + info.icon + '" width="16" height="16">' : '') + (names ? '<strong>' + names + '</strong>' : '') + (addresses ? '<br/><span>' + addresses + '</span>' : '') + (info.description ? '<hr style="margin:8px 0 8px 0;"><span style="color: #999;">' + info.description + '</span>' : '');
 
-    if (onGetData) {
-        getDataElem = document.createElement('a');
-        getDataElem.setAttribute('style', 'cursor:pointer;display:block;text-align:right;margin-top:5px;');
-        getDataElem.textContent = 'Get data';
-        content.appendChild(getDataElem);
-
-        getDataElem.addEventListener('click', function () {
-            onGetData({names:info.address_components||info.names, id:info.id});
-        });
-    }
-
-
     var googleMaps = google.maps, infowindow = new googleMaps.InfoWindow({
         content: content//'<div style="display: inline;">' + (info.icon ? '<img src="' + info.icon + '" width="16" height="16">' : '') + (names ? '<strong>' + names + '</strong>' : '') + (addresses ? '<br/><span>' + addresses + '</span>' : '') + (info.description ? '<hr style="margin:8px 0 8px 0;"><span style="color: #999;">' + info.description + '</span>' : '') + (onGetData?'<a style="cursor:pointer;" id="__place_infowindow'+info.id+'">Get data</a>':'') +'</div>'
     }), marker = new googleMaps.Marker({
@@ -201,6 +189,20 @@ function Place(info, options, onGetData) {
         infowindow.open(options.map, marker);
     });
     
+    if (onGetData) {
+        getDataElem = document.createElement('a');
+        getDataElem.setAttribute('style', 'cursor:pointer;display:block;text-align:right;margin-top:5px;');
+        getDataElem.textContent = 'Get data';
+        content.appendChild(getDataElem);
+
+        getDataElem.addEventListener('click', function () {
+            if(onGetData({names:info.address_components||info.names, id:info.id})){
+                infowindow.close();
+            }
+        });
+    }
+
+
     this._marker = marker;
     this._infowindow = infowindow;
 }
