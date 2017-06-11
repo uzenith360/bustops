@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         require_once 'php/mongodb_insert.php';
 
         $ntMissingInfo = true;
-        for ($i = 0, $routeInfoCt = count($cleanedUserInputMap['stops']), $newStops = [], $cleanStops = [], $cleanFares = [], $routeInfoStops = $cleanedUserInputMap['stops'], $routeInfoFares = $cleanedUserInputMap['fares']; $i < $routeInfoCt; ++$i) {
+        for ($i = 0, $routeInfoStops = $cleanedUserInputMap['stops'], $routeInfoFares = $cleanedUserInputMap['fares'], $routeInfoCt = count($routeInfoStops), $newStops = [], $cleanStops = [], $cleanFares = []; $i < $routeInfoCt; ++$i) {
             $cleanStop = htmlspecialchars(strip_tags(trim($routeInfoStops[$i])));
             $cleanFare = htmlspecialchars(strip_tags(trim($routeInfoFares[$i])));
             if (($cleanStop && !$cleanFare) || (!$cleanStop && $cleanFare)) {
@@ -44,7 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if ($ntMissingInfo) {
-            $cleanedUserInputMap['stops'] = $cleanStops;
+            if(count($cleanStops)){
+                $cleanedUserInputMap['stops'] = $cleanStops;
             $cleanedUserInputMap['fares'] = $cleanFares;
 
             //save to mongo store
@@ -57,6 +58,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             } else {
                 $response ['err'] = ['error' => 'DB', 'msg' => 'Problem saving data, please try again'];
+            }
+            }else{
+                $response ['err'] = ['error' => 'NOSTOPS', 'msg' => 'No stops were specified'];
             }
         } else {
             $response ['err'] = ['error' => 'MISSINGINFO', 'msg' => 'Missing route information'];

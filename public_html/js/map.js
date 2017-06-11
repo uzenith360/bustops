@@ -96,6 +96,7 @@ window.onload = function () {
             sendBtn.classList.remove('btn-primary');
             sendBtn.classList.remove('btn-danger');
             sendBtn.classList.add('btn-warning');
+            sendBtn.disabled = true;
             sendBtn.innerHTML = 'Saving';
             heading.innerHTML = 'Saving...';
 
@@ -127,6 +128,9 @@ window.onload = function () {
                             case 'MISSINGINFO':
                                 heading.innerHTML = 'Missing route information';
                                 break;
+                            case 'NOSTOPS':
+                                heading.innerHTML = 'No stops were specified';
+                                break;
                             default:
                                 heading.innerHTML = 'Problem Saving, please try again';
                                 break;
@@ -143,7 +147,7 @@ window.onload = function () {
                     sendBtn.innerHTML = 'Try again';
                     heading.innerHTML = 'Try saving again';
                 }, complete: function () {
-
+                    sendBtn.disabled = false;
                 }
             });
 
@@ -609,6 +613,7 @@ window.onload = function () {
                 sendBtn.classList.remove('btn-primary');
                 sendBtn.classList.remove('btn-danger');
                 sendBtn.classList.add('btn-warning');
+                sendBtn.disabled = true;
                 sendBtn.innerHTML = 'Saving';
                 heading.innerHTML = 'Saving...';
 
@@ -666,7 +671,7 @@ window.onload = function () {
                         sendBtn.innerHTML = 'Try again';
                         heading.innerHTML = 'Try saving again';
                     }, complete: function () {
-
+                        sendBtn.disabled = false;
                     }
                 });
 
