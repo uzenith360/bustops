@@ -407,7 +407,7 @@ window.onload = function () {
         vars.googleMaps.event.addListener(vars.map, 'tilt_changed', onMaptilt_changed);
         vars.googleMaps.event.addListener(vars.map, 'zoom_changed', onMapzoom_changed);
 
-        var input = document.createElement("input"), icoSpan = document.createElement("span"), ico = document.createElement("img"), meCntrl = document.createElement("div"), icoMe = document.createElement("div"), icoMeBtn = document.createElement("button"), tripCntl = document.createElement("div"), tripCntlIcon = document.createElement("span"), dirCntl = document.createElement("div"), dir = document.createElement("img");
+        var input = document.createElement("input"), icoSpan = document.createElement("span"), ico = document.createElement("img"), meCntrl = document.createElement("div"), icoMe = document.createElement("div"), icoMeBtn = document.createElement("button"), tripCntl = document.createElement("div"), tripCntlIcon = document.createElement("span"), dirCntl = document.createElement("div"), dir = document.createElement("img"), direction = document.createElement("div"), directionBtn = document.createElement("button"), directionImg = document.createElement("img");
         input.setAttribute('type', 'text');
         input.setAttribute('placeholder', 'Enter a location');
         input.setAttribute('class', 'controls');
@@ -443,6 +443,16 @@ window.onload = function () {
         dirCntl.setAttribute('title', 'Your heading');
         dirCntl.setAttribute('style', 'display:none;margin-right:10px;margin-bottom:10px;width: 28px; height: 27px;padding:4px 4px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
         dirCntl.appendChild(dir);
+        directionBtn.classList.add('btn');
+        directionBtn.classList.add('btn-info');
+        directionBtn.setAttribute('style', 'padding:4px');
+        directionImg.setAttribute('alt', 'directions');
+        directionImg.setAttribute('src', 'img/route.png');
+        directionImg.setAttribute('style', 'width:20px;');
+        directionBtn.appendChild(directionImg);
+        direction.setAttribute('title', 'Get directions');
+        direction.setAttribute('style', 'margin-left:5px;margin-top:10px;width:29px;height:29px;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
+        direction.appendChild(directionBtn);
 
         meCntrl.addEventListener('click', function () {
             if (!vars.watchingMyLoc) {
@@ -513,6 +523,7 @@ window.onload = function () {
 
         vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(icoSpan);
         vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(input);
+        vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(direction);
         vars.map.controls[vars.googleMaps.ControlPosition.RIGHT_BOTTOM].push(meCntrl);
         vars.map.controls[vars.googleMaps.ControlPosition.RIGHT_BOTTOM].push(tripCntl);
         vars.map.controls[vars.googleMaps.ControlPosition.RIGHT_BOTTOM].push(dirCntl);
