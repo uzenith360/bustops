@@ -53,12 +53,13 @@ body {
     height: 100%; /* 100% Full-height */
     width: 0; /* 0 width - change this with JavaScript */
     position: fixed; /* Stay in place */
-    z-index: 1; /* Stay on top */
+    z-index: 1500; /* Stay on top */
     top: 0;
     left: 0;
     background-color: #fff; /* Black*/
     overflow-x: hidden; /* Disable horizontal scroll */
     transition: 0.5s; /* 0.5 second transition effect to slide in the sidenav */
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
 }
 #getDirectionsSidenavHeading{
     width: 100%;
@@ -100,21 +101,21 @@ body {
     line-height: 1.42857143;
 }
 #getDirectionsSidenavHeadingLocation input::-webkit-input-placeholder { /* WebKit, Blink, Edge */
-    color:    #ccc;
+    color:    #c5c5c5;
 }
 #getDirectionsSidenavHeadingLocation input:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
-   color:    #ccc;
+   color:    #c5c5c5;
    opacity:  1;
 }
 #getDirectionsSidenavHeadingLocation input::-moz-placeholder { /* Mozilla Firefox 19+ */
-   color:    #ccc;
+   color:    #c5c5c5;
    opacity:  1;
 }
 #getDirectionsSidenavHeadingLocation input:-ms-input-placeholder { /* Internet Explorer 10-11 */
-   color:    #ccc;
+   color:    #c5c5c5;
 }
 #getDirectionsSidenavHeadingLocation input::-ms-input-placeholder { /* Microsoft Edge */
-   color:    #ccc;
+   color:    #c5c5c5;
 }
 #getDirectionsSidenavClose{
     font-size: 2.5em;margin-top: -0.1em;cursor: pointer;

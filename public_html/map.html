@@ -12,6 +12,7 @@
         <link href="https://fast.fonts.net/cssapi/a3f033fe-e22c-4e74-980b-f6aba29f2566.css" rel="stylesheet"/>
         <link href="css/style.css" rel="stylesheet" type="text/css"/>
         <link href="css/parsley.css" rel="stylesheet" type="text/css"/>
+        <link href="css/jquery-ui-autocomplete.css" rel="stylesheet" type="text/css"/>
     </head>
     <body>
         <div id="getDirectionsSidenav">
@@ -24,8 +25,10 @@
                     <span class="pull-right" id="getDirectionsSidenavClose">&times;</span>
                 </div>
                 <div id="getDirectionsSidenavHeadingLocation">
-                   <div class="form-group"><input data-parsley-required name="tripStart" type="text" placeholder="Trip start"></div>
-                    <div class="form-group"><input data-parsley-required name="tripEnd" type="text" placeholder="Trip End"></div>
+                    <form id="tripDirectionsForm">
+                        <div class="form-group"><input data-parsley-required name="tripStart" type="text" placeholder="Type your starting point or click from the map"></div>
+                    <div class="form-group"><input data-parsley-required name="tripEnd" type="text" placeholder="Type Your destination or click from the map"></div>
+                    </form>
                 </div>
             </div>
             <div id="getDirectionsSidenavBody"></div>
@@ -88,6 +91,7 @@
         <script src="js/parsley-laraextras.min.js" type="text/javascript"></script>
         <script src="js/parsley-file-validators.js" type="text/javascript"></script>
         <script src="js/json.pruned.js" type="text/javascript"></script>
+        <script src="js/jquery-ui-autocomplete.js" type="text/javascript"></script>
         <script src="js/map.js"></script>
         <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCE_FU6RoHW0EH_UC6agCjWvVjaHtD_SRc&libraries=places" async defer></script>
         <!--<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>-->

@@ -16,7 +16,9 @@ window.onload = function () {
         defaultLocation: {lat: 6.5179, lng: 3.3712}, //yabatech coordinates
         locMaxAgeTime: 30000,
         maxLocPrecision: 150, //reduce this value too if map still jumps, if map doesnt jump again, but delays for long, then jumps to a long distance, then increase it. Keep adjusting until we get a fine tuned value
-        accuracyCutoffPoint: 600
+        accuracyCutoffPoint: 600,
+        //wen u expand reach to other states, look for how to extend d bounds the other states, or u ask d person of d state he wants to search in to make it easier for the user to search states
+        bounds: {south: 6.517983648107814, west: 3.3647325001556965, north: 6.530774870245085, east: 3.393678899844417}
     };
     var vars = {
         adminId: '2',
@@ -54,10 +56,6 @@ window.onload = function () {
                 return _();
             }
 
-            Parsley.addMessages('en', {
-                dimensions: 'The display picture dimensions should be a minimum of 100px by 100px'
-            });
-
             vars.googleMaps = google.maps;
             init();
         }, 100);
@@ -67,6 +65,10 @@ window.onload = function () {
         if (vars.map) {
             return;
         }
+
+        Parsley.addMessages('en', {
+            dimensions: 'The display picture dimensions should be a minimum of 100px by 100px'
+        });
 
         //Attach the event handlers
         document.getElementById('aS').addEventListener('click', function () {
@@ -520,13 +522,40 @@ window.onload = function () {
                 vars.tripMode = false;
             }
         });
-        
-        direction.addEventListener('click', function(){
+
+        direction.addEventListener('click', function () {
             document.getElementById("getDirectionsSidenav").style.width = "390px";
         });
-        document.getElementById('getDirectionsSidenavClose').addEventListener('click', function(){
+        document.getElementById('getDirectionsSidenavClose').addEventListener('click', function () {
             document.getElementById("getDirectionsSidenav").style.width = "0";
         });
+
+        var autoCompleteService = new vars.googleMaps.places.AutocompleteService();
+        ['tripStart', 'tripEnd'].forEach(function (inputName) {
+            $(document.getElementById('tripDirectionsForm').elements[inputName]).autocomplete({
+                source: function (request, cb) {
+                    autoCompleteService.getQueryPredictions({input: request.term, bounds: config.bounds}, function (predictions, status) {
+                        if (status !== vars.googleMaps.places.PlacesServiceStatus.OK) {
+                            alert(status);
+                            return;
+                        }
+                        console.log(predictions);
+
+                        cb(predictions.map(function (prediction) {
+                            return prediction['description'];
+                        }));
+                    });
+                },
+                minLength: 2,
+                select: function (event, ui) {
+
+                    console.log("Selected: " + ui.item.value + " aka " + ui.item.id);
+                },
+                autoFocus: true,
+                delay: 500
+            });
+        });
+
 
         vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(icoSpan);
         vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(input);
@@ -535,7 +564,7 @@ window.onload = function () {
         vars.map.controls[vars.googleMaps.ControlPosition.RIGHT_BOTTOM].push(tripCntl);
         vars.map.controls[vars.googleMaps.ControlPosition.RIGHT_BOTTOM].push(dirCntl);
 
-        var autocomplete = new vars.googleMaps.places.Autocomplete(input);
+        var autocomplete = new vars.googleMaps.places.Autocomplete(input, {bounds: config.bounds});
         autocomplete.bindTo('bounds', vars.map);
 
         var infowindow = new vars.googleMaps.InfoWindow();
