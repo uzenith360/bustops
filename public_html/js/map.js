@@ -52,7 +52,7 @@ window.onload = function () {
 
         setTimeout(function () {
             //make sure all the required libraries are loaded
-            if (typeof google !== 'object' || !google.maps || typeof $ !== 'function' || typeof Parsley !== 'object') {
+            if (typeof google !== 'object' || !google.maps || typeof $ !== 'function' || typeof Parsley !== 'object' || typeof $.ui !== 'object' || typeof $.ui.autocomplete !== 'function') {
                 return _();
             }
 
