@@ -413,10 +413,10 @@ window.onload = function () {
         input.setAttribute('class', 'controls');
         input.setAttribute('style', 'margin-left:2px;');
         input.setAttribute('autocomplete', 'off');
-        icoSpan.setAttribute('style', 'width:29px;height:29px;padding:.3% 4px');
+        icoSpan.setAttribute('style', 'width:29px;height:29px;padding:.3% 5px');
         icoSpan.classList.add('controls');
         icoSpan.setAttribute('title', 'Search for a location');
-        ico.setAttribute('height', '20px');
+        ico.setAttribute('height', '18px');
         ico.setAttribute('src', 'img/map-search.png');
         ico.setAttribute('alt', 'search map');
         icoSpan.appendChild(ico);
@@ -519,6 +519,13 @@ window.onload = function () {
                 dir.setAttribute('style', '-o-transform: rotate(0deg);-moz-transform: rotate(0deg);-ms-transform: rotate(0deg);-webkit-transform: rotate(0deg);transform: rotate(0deg);');
                 vars.tripMode = false;
             }
+        });
+        
+        direction.addEventListener('click', function(){
+            document.getElementById("getDirectionsSidenav").style.width = "390px";
+        });
+        document.getElementById('getDirectionsSidenavClose').addEventListener('click', function(){
+            document.getElementById("getDirectionsSidenav").style.width = "0";
         });
 
         vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(icoSpan);

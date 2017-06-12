@@ -14,13 +14,22 @@
         <link href="css/parsley.css" rel="stylesheet" type="text/css"/>
     </head>
     <body>
-        <div id="mySidenav" class="sidenav">
-  <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-  <a href="#">About</a>
-  <a href="#">Services</a>
-  <a href="#">Clients</a>
-  <a href="#">Contact</a>
-</div>
+        <div id="getDirectionsSidenav">
+            <div id="getDirectionsSidenavHeading">
+                <div id="getDirectionsSidenavHeadingTravelMode">
+                    <img class="travelModeActive" src="img/all_transport.png" alt="All transport" title="All transport"/>
+                    <img src="img/danfo.png" alt="Danfo" title="Danfo"/>
+                    <img src="img/keke.png" alt="Keke" title="Keke"/>
+                    <img src="img/brt.png" alt="BRT" title="BRT"/>
+                    <span class="pull-right" id="getDirectionsSidenavClose">&times;</span>
+                </div>
+                <div id="getDirectionsSidenavHeadingLocation">
+                   <div class="form-group"><input data-parsley-required name="tripStart" type="text" placeholder="Trip start"></div>
+                    <div class="form-group"><input data-parsley-required name="tripEnd" type="text" placeholder="Trip End"></div>
+                </div>
+            </div>
+            <div id="getDirectionsSidenavBody"></div>
+        </div>
         <div class="container-fluid">
             <div class='row'>
                 <div class='col-md-12' style="background-color: #b9def0;padding-right: 0px;padding-left: 0px;">
@@ -57,7 +66,7 @@
                                     <input type="text" style="display:none" name='hubh'>
                                 </div>
                             </div>
-                            <div class="col-xs-2"><button type="button" onclick="var elems=document.getElementById('busRouteForm').elements;elems['hub'].value = elems['hubh'].value='';" class="btn btn-warning">Clear</button></div>
+                            <div class="col-xs-2"><button type="button" onclick="var elems = document.getElementById('busRouteForm').elements;elems['hub'].value = elems['hubh'].value = '';" class="btn btn-warning">Clear</button></div>
                         </div>
                         <div class="form-group">
                             <div id="stops"></div>
