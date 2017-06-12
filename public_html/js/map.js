@@ -539,6 +539,7 @@ window.onload = function () {
                             alert(status);
                             return;
                         }
+                        //Bolden the occurences of the search text in d prediction
                         console.log(predictions);
 
                         cb(predictions.map(function (prediction) {
