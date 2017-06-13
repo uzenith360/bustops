@@ -970,6 +970,8 @@ vars.route['tripStart']&& vars.route['tripEnd'] &&drawRoute(vars.route['tripStar
     }
 
     function drawPath(from, to) {
+        //try to look for updated code on this!!!!!!!
+        
         !vars.directionsService && (vars.directionsService = new vars.googleMaps.DirectionsService());
         
         var directionsDisplay = new vars.googleMaps.DirectionsRenderer();
