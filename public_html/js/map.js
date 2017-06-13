@@ -536,20 +536,28 @@ window.onload = function () {
                 source: function (request, cb) {
                     autoCompleteService.getQueryPredictions({input: request.term, bounds: config.bounds}, function (predictions, status) {
                         if (status !== vars.googleMaps.places.PlacesServiceStatus.OK) {
-                            alert(status);
+                            console.log(status);
                             return;
                         }
                         //Bolden the occurences of the search text in d prediction
                         console.log(predictions);
 
                         cb(predictions.map(function (prediction) {
-                            return prediction['description'];
-                        }));
+                            return prediction['place_id'] &&{value: prediction['description'], id: prediction['place_id']};
+                        }).filter(function(prediction){return prediction;}));
                     });
                 },
                 minLength: 2,
                 select: function (event, ui) {
+                    var service = new vars.googleMaps.places.PlacesService(vars.map);
+                    service.getDetails({placeId: ui.item.id}, function (place, status) {
+                        if (status !== vars.googleMaps.places.PlacesServiceStatus.OK) {
+                            console.log(status);
+                            return;
+                        }
 
+                        console.log(place);
+                    });
                     console.log("Selected: " + ui.item.value + " aka " + ui.item.id);
                 },
                 autoFocus: true,

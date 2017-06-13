@@ -73,6 +73,7 @@ body {
     height: 39px;
     margin-right: 32px;
     padding: 6px;
+    cursor: pointer;
 }
 #getDirectionsSidenavHeadingTravelMode img:hover{
     -webkit-transition: background-color 2s; /* Safari */
