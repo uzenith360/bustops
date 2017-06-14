@@ -39,8 +39,8 @@ window.onload = function () {
         locations: {},
         busRouteForm: document.getElementById('busRouteForm').elements,
         addStopCt: 0,
-        directionsService:null,
-        route:{}
+        directionsService: null,
+        route: {}
     };
 
     //init
@@ -559,12 +559,10 @@ window.onload = function () {
                             console.log(status);
                             return;
                         }
-vars.route[inputName] = place.geometry.location;
+                        vars.route[inputName] = place.geometry.location;
 
-vars.route['tripStart']&& vars.route['tripEnd'] &&drawRoute(vars.route['tripStart'], vars.route['tripEnd']);
-                        console.log(place);
+                        vars.route['tripStart'] && vars.route['tripEnd'] && getRoute(vars.route['tripStart'], vars.route['tripEnd']);
                     });
-                    console.log("Selected: " + ui.item.value + " aka " + ui.item.id);
                 },
                 autoFocus: true,
                 delay: 500
@@ -950,37 +948,57 @@ vars.route['tripStart']&& vars.route['tripEnd'] &&drawRoute(vars.route['tripStar
         //close the infowindow if d form was edited
         return edited;
     }
-    
-    function drawRoute(start, end){
+
+    function getRoute(startLoc, endLoc) {
+        $.ajax({
+            type: "GET",
+            url: "get_route.php",
+            data: {start: {lat:startLoc.lat(),lng:startLoc.lng()}, end: {lat:endLoc.lat(), lng:endLoc.lng()}},
+            dataType: 'JSON',
+            success: function (response) {console.log(response);
+                if (!response.err) {
+
+                } else {
+
+                }
+            }, error: function () {
+
+            }, complete: function () {
+
+            }
+        });
+    }
+
+    function drawRoute(start, end) {
         //Hide all the markers on d map first o
         drawPath(start, end);
         //we could move d markers to be more accurate, or we could pin d markers on d map ourselves
-        
+
         //would draw all the paths on the map that make up the route
-        
+
         //would get the nearest bustops that link the start and end
-        
+
         //would fetch the route/path from the graph db
-        
+
         //would draw all the routes
-        
+
         //Note: some routes might be walking routes, i.e, wen u get down from bus and walk to the office, but u still walk through a road, so it may also be represented as a driving route, test both options
-    
-    vars.route = {};
+
+        vars.route = {};
     }
 
     function drawPath(from, to) {
         //try to look for updated code on this!!!!!!!
-        
+
         !vars.directionsService && (vars.directionsService = new vars.googleMaps.DirectionsService());
-        
+
         var directionsDisplay = new vars.googleMaps.DirectionsRenderer();
         directionsDisplay.setMap(vars.map);
-        
-        
+
+
         /*var start = new vars.googleMaps.LatLng(from.lat, from.lng);
-        //var end = new google.maps.LatLng(38.334818, -181.884886);
-        var end = new vars.googleMaps.LatLng(to.lat, to.lng);*/
+         //var end = new google.maps.LatLng(38.334818, -181.884886);
+         var end = new vars.googleMaps.LatLng(to.lat, to.lng);*/
         /*
          var startMarker = new google.maps.Marker({
          position: start,

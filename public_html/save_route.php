@@ -44,22 +44,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if ($ntMissingInfo) {
-            if(count($cleanStops)){
+            if (count($cleanStops)) {
                 $cleanedUserInputMap['stops'] = $cleanStops;
-            $cleanedUserInputMap['fares'] = $cleanFares;
+                $cleanedUserInputMap['fares'] = $cleanFares;
 
-            //save to mongo store
-            if (($id = mongoDB_insert($cleanedUserInputMap, 'routes'))) {
-                require_once 'php/map_routes.php';
-                //actually create the routes
-                if (!($response['result'] = map_routes($cleanedUserInputMap))) {
+                //save to mongo store
+                if (($id = mongoDB_insert($cleanedUserInputMap, 'routes'))) {
+                    require_once 'php/map_routes.php';
+                    //actually create the routes
+                    if (!($response['result'] = map_routes($cleanedUserInputMap))) {
+                        $response ['err'] = ['error' => 'DB', 'msg' => 'Problem saving data, please try again'];
+                        mongoDB_delete($id, 'routes');
+                    }
+                } else {
                     $response ['err'] = ['error' => 'DB', 'msg' => 'Problem saving data, please try again'];
-                    mongoDB_delete($id, 'routes');
                 }
             } else {
-                $response ['err'] = ['error' => 'DB', 'msg' => 'Problem saving data, please try again'];
-            }
-            }else{
                 $response ['err'] = ['error' => 'NOSTOPS', 'msg' => 'No stops were specified'];
             }
         } else {
