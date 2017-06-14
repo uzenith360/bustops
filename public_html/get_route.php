@@ -46,7 +46,7 @@ if (($startLat = doubleval($_GET['start']['lat'])) && ($startLng = doubleval($_G
 
                 foreach ($route->value('p')->nodes() as $node) {
                     //get the details of the nodes
-                    $nodes[] = ['s'=>$value = $node->values(), 'd'=>(array)$mongoDB->executeQuery('bustops.locations', new MongoDB\Driver\Query(['_id' => new MongoDB\BSON\ObjectID($value['i'])], ['projection' => ['_id' => 0]]))->toArray()[0]];
+                    $nodes[] = (array)$mongoDB->executeQuery('bustops.locations', new MongoDB\Driver\Query(['_id' => new MongoDB\BSON\ObjectID($node->values()['i'])], ['projection' => ['_id' => 0]]))->toArray()[0];
                 }
                 foreach ($route->value('p')->relationships() as $relationship) {
                     $relationships[] = array_merge(['t' => $relationship->type()], $relationship->values());

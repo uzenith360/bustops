@@ -950,24 +950,26 @@ window.onload = function () {
     }
 
     function getRoute(startLoc, endLoc) {
+        //show getn route or sth
+        
         $.ajax({
             type: "GET",
             url: "get_route.php",
-            data: {start: {lat:startLoc.lat(),lng:startLoc.lng()}, end: {lat:endLoc.lat(), lng:endLoc.lng()}},
+            data: {start: {lat: startLoc.lat(), lng: startLoc.lng()}, end: {lat: endLoc.lat(), lng: endLoc.lng()}},
             dataType: 'JSON',
             success: function (response) {
-                console.log(response);
+                drawRoute(response);
             }, error: function () {
-
+                //Display error occured or sth, in the white div below the search input o, nt in dialog! Dialogs are annoying
             }, complete: function () {
 
             }
         });
     }
 
-    function drawRoute(start, end) {
+    function drawRoute(route) {
         //Hide all the markers on d map first o
-        drawPath(start, end);
+        
         //we could move d markers to be more accurate, or we could pin d markers on d map ourselves
 
         //would draw all the paths on the map that make up the route
@@ -980,16 +982,19 @@ window.onload = function () {
 
         //Note: some routes might be walking routes, i.e, wen u get down from bus and walk to the office, but u still walk through a road, so it may also be represented as a driving route, test both options
 
-        vars.route = {};
+        var i = 0, len = route.n.length - 1;
+        while (i < len) {
+            //route.r[i] - relation for this path
+            drawPath(route.n[i].latlng, route.n[++i].latlng);
+        }
     }
 
-    function drawPath(from, to) {
+    function drawPath(from, to) {console.log(from);console.log(to);
         //try to look for updated code on this!!!!!!!
 
         !vars.directionsService && (vars.directionsService = new vars.googleMaps.DirectionsService());
 
-        var directionsDisplay = new vars.googleMaps.DirectionsRenderer();
-        directionsDisplay.setMap(vars.map);
+        var directionsDisplay = new vars.googleMaps.DirectionsRenderer({map: vars.map});
 
 
         /*var start = new vars.googleMaps.LatLng(from.lat, from.lng);
