@@ -52,16 +52,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             isset($cleanedUserInputMap['description']) && $cleanedUserInputMap['description'] = ucwords($cleanedUserInputMap['description']);
 
             //try to save files
-            $dir = 'img/l/' . dechex(mt_rand(0, 1000)) . '/';
+            $fileBatch = dechex(mt_rand(0, 1000));
+            $dir = 'img/l/';
+            $fullDir = $dir . $fileBatch . '/';
 
-            if (file_exists($dir) || mkdir($dir)) {
+            if (file_exists($fullDir) || mkdir($fullDir)) {
                 $fileName = $cleanedUserInputMap['admin_id'] . date('YmdHis');
                 $mimeTransTbl = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/jpg' => 'jpg'];
                 $fileError = false;
                 $pictures = [];
                 for ($idx = 0, $location_picturesTMP = $_FILES['pictures']['tmp_name'], $location_pictureTMP, $location_picturesLength = count($location_picturesTMP); $idx < $location_picturesLength; ++$idx) {
                     $location_pictureTMP = $location_picturesTMP[$idx];
-                    if (!move_uploaded_file($location_pictureTMP, $dir . ($pictures[] = $fileName . $idx . '.' . $mimeTransTbl[mime_content_type($location_pictureTMP)]))) {
+                    if (!move_uploaded_file($location_pictureTMP, $dir . ($pictures[] = $fileBatch . '/' . $fileName . $idx . '.' . $mimeTransTbl[mime_content_type($location_pictureTMP)]))) {
                         $fileError = true;
                         break;
                     }
@@ -74,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($cleanedUserInputMap['type'] === 'BUSTOP') {
                         require_once 'php/mongodb_insert.php';
                         //we dnt need names in the route collection
-                        if (!mongoDB_insert(['_id' => new MongoDB\BSON\ObjectID($response['result'])/*, 'names' => $cleanedUserInputMap['names']*/, 'loc' => ['type' => 'Point', 'coordinates' => [$cleanedUserInputMap['latlng']['lng'], $cleanedUserInputMap['latlng']['lat']]]], 'bustops')) {
+                        if (!mongoDB_insert(['_id' => new MongoDB\BSON\ObjectID($response['result'])/* , 'names' => $cleanedUserInputMap['names'] */, 'loc' => ['type' => 'Point', 'coordinates' => [$cleanedUserInputMap['latlng']['lng'], $cleanedUserInputMap['latlng']['lat']]]], 'bustops')) {
                             require_once 'mongodb_delete.php';
                             mongoDB_delete($response['result'], 'bustops');
 

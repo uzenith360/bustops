@@ -42,12 +42,14 @@ if (($startLat = doubleval($_GET['start']['lat'])) && ($startLng = doubleval($_G
             if (($route = $neo4jClient->run('MATCH (a { i: "' . $startNearBustop->_id . '" }),(b { i: "' . $endNearBustop->_id . '" }), p = shortestPath((a)-[*]->(b)) RETURN p')->firstRecord())) {
                 $nodes = [];
                 $relationships = [];
+                $value;
 
                 foreach ($route->value('p')->nodes() as $node) {
-                    $nodes[] = $node->values();
+                    //get the details of the nodes
+                    $nodes[] = array_merge($value = $node->values(), (array)$mongoDB->executeQuery('bustops.locations', new MongoDB\Driver\Query(['_id' => new MongoDB\BSON\ObjectID($value['i'])], ['projection' => ['_id' => 0]]))->toArray()[0]);
                 }
                 foreach ($route->value('p')->relationships() as $relationship) {
-                    $relationships[] = array_merge([$relationship->type()], $relationship->values());
+                    $relationships[] = array_merge(['t' => $relationship->type()], $relationship->values());
                 }
 
                 echo json_encode(['n' => $nodes, 'r' => $relationships]);

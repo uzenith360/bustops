@@ -955,12 +955,8 @@ window.onload = function () {
             url: "get_route.php",
             data: {start: {lat:startLoc.lat(),lng:startLoc.lng()}, end: {lat:endLoc.lat(), lng:endLoc.lng()}},
             dataType: 'JSON',
-            success: function (response) {console.log(response);
-                if (!response.err) {
-
-                } else {
-
-                }
+            success: function (response) {
+                console.log(response);
             }, error: function () {
 
             }, complete: function () {
