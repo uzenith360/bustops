@@ -10,6 +10,7 @@ window.onload = function () {
     }
 
     var config = {
+        key:'AIzaSyCE_FU6RoHW0EH_UC6agCjWvVjaHtD_SRc',
         //minAccuracy: 150,
         zoom: 16, //15
         loadingTimeout: 10000,
@@ -42,7 +43,9 @@ window.onload = function () {
         directionsService: null,
         directionsDisplay: null,
         route: {},
-        routeLines: []
+        startToBustopRoutePolyLine: null,
+        bustopToEndRoutePolyLine: null,
+        getDirectionsSidenavBody:null
     };
 
     //init
@@ -88,14 +91,14 @@ window.onload = function () {
         });
         $('#busRouteForm').parsley().on('form:submit', function (e) {
             var form = document.getElementById('busRouteForm'), formElements = form.elements,
-                    type = formElements['type'].value, admin_id = vars.adminId, hub = formElements['hubh'].value, stops = [], fares = [],
+                    type = formElements['type'].value, admin_id = vars.adminId, value, hub = formElements['hubh'].value, stops = [], fares = [],
                     sendBtn = formElements['save'], heading = document.getElementById('busRouteFormHeading');
 
             for (var i = 0, list = formElements['stoph[]'], listLength = list.length || 1; i < listLength; ++i) {
-                stops.push((list[i] || list).value);
+                (value = (list[i] || list).value) && stops.push(value);
             }
             for (var i = 0, list = formElements['fares[]']/*, listLength = list.length || 1*/; i < listLength; ++i) {
-                fares.push((list[i] || list).value);
+                (value = (list[i] || list).value) && fares.push(value);
             }
 
             //Make the button change color and display saving
@@ -639,29 +642,29 @@ window.onload = function () {
          */
         var lat = e.latLng.lat(), lng = e.latLng.lng();
         //wen thinking of fields to send to server for a location look at d json google returns for a location, we'll nt only save d coordinates of a place, we'll also save other details to make searching and bounds searching easily, either strict bounds or biased bounds searching
-        new Dialog('<div z-dialog-heading class="dh">Save location</div>', '<form z-dialog-save_location_form><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span><select data-parsley-required class="form-control" name="type"><option disabled selected>Location type</option><option value="BUSTOP">Bustop</option><option value="MARKET"><img alt="icon">Market</option><option value="SHOP">Shop</option><option value="BANK">Bank</option><option value="ATM">ATM</option><option value="GOVT">Government</option><option value="HOTEL">Hotel</option></select></div></div><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><input data-parsley-required name="names[]" type="text" class="form-control" placeholder="Location name"></div><div z-dialog-locations></div><p z-dialog-add_location class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add location name</p></div><div class="form-group"><input data-parsley-required class="form-control" multiple name="pictures[]" type="file" accept="image/jpeg,image/jpg,image/png" data-parsley-filemaxmegabytes="2" data-parsley-trigger="change" data-parsley-dimensions="true" data-parsley-dimensions-options="{\'min_width\': \'100\',\'min_height\': \'100\'}" data-parsley-filemimetypes="image/jpeg,image/jpg,image/png"></div><div class="form-group"><textarea data-parsley-required class="form-control" rows="2" name="addresses[]" placeholder="Address"></textarea><div z-dialog-addresses></div><p z-dialog-add_address class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add address</p></div><div class="form-group"><textarea class="form-control" rows="5" name="description" placeholder="Description"></textarea></div></form>', '<button type="button" z-dialog-cancel class="btn btn-default">Cancel</button><button type="button" z-dialog-send class="btn btn-primary">Save</button>', {send: ['click', function (e) {
+        new Dialog('<div z-dialog-heading class="dh">Save location</div>', '<form z-dialog-save_location_form><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span><select data-parsley-required class="form-control" name="type"><option disabled selected>Location type</option><option value="BUSTOP">Bustop</option><option value="MARKET"><img alt="icon">Market</option><option value="SHOP">Shop</option><option value="BANK">Bank</option><option value="ATM">ATM</option><option value="GOVT">Government</option><option value="HOTEL">Hotel</option></select></div></div><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><input data-parsley-required name="names[]" type="text" class="form-control" placeholder="Location name"></div><div z-dialog-locations></div><p z-dialog-add_location class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add location name</p></div><div class="form-group"><input class="form-control" multiple name="pictures[]" type="file" accept="image/jpeg,image/jpg,image/png" data-parsley-filemaxmegabytes="2" data-parsley-trigger="change" data-parsley-dimensions="true" data-parsley-dimensions-options="{\'min_width\': \'100\',\'min_height\': \'100\'}" data-parsley-filemimetypes="image/jpeg,image/jpg,image/png"></div><div class="form-group"><textarea data-parsley-required class="form-control" rows="2" name="addresses[]" placeholder="Address"></textarea><div z-dialog-addresses></div><p z-dialog-add_address class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add address</p></div><div class="form-group"><textarea class="form-control" rows="5" name="description" placeholder="Description"></textarea></div></form>', '<button type="button" z-dialog-cancel class="btn btn-default">Cancel</button><button type="button" z-dialog-send class="btn btn-primary">Save</button>', {send: ['click', function (e) {
                     //trigger form submission to invoke parsley validation
                     $('#' + e['z-dialog'].id + 'z-dialog-save_location_form').trigger('submit');
                 }], cancel: ['click', function () {
                     //close the dialog by returning true
                     return true;
                 }], add_location: ['click', function (e) {
-                    $('#' + e['z-dialog'].id + 'z-dialog-locations').append('<div style="margin-top:5px;" class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><input data-parsley-required name="names[]" type="text" class="form-control" placeholder="Location name" autofocus></div>');
+                    $('#' + e['z-dialog'].id + 'z-dialog-locations').append('<div style="margin-top:5px;" class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><input name="names[]" type="text" class="form-control" placeholder="Location name" autofocus></div>');
                 }], add_address: ['click', function (e) {
-                    $('#' + e['z-dialog'].id + 'z-dialog-addresses').append('<textarea style="margin-top:5px;" data-parsley-required class="form-control" rows="2" name="addresses[]" placeholder="Address"></textarea>');
+                    $('#' + e['z-dialog'].id + 'z-dialog-addresses').append('<textarea style="margin-top:5px;" class="form-control" rows="2" name="addresses[]" placeholder="Address"></textarea>');
                 }]}, true, function (zDialog) {
             //On Dialog Create
             $('#' + zDialog.id + 'z-dialog-save_location_form').parsley().on('form:submit', function (e) {
                 //after sending ajax request and req is success create the pin and close the dialog
                 var elemPrefix = zDialog.id + 'z-dialog-', form = document.getElementById(elemPrefix + 'save_location_form'), formElements = form.elements,
                         type = formElements['type'].value, names = [], addresses = [], description = formElements['description'].value,
-                        data, formData = new FormData(form), sendBtn = document.getElementById(elemPrefix + 'send'), heading = document.getElementById(elemPrefix + 'heading');
+                        data, value, formData = new FormData(form), sendBtn = document.getElementById(elemPrefix + 'send'), heading = document.getElementById(elemPrefix + 'heading');
 
                 for (var i = 0, list = formElements['names[]'], listLength = list.length || 1; i < listLength; ++i) {
-                    names.push((list[i] || list).value);
+                    (value=(list[i] || list).value) && names.push(value);
                 }
                 for (var i = 0, list = formElements['addresses[]'], listLength = list.length || 1; i < listLength; ++i) {
-                    addresses.push((list[i] || list).value);
+                    (value=(list[i] || list).value) && addresses.push(value);
                 }
 
                 data = {names: names, type: type, addresses: addresses, description: description};
@@ -994,10 +997,11 @@ window.onload = function () {
         //Note: some routes might be walking routes, i.e, wen u get down from bus and walk to the office, but u still walk through a road, so it may also be represented as a driving route, test both options
 
         if (!vars.directionsService) {
+            vars.getDirectionsSidenavBody = document.getElementById('getDirectionsSidenavBody');
             vars.directionsService = new vars.googleMaps.DirectionsService;
             vars.directionsDisplay = new vars.googleMaps.DirectionsRenderer({
                 map: vars.map,
-                panel: document.getElementById('getDirectionsSidenavBody')
+                panel: vars.getDirectionsSidenavBody
             });
         }
 
@@ -1010,12 +1014,12 @@ window.onload = function () {
 
         $.get('https://roads.googleapis.com/v1/snapToRoads', {
             interpolate: true,
-            key: 'AIzaSyCE_FU6RoHW0EH_UC6agCjWvVjaHtD_SRc',
+            key: config.key,
             path: origToBustop
         }, function (startData) {
             $.get('https://roads.googleapis.com/v1/snapToRoads', {
                 interpolate: true,
-                key: 'AIzaSyCE_FU6RoHW0EH_UC6agCjWvVjaHtD_SRc',
+                key: config.key,
                 path: bustopToDest
             }, function (endData) {
                 var bounds = new vars.googleMaps.LatLngBounds(), startToBustopLine = [startLoc], bustopToDestLine = [];
@@ -1023,14 +1027,13 @@ window.onload = function () {
                 bounds.extend(endLoc);
                 vars.map.fitBounds(bounds);
 
-                //vars.routeLines
                 startData.snappedPoints.forEach(function (point) {
                     startToBustopLine.push({lat: point.location.latitude, lng: point.location.longitude});
                 });
 
-                new vars.googleMaps.Polyline({
+                vars.startToBustopRoutePolyLine =  new vars.googleMaps.Polyline({
                     path: startToBustopLine,
-                    strokeColor: 'blue',
+                    strokeColor: '#428bca',
                     strokeWeight: 5,
                     map: vars.map
                 });
@@ -1040,9 +1043,9 @@ window.onload = function () {
                 });
                 bustopToDestLine.push(endLoc);
 
-                new vars.googleMaps.Polyline({
+                vars.bustopToEndRoutePolyLine =  new vars.googleMaps.Polyline({
                     path: bustopToDestLine,
-                    strokeColor: 'green',
+                    strokeColor: '#5cb85c',
                     strokeWeight: 5,
                     map: vars.map
                 });
@@ -1080,6 +1083,11 @@ window.onload = function () {
 
     function clearRoute() {
         //clears the route that was previously created and resets the map
+        vars.bustopToEndRoutePolyLine;
+        vars.startToBustopRoutePolyLine;
+        vars.directionsService;
+        vars.directionsDisplay;
+        vars.getDirectionsSidenavBody.innerHTML = '';
     }
 
     function drawPath(from, to) {

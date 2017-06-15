@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $response = ['err' => null, 'result' => null];
 
     $validationResult = $form_validate_multiple([
-        'pictures[]' => 'filerequired|filemaxmegabytes:2|filemimetypes:image/jpeg,image/png,image/jpg'
+        'pictures[]' => 'filemaxmegabytes:2|filemimetypes:image/jpeg,image/png,image/jpg'
             ], ['pictures[]' => $_FILES['pictures']], ['pictures[]']);
 
 
@@ -51,21 +51,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }, $cleanedUserInputMap['addresses']);
             isset($cleanedUserInputMap['description']) && $cleanedUserInputMap['description'] = ucwords($cleanedUserInputMap['description']);
 
-            //try to save files
-            $fileBatch = dechex(mt_rand(0, 1000));
-            $dir = 'img/l/';
-            $fullDir = $dir . $fileBatch . '/';
+            $fileError = false;
+            $pictures = [];
+            if (count($_FILES['pictures']['tmp_name'])) {
+                //try to save files
+                $fileBatch = dechex(mt_rand(0, 1000));
+                $dir = 'img/l/';
+                $fullDir = $dir . $fileBatch . '/';
 
-            if (file_exists($fullDir) || mkdir($fullDir)) {
-                $fileName = $cleanedUserInputMap['admin_id'] . date('YmdHis');
-                $mimeTransTbl = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/jpg' => 'jpg'];
-                $fileError = false;
-                $pictures = [];
-                for ($idx = 0, $location_picturesTMP = $_FILES['pictures']['tmp_name'], $location_pictureTMP, $location_picturesLength = count($location_picturesTMP); $idx < $location_picturesLength; ++$idx) {
-                    $location_pictureTMP = $location_picturesTMP[$idx];
-                    if (!move_uploaded_file($location_pictureTMP, $dir . ($pictures[] = $fileBatch . '/' . $fileName . $idx . '.' . $mimeTransTbl[mime_content_type($location_pictureTMP)]))) {
-                        $fileError = true;
-                        break;
+                if (file_exists($fullDir) || mkdir($fullDir)) {
+                    $fileName = $cleanedUserInputMap['admin_id'] . date('YmdHis');
+                    $mimeTransTbl = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/jpg' => 'jpg'];
+                    for ($idx = 0, $location_picturesTMP = $_FILES['pictures']['tmp_name'], $location_pictureTMP, $location_picturesLength = count($location_picturesTMP); $idx < $location_picturesLength; ++$idx) {
+                        $location_pictureTMP = $location_picturesTMP[$idx];
+                        if (!move_uploaded_file($location_pictureTMP, $dir . ($pictures[] = $fileBatch . '/' . $fileName . $idx . '.' . $mimeTransTbl[mime_content_type($location_pictureTMP)]))) {
+                            $fileError = true;
+                            break;
+                        }
                     }
                 }
             }
