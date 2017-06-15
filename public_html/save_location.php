@@ -23,8 +23,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cleanedUserInputMap = array_map(function($value) {
             return htmlspecialchars(strip_tags(trim(isset($_POST[$value]) ? $_POST[$value] : '')));
         }, ['type' => 'type', 'description' => 'description', 'admin_id' => 'admin_id', 'lat' => 'lat', 'lng' => 'lng']);
-        $cleanedUserInputMap['names'] = array_filter(is_array($_POST['names']) ? $_POST['names'] : []);
-        $cleanedUserInputMap['addresses'] = array_filter(is_array($_POST['addresses']) ? $_POST['addresses'] : []);
+        $cleanedUserInputMap['names'] = array_filter(array_map(function($name) {
+                    return htmlspecialchars(strip_tags(trim($name)));
+                }, is_array($_POST['names']) ? $_POST['names'] : []));
+        $cleanedUserInputMap['addresses'] = array_filter(array_map(function($name) {
+                    return htmlspecialchars(strip_tags(trim($name)));
+                }, is_array($_POST['addresses']) ? $_POST['addresses'] : []));
 
         $validationResult = $form_validate([
             'admin_id' => 'required',
