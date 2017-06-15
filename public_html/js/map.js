@@ -185,9 +185,12 @@ window.onload = function () {
 
 
     function watchMyLocation() {
+        toast('Getting my location', 1);
         vars.locationWatch = navigator.geolocation.watchPosition(myLocSuccess, myLocError, {enableHighAccuracy: true/*, maximumAge: 30000, timeout: 27000*/});
     }
     function myLocSuccess(pos) {
+        !vars.acquiredCurrentLoc && toast('Getting my location', 0);
+        
         if (pos.coords.accuracy < config.accuracyCutoffPoint || !vars.acquiredCurrentLoc) {
             var newLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude};
 
@@ -222,6 +225,7 @@ window.onload = function () {
 
     }
     function myLocError(err) {
+        !vars.acquiredCurrentLoc && toast('Getting my location', 0);
         //maybe on error, if google maps has nt initialised , check server or local storage and get the last location d user was and display it in the map, or if u hv nt used d app bfr, then it'll use ur ip address to determine ur location and display that location, then also tell the user to turn on location or select hes location on d map
 
         console.error('Get location err: ' + JSON.stringify(err));
@@ -468,7 +472,7 @@ window.onload = function () {
         meCntrl.addEventListener('click', function () {
             if (!vars.watchingMyLoc) {
                 vars.watchingMyLoc = true;
-
+                
                 watchMyLocation();
                 return;
             }
@@ -543,11 +547,14 @@ window.onload = function () {
         ['tripStart', 'tripEnd'].forEach(function (inputName) {
             $(document.getElementById('tripDirectionsForm').elements[inputName]).autocomplete({
                 source: function (request, cb) {
+                    toast('Getting places', 1);
                     autoCompleteService.getQueryPredictions({input: request.term, bounds: config.bounds}, function (predictions, status) {
                         if (status !== vars.googleMaps.places.PlacesServiceStatus.OK) {
                             console.log(status);
+                            toast('Problem getting places', 2);
                             return;
                         }
+                        toast('Getting places', 0);
                         //Bolden the occurences of the search text in d prediction
                         console.log(predictions);
 
@@ -957,7 +964,7 @@ window.onload = function () {
     }
 
     function getRoute() {
-        toast(1, 'Getting route');
+        toast('Getting route', 1);
 
         var startLoc = vars.route['tripStart'], endLoc = vars.route['tripEnd'];
 
@@ -978,7 +985,7 @@ window.onload = function () {
             }, error: function () {
                 //Display error occured or sth, in the white div below the search input o, nt in dialog! Dialogs are annoying
             }, complete: function () {
-                toast(0);
+                toast('Getting route', 0);
             }
         });
     }
@@ -1018,6 +1025,7 @@ window.onload = function () {
         bounds.extend(endLoc);
         vars.map.fitBounds(bounds);
 
+toast('Drawing route', 1);
         $.get('https://roads.googleapis.com/v1/snapToRoads', {
             interpolate: true,
             key: config.key,
@@ -1072,9 +1080,11 @@ window.onload = function () {
                     travelMode: 'DRIVING'
                 }, function (response, status) {
                     if (status === 'OK') {
+                        toast('Drawing route', 0);
                         vars.directionsDisplay.setDirections(response);
                     } else {
                         //display an error status
+                        toast('Problem drawing route', 2);
                         console.log('Could not display directions due to: ' + status);
                     }
                 });
@@ -1140,7 +1150,7 @@ window.onload = function () {
 
     }
 
-    function toast(mode, msg, miliseconds) {
+    function toast(msg, mode, miliseconds) {
         //mode: 0 hide, 1: show, 2: show and hide after some miliseconds
 
         // Get the snackbar DIV
@@ -1148,20 +1158,22 @@ window.onload = function () {
 
         vars.toastTimeout && vars.toastTimeout.clearTimeout();
 
-        x.textContent = msg;
+
 
         switch (mode) {
             case 0:
-                x.className = "";
+                x.textContent === msg && (x.className = "");
                 break;
             case 1:
+                x.textContent = msg;
                 // Add the "show" class to DIV
                 x.className = "show";
                 break;
             case 2:
+                x.textContent = msg;
                 // After 3 seconds, remove the show class from DIV
                 vars.toastTimeout = setTimeout(function () {
-                    x.className = x.className.replace("show", "");
+                    x.textContent === msg && (x.className = x.className.replace("show", ""));
                 }, miliseconds || 3000);
                 break;
         }
