@@ -41,7 +41,8 @@ window.onload = function () {
         addStopCt: 0,
         directionsService: null,
         directionsDisplay: null,
-        route: {}
+        route: {},
+        routeLines: []
     };
 
     //init
@@ -962,6 +963,7 @@ window.onload = function () {
             dataType: 'JSON',
             success: function (response) {
                 if (Object.keys(response).length) {
+                    //Only draw routes urself from whr d trip starts to the nearest bustops and from d last drop to the destination
                     drawRoute(response);
                 } else {
                     //No results
@@ -998,33 +1000,86 @@ window.onload = function () {
                 panel: document.getElementById('getDirectionsSidenavBody')
             });
         }
-        
-        var bounds = new vars.googleMaps.LatLngBounds(), startLoc = vars.route['tripStart'], endLoc = vars.route['tripEnd'];;
+
+        var bounds = new vars.googleMaps.LatLngBounds(), startLoc = vars.route['tripStart'], endLoc = vars.route['tripEnd']
+                , origToBustop = startLoc.lat() + ',' + startLoc.lng() + '|' + route.n[0].latlng.lat + ',' + route.n[0].latlng.lng, routeNlen = route.n.length
+                , bustopToDest = route.n[routeNlen - 1].latlng.lat + ',' + route.n[routeNlen - 1].latlng.lng + '|' + endLoc.lat() + ',' + endLoc.lng();
         bounds.extend(startLoc);
         bounds.extend(endLoc);
         vars.map.fitBounds(bounds);
 
-        var i = 1, len = route.n.length - 1, midPoints=[], origin = route.n[0].latlng, destination;
-        while (i < len) {
-            //route.r[i] - relation for this path
-            //drawPath(route.n[i].latlng, route.n[++i].latlng);
-            midPoints.push({location:route.n[i++].latlng});
-        }
-        destination = route.n[i].latlng;
+        $.get('https://roads.googleapis.com/v1/snapToRoads', {
+            interpolate: true,
+            key: 'AIzaSyCE_FU6RoHW0EH_UC6agCjWvVjaHtD_SRc',
+            path: origToBustop
+        }, function (startData) {
+            $.get('https://roads.googleapis.com/v1/snapToRoads', {
+                interpolate: true,
+                key: 'AIzaSyCE_FU6RoHW0EH_UC6agCjWvVjaHtD_SRc',
+                path: bustopToDest
+            }, function (endData) {
+                var bounds = new vars.googleMaps.LatLngBounds(), startToBustopLine = [startLoc], bustopToDestLine = [];
+                bounds.extend(startLoc);
+                bounds.extend(endLoc);
+                vars.map.fitBounds(bounds);
 
-        vars.directionsService.route({
-            origin: origin,
-            destination: destination,
-            waypoints: midPoints,
-            travelMode: 'DRIVING'
-        }, function (response, status) {
-            if (status === 'OK') {
-                vars.directionsDisplay.setDirections(response);
-            } else {
-                //display an error status
-                console.log('Could not display directions due to: ' + status);
-            }
+                //vars.routeLines
+                startData.snappedPoints.forEach(function (point) {
+                    startToBustopLine.push({lat: point.location.latitude, lng: point.location.longitude});
+                });
+
+                new vars.googleMaps.Polyline({
+                    path: startToBustopLine,
+                    strokeColor: 'blue',
+                    strokeWeight: 5,
+                    map: vars.map
+                });
+
+                endData.snappedPoints.forEach(function (point) {
+                    bustopToDestLine.push({lat: point.location.latitude, lng: point.location.longitude});
+                });
+                bustopToDestLine.push(endLoc);
+
+                new vars.googleMaps.Polyline({
+                    path: bustopToDestLine,
+                    strokeColor: 'green',
+                    strokeWeight: 5,
+                    map: vars.map
+                });
+
+                var i = 1, len = route.n.length - 1, midPoints = [], origin = route.n[0].latlng, destination, directions;
+                while (i < len) {
+                    //route.r[i] - relation for this path
+                    //drawPath(route.n[i].latlng, route.n[++i].latlng);
+                    //directions+='<div></div>';
+                    midPoints.push({location: route.n[i++].latlng});
+                }
+                destination = route.n[i].latlng;
+
+                vars.directionsService.route({
+                    origin: origin,
+                    destination: destination,
+                    waypoints: midPoints,
+                    travelMode: 'DRIVING'
+                }, function (response, status) {
+                    if (status === 'OK') {
+                        vars.directionsDisplay.setDirections(response);
+                    } else {
+                        //display an error status
+                        console.log('Could not display directions due to: ' + status);
+                    }
+                });
+            });
         });
+
+
+
+
+
+    }
+
+    function clearRoute() {
+        //clears the route that was previously created and resets the map
     }
 
     function drawPath(from, to) {
