@@ -23,8 +23,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $cleanedUserInputMap = array_map(function($value) {
             return htmlspecialchars(strip_tags(trim(isset($_POST[$value]) ? $_POST[$value] : '')));
         }, ['type' => 'type', 'description' => 'description', 'admin_id' => 'admin_id', 'lat' => 'lat', 'lng' => 'lng']);
-        $cleanedUserInputMap['names'] = is_array($_POST['names']) ? $_POST['names'] : [];
-        $cleanedUserInputMap['addresses'] = is_array($_POST['addresses']) ? $_POST['addresses'] : [];
+        $cleanedUserInputMap['names'] = array_filter(is_array($_POST['names']) ? $_POST['names'] : []);
+        $cleanedUserInputMap['addresses'] = array_filter(is_array($_POST['addresses']) ? $_POST['addresses'] : []);
 
         $validationResult = $form_validate([
             'admin_id' => 'required',
@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $fileError = false;
             $pictures = [];
-            if (count($_FILES['pictures']['tmp_name'])) {
+            if ($_FILES['pictures']['tmp_name'][0]) {
                 //try to save files
                 $fileBatch = dechex(mt_rand(0, 1000));
                 $dir = 'img/l/';

@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $cleanedUserInputMap = array_map(function($value) {
         return htmlspecialchars(strip_tags(trim(isset($_POST[$value]) ? $_POST[$value] : '')));
-    }, ['type' => 'type', 'admin_id' => 'admin_id', 'hub' => 'hub']);
+    }, ['type' => 'type', 'admin_id' => 'admin_id', 'hub' => 'hub', 'startTime'=>'startTime', 'endTime'=>'endTime']);
     $cleanedUserInputMap['stops'] = is_array($_POST['stops']) ? $_POST['stops'] : [];
     $cleanedUserInputMap['fares'] = is_array($_POST['fares']) ? $_POST['fares'] : [];
 
@@ -24,6 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'fares' => 'required|array|arrayminlength:1', //array now
         'type' => 'required',
         'hub' => 'required',
+        'startTime' => 'required',
+        'endTime' => 'required',
         'stops' => 'required|array|arrayminlength:1', //array now
             ], $cleanedUserInputMap);
 

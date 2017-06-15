@@ -10,7 +10,7 @@ window.onload = function () {
     }
 
     var config = {
-        key:'AIzaSyCE_FU6RoHW0EH_UC6agCjWvVjaHtD_SRc',
+        key: 'AIzaSyCE_FU6RoHW0EH_UC6agCjWvVjaHtD_SRc',
         //minAccuracy: 150,
         zoom: 16, //15
         loadingTimeout: 10000,
@@ -45,7 +45,7 @@ window.onload = function () {
         route: {},
         startToBustopRoutePolyLine: null,
         bustopToEndRoutePolyLine: null,
-        getDirectionsSidenavBody:null
+        getDirectionsSidenavBody: null
     };
 
     //init
@@ -91,6 +91,7 @@ window.onload = function () {
         });
         $('#busRouteForm').parsley().on('form:submit', function (e) {
             var form = document.getElementById('busRouteForm'), formElements = form.elements,
+                    startTime = formElements['startTime'].value, endTime = formElements['endTime'].value,
                     type = formElements['type'].value, admin_id = vars.adminId, value, hub = formElements['hubh'].value, stops = [], fares = [],
                     sendBtn = formElements['save'], heading = document.getElementById('busRouteFormHeading');
 
@@ -112,7 +113,7 @@ window.onload = function () {
             $.ajax({
                 type: "POST",
                 url: 'save_route.php',
-                data: {type: type, stops: stops, hub: hub, fares: fares, admin_id: admin_id},
+                data: {type: type, stops: stops, hub: hub, fares: fares, admin_id: admin_id, startTime: startTime, endTime: endTime},
                 dataType: 'JSON',
                 success: function (response) {
                     if (!response.err) {
@@ -148,7 +149,7 @@ window.onload = function () {
                         sendBtn.classList.remove('btn-warning');
                         sendBtn.classList.add('btn-danger');
                         sendBtn.innerHTML = 'Try again';
-                        field && $(field).parsley().addError('error', {message: response.err.msg.message});
+                        field && $(field).parsley().addError && $(field).parsley().addError('error', {message: response.err.msg.message});
                     }
                 }, error: function (jqXHR, textStatus, errorThrown) {
                     sendBtn.classList.remove('btn-warning');
@@ -661,10 +662,10 @@ window.onload = function () {
                         data, value, formData = new FormData(form), sendBtn = document.getElementById(elemPrefix + 'send'), heading = document.getElementById(elemPrefix + 'heading');
 
                 for (var i = 0, list = formElements['names[]'], listLength = list.length || 1; i < listLength; ++i) {
-                    (value=(list[i] || list).value) && names.push(value);
+                    (value = (list[i] || list).value) && names.push(value);
                 }
                 for (var i = 0, list = formElements['addresses[]'], listLength = list.length || 1; i < listLength; ++i) {
-                    (value=(list[i] || list).value) && addresses.push(value);
+                    (value = (list[i] || list).value) && addresses.push(value);
                 }
 
                 data = {names: names, type: type, addresses: addresses, description: description};
@@ -1031,7 +1032,7 @@ window.onload = function () {
                     startToBustopLine.push({lat: point.location.latitude, lng: point.location.longitude});
                 });
 
-                vars.startToBustopRoutePolyLine =  new vars.googleMaps.Polyline({
+                vars.startToBustopRoutePolyLine = new vars.googleMaps.Polyline({
                     path: startToBustopLine,
                     strokeColor: '#428bca',
                     strokeWeight: 5,
@@ -1043,7 +1044,7 @@ window.onload = function () {
                 });
                 bustopToDestLine.push(endLoc);
 
-                vars.bustopToEndRoutePolyLine =  new vars.googleMaps.Polyline({
+                vars.bustopToEndRoutePolyLine = new vars.googleMaps.Polyline({
                     path: bustopToDestLine,
                     strokeColor: '#5cb85c',
                     strokeWeight: 5,

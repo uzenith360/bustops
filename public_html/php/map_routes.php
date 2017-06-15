@@ -14,6 +14,8 @@ function map_routes($routeInfo) {
     $transportType = $routeInfo['type'];
     $transportStops = $routeInfo['stops'];
     $transportFares = $routeInfo['fares'];
+    $startTime = $routeInfo['startTime'];
+    $endTime = $routeInfo['endTime'];
     $stops = '';
     $routes = '';
 
@@ -24,7 +26,7 @@ function map_routes($routeInfo) {
         if ($i < $stopsLengthMinus1) {
             for ($i0 = $i; $i0 < $stopsLengthMinus1; ++$i0) {
                 $reltag = 'r' . $relCt;
-                $routes .= 'MERGE (' . $stoptag . ')-[' . $reltag . ':' . $transportType . ']->(s' . ($i0 + 1) . ') SET ' . $reltag . '.f=' . $transportFares[$i] . ',' . $reltag . '.m="' . $timecreated . '" ';
+                $routes .= 'MERGE (' . $stoptag . ')-[' . $reltag . ':' . $transportType . ']->(s' . ($i0 + 1) . ') SET ' . $reltag . '.f=' . $transportFares[$i] . ',' . $reltag . '.m="' . $timecreated. '",' . $reltag . '.s="' . $startTime. '",' . $reltag . '.e="' . $endTime . '" ';
                 ++$relCt;
             }
         }
