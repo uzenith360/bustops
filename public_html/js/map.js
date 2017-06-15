@@ -45,7 +45,8 @@ window.onload = function () {
         route: {},
         startToBustopRoutePolyLine: null,
         bustopToEndRoutePolyLine: null,
-        getDirectionsSidenavBody: null
+        getDirectionsSidenavBody: null,
+        toastTimeout: null
     };
 
     //init
@@ -956,6 +957,8 @@ window.onload = function () {
     }
 
     function getRoute() {
+        toast(1, 'Getting route');
+
         var startLoc = vars.route['tripStart'], endLoc = vars.route['tripEnd'];
 
         //show getn route or sth (UI display)
@@ -975,7 +978,7 @@ window.onload = function () {
             }, error: function () {
                 //Display error occured or sth, in the white div below the search input o, nt in dialog! Dialogs are annoying
             }, complete: function () {
-
+                toast(0);
             }
         });
     }
@@ -1005,6 +1008,8 @@ window.onload = function () {
                 panel: vars.getDirectionsSidenavBody
             });
         }
+
+        clearPrevRouteDirections();
 
         var bounds = new vars.googleMaps.LatLngBounds(), startLoc = vars.route['tripStart'], endLoc = vars.route['tripEnd']
                 , origToBustop = startLoc.lat() + ',' + startLoc.lng() + '|' + route.n[0].latlng.lat + ',' + route.n[0].latlng.lng, routeNlen = route.n.length
@@ -1082,12 +1087,11 @@ window.onload = function () {
 
     }
 
-    function clearRoute() {
+    function clearPrevRouteDirections() {
         //clears the route that was previously created and resets the map
-        vars.bustopToEndRoutePolyLine;
-        vars.startToBustopRoutePolyLine;
-        vars.directionsService;
-        vars.directionsDisplay;
+        vars.bustopToEndRoutePolyLine && (vars.bustopToEndRoutePolyLine.setMap(null), vars.startToBustopRoutePolyLine.setMap(null));
+        //vars.directionsService;
+        //vars.directionsDisplay;
         vars.getDirectionsSidenavBody.innerHTML = '';
     }
 
@@ -1134,5 +1138,32 @@ window.onload = function () {
             }
         });
 
+    }
+
+    function toast(mode, msg, miliseconds) {
+        //mode: 0 hide, 1: show, 2: show and hide after some miliseconds
+
+        // Get the snackbar DIV
+        var x = document.getElementById("snackbar");
+
+        vars.toastTimeout && vars.toastTimeout.clearTimeout();
+
+        x.textContent = msg;
+
+        switch (mode) {
+            case 0:
+                x.className = "";
+                break;
+            case 1:
+                // Add the "show" class to DIV
+                x.className = "show";
+                break;
+            case 2:
+                // After 3 seconds, remove the show class from DIV
+                vars.toastTimeout = setTimeout(function () {
+                    x.className = x.className.replace("show", "");
+                }, miliseconds || 3000);
+                break;
+        }
     }
 };
