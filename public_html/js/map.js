@@ -40,6 +40,7 @@ window.onload = function () {
         busRouteForm: document.getElementById('busRouteForm').elements,
         addStopCt: 0,
         directionsService: null,
+        directionsDisplay: null,
         route: {}
     };
 
@@ -526,7 +527,7 @@ window.onload = function () {
         });
 
         direction.addEventListener('click', function () {
-            document.getElementById("getDirectionsSidenav").style.width = "390px";
+            document.getElementById("getDirectionsSidenav").style.width = "410px";
         });
         document.getElementById('getDirectionsSidenavClose').addEventListener('click', function () {
             document.getElementById("getDirectionsSidenav").style.width = "0";
@@ -561,7 +562,7 @@ window.onload = function () {
                         }
                         vars.route[inputName] = place.geometry.location;
 
-                        vars.route['tripStart'] && vars.route['tripEnd'] && getRoute(vars.route['tripStart'], vars.route['tripEnd']);
+                        vars.route['tripStart'] && vars.route['tripEnd'] && getRoute();
                     });
                 },
                 autoFocus: true,
@@ -949,16 +950,22 @@ window.onload = function () {
         return edited;
     }
 
-    function getRoute(startLoc, endLoc) {
-        //show getn route or sth
-        
+    function getRoute() {
+        var startLoc = vars.route['tripStart'], endLoc = vars.route['tripEnd'];
+
+        //show getn route or sth (UI display)
+
         $.ajax({
             type: "GET",
             url: "get_route.php",
             data: {start: {lat: startLoc.lat(), lng: startLoc.lng()}, end: {lat: endLoc.lat(), lng: endLoc.lng()}},
             dataType: 'JSON',
             success: function (response) {
-                drawRoute(response);
+                if (Object.keys(response).length) {
+                    drawRoute(response);
+                } else {
+                    //No results
+                }
             }, error: function () {
                 //Display error occured or sth, in the white div below the search input o, nt in dialog! Dialogs are annoying
             }, complete: function () {
@@ -968,8 +975,10 @@ window.onload = function () {
     }
 
     function drawRoute(route) {
+        //wen d start or end location is spacified, a marker should be placed a draggable marker should be placed at that location.  and wen d src or dest marker is moved and drag end, d new route should be searched (thr should be a timeout and UI to show wen d ap)
+
         //Hide all the markers on d map first o
-        
+
         //we could move d markers to be more accurate, or we could pin d markers on d map ourselves
 
         //would draw all the paths on the map that make up the route
@@ -982,14 +991,45 @@ window.onload = function () {
 
         //Note: some routes might be walking routes, i.e, wen u get down from bus and walk to the office, but u still walk through a road, so it may also be represented as a driving route, test both options
 
-        var i = 0, len = route.n.length - 1;
+        if (!vars.directionsService) {
+            vars.directionsService = new vars.googleMaps.DirectionsService;
+            vars.directionsDisplay = new vars.googleMaps.DirectionsRenderer({
+                map: vars.map,
+                panel: document.getElementById('getDirectionsSidenavBody')
+            });
+        }
+        
+        var bounds = new vars.googleMaps.LatLngBounds(), startLoc = vars.route['tripStart'], endLoc = vars.route['tripEnd'];;
+        bounds.extend(startLoc);
+        bounds.extend(endLoc);
+        vars.map.fitBounds(bounds);
+
+        var i = 1, len = route.n.length - 1, midPoints=[], origin = route.n[0].latlng, destination;
         while (i < len) {
             //route.r[i] - relation for this path
-            drawPath(route.n[i].latlng, route.n[++i].latlng);
+            //drawPath(route.n[i].latlng, route.n[++i].latlng);
+            midPoints.push({location:route.n[i++].latlng});
         }
+        destination = route.n[i].latlng;
+
+        vars.directionsService.route({
+            origin: origin,
+            destination: destination,
+            waypoints: midPoints,
+            travelMode: 'DRIVING'
+        }, function (response, status) {
+            if (status === 'OK') {
+                vars.directionsDisplay.setDirections(response);
+            } else {
+                //display an error status
+                console.log('Could not display directions due to: ' + status);
+            }
+        });
     }
 
-    function drawPath(from, to) {console.log(from);console.log(to);
+    function drawPath(from, to) {
+        console.log(from);
+        console.log(to);
         //try to look for updated code on this!!!!!!!
 
         !vars.directionsService && (vars.directionsService = new vars.googleMaps.DirectionsService());
@@ -1021,7 +1061,7 @@ window.onload = function () {
             destination: to,
             travelMode: vars.googleMaps.TravelMode.DRIVING
         };
-        vars.directionsService.route(request, function (response, status) {
+        vars.directionsService.route(request, function (response, status) {//Google returns other useful information that i coule add to make the direction stuff better like walk/take bike 23m(15min), turn left e.t.c
             if (status === vars.googleMaps.DirectionsStatus.OK) {
                 directionsDisplay.setDirections(response);
                 directionsDisplay.setMap(vars.map);

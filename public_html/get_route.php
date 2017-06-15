@@ -39,6 +39,10 @@ if (($startLat = doubleval($_GET['start']['lat'])) && ($startLng = doubleval($_G
 
     foreach ($startNearBustops as $startNearBustop) {
         foreach ($endNearBustops as $endNearBustop) {
+            if(!strcmp($startNearBustop->_id, $endNearBustop->_id)){
+                continue;
+            }
+            
             if (($route = $neo4jClient->run('MATCH (a { i: "' . $startNearBustop->_id . '" }),(b { i: "' . $endNearBustop->_id . '" }), p = shortestPath((a)-[*]->(b)) RETURN p')->firstRecord())) {
                 $nodes = [];
                 $relationships = [];
