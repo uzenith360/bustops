@@ -611,6 +611,8 @@ window.onload = function () {
                         
                         toast('Getting place', 0);
                         var location = place.geometry.location;
+                        
+                        vars.map.panTo(location);
 
                         if (inputName === 'tripStart') {
                             searchRoute(location);
@@ -951,7 +953,7 @@ window.onload = function () {
                         response.forEach(function (data) {
                             //prevents duplicating markers in d map
                             if (vars.locations.hasOwnProperty(data._id['$oid'])) {
-                                vars.locations[data._id['$oid']].marker.show();
+                                //vars.locations[data._id['$oid']].marker.show();
                                 return;
                             }
 
@@ -1033,9 +1035,11 @@ window.onload = function () {
                     drawRoute(response);
                 } else {
                     //No results
+                    toast('No route found', 2, 5000);
                 }
             }, error: function () {
                 //Display error occured or sth, in the white div below the search input o, nt in dialog! Dialogs are annoying
+                toast('Problem getting route', 2, 5000);
             }, complete: function () {
                 toast('Getting route', 0);
             }
@@ -1103,7 +1107,7 @@ window.onload = function () {
                     path: startToBustopLine,
                     strokeColor: '#428bca',
                     strokeWeight: 5,
-                    strokeOpacity:.6,
+                    strokeOpacity:.5,
                     map: vars.map
                 });
 
@@ -1116,7 +1120,7 @@ window.onload = function () {
                     path: bustopToDestLine,
                     strokeColor: '#5cb85c',
                     strokeWeight: 5,
-                    strokeOpacity:.6,
+                    strokeOpacity:.5,
                     map: vars.map
                 });
 
