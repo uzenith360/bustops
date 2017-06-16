@@ -598,9 +598,7 @@ window.onload = function () {
         autocomplete.bindTo('bounds', vars.map);
 
         var infowindow = new vars.googleMaps.InfoWindow();
-        var marker  = vars.placeSearchMarker= new vars.googleMaps.Marker({
-            map: vars.map
-        });
+        var marker  = vars.placeSearchMarker= new vars.googleMaps.Marker({});
         vars.googleMaps.event.addListener(marker, 'click', function () {
             infowindow.open(vars.map, marker);
         });
@@ -627,6 +625,7 @@ window.onload = function () {
              });*/
             marker.setPosition(place.geometry.location);
             marker.setVisible(true);
+            marker.setMap(vars.map);
 
             infowindow.setContent('<div><strong>' + place.name + '</strong><br>' +
                     // 'Place ID: ' + place.place_id + '<br>' +
@@ -1117,7 +1116,7 @@ toast('Drawing route', 1);
     }
     function hideAllMarkers(){
         vars.myMarker && vars.placeSearchMarker.setMap(null);
-        console.log(vars.locations.length);
+        
         for(var location in vars.locations){
             vars.locations[location].marker.hide();
         }
