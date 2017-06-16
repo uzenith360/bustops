@@ -209,10 +209,14 @@ function Place(info, options, onGetData) {
 Place.prototype.showInfo = function () {
     this._infowindow.open(this._map, this._marker);
 };
-Place.prototype.remove = function () {
+Place.prototype.hide = function () {console.log('hide');
 //the marker
     this._marker.setMap(null);
 
 //remove the info window
     this._infowindow.close();
+};
+Place.prototype.show = function () {
+//the marker
+    this._marker.setMap(this._map);
 };

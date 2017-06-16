@@ -46,7 +46,9 @@ window.onload = function () {
         startToBustopRoutePolyLine: null,
         bustopToEndRoutePolyLine: null,
         getDirectionsSidenavBody: null,
-        toastTimeout: null
+        toastTimeout: null,
+        placeSearchMarker:null,
+        thrsVisibleMarkers:false
     };
 
     //init
@@ -330,8 +332,8 @@ window.onload = function () {
                 position: vars.myLoc,
                 //map: vars.map,
                 title: 'me',
-                icon: 'http://maps.google.com/mapfiles/kml/paddle/blu-circle_maps.png'/*,
-                 anchorPoint: vars.googleMaps.Point(0, -29)*/
+                icon: 'http://maps.google.com/mapfiles/kml/paddle/blu-circle_maps.png',
+                 anchorPoint: vars.googleMaps.Point(0, -29)
             });
             var contentContainer = document.createElement('div'), contentHeading = document.createElement('strong'), contentBody = document.createElement('div');
 
@@ -354,6 +356,7 @@ window.onload = function () {
         }
 
         vars.myMarker.setPosition(vars.myLoc);
+        vars.myMarker.setMap(vars.map);
     }
 
     function updateLocationsMarkers(locs) {
@@ -595,7 +598,7 @@ window.onload = function () {
         autocomplete.bindTo('bounds', vars.map);
 
         var infowindow = new vars.googleMaps.InfoWindow();
-        var marker = new vars.googleMaps.Marker({
+        var marker  = vars.placeSearchMarker= new vars.googleMaps.Marker({
             map: vars.map
         });
         vars.googleMaps.event.addListener(marker, 'click', function () {
@@ -630,6 +633,8 @@ window.onload = function () {
                     place.formatted_address +
                     '</div>');
             infowindow.open(vars.map, marker);
+            
+            vars.thrsVisibleMarkers = true;
         });
 
         //also request to get nearby locations from server and display
@@ -717,9 +722,11 @@ window.onload = function () {
                             data.id = response.result;
 
                             //on success
-                            (vars.locations[response.result] = new Place(data, {map: vars.map, loc: {lat: lat, lng: lng}, title: 'New location'}, getMarkerData)).showInfo();
+                            (vars.locations[response.result] = {data: data, marker: new Place(data, {map: vars.map, loc: {lat: lat, lng: lng}, title: 'New location'}, getMarkerData)}).marker.showInfo();
 
                             zDialog.close();
+                            
+                            vars.thrsVisibleMarkers = true;
                         } else {
                             var field = formElements[response.err.msg.field];
 
@@ -909,6 +916,7 @@ window.onload = function () {
                             delete data._id;
 
                             vars.locations[data.id] = {data: data, marker: new Place(data, {map: vars.map, loc: data.latlng, title: 'saved location'}, data.type === 'BUSTOP' && getMarkerData)};
+                        vars.thrsVisibleMarkers = true;
                         });
                     } catch (e) {
                         //parse error, probable caused by server spitting out error instead of data
@@ -1015,7 +1023,9 @@ window.onload = function () {
                 panel: vars.getDirectionsSidenavBody
             });
         }
-
+        
+        vars.thrsVisibleMarkers && hideAllMarkers();
+        
         clearPrevRouteDirections();
 
         var bounds = new vars.googleMaps.LatLngBounds(), startLoc = vars.route['tripStart'], endLoc = vars.route['tripEnd']
@@ -1098,11 +1108,28 @@ toast('Drawing route', 1);
     }
 
     function clearPrevRouteDirections() {
-        //clears the route that was previously created and resets the map
+        //clears the route that was previously created doesnt reset the map, rest is done wen user first searches for a route path
         vars.bustopToEndRoutePolyLine && (vars.bustopToEndRoutePolyLine.setMap(null), vars.startToBustopRoutePolyLine.setMap(null));
         //vars.directionsService;
         //vars.directionsDisplay;
+        
         vars.getDirectionsSidenavBody.innerHTML = '';
+    }
+    function hideAllMarkers(){
+        vars.myMarker && vars.placeSearchMarker.setMap(null);
+        console.log(vars.locations.length);
+        for(var location in vars.locations){
+            vars.locations[location].marker.hide();
+        }
+        
+        vars.thrsVisibleMarkers = false;
+    }
+    function showAllMarkers(){
+        vars.myMarker && vars.placeSearchMarker.setMap(vars.map);
+        
+        for(var location in vars.locations){
+            vars.locations[location].marker.show();
+        }
     }
 
     function drawPath(from, to) {
@@ -1158,8 +1185,6 @@ toast('Drawing route', 1);
 
         vars.toastTimeout && vars.toastTimeout.clearTimeout();
 
-
-
         switch (mode) {
             case 0:
                 x.textContent === msg && (x.className = "");
@@ -1173,6 +1198,7 @@ toast('Drawing route', 1);
                 x.textContent = msg;
                 // After 3 seconds, remove the show class from DIV
                 vars.toastTimeout = setTimeout(function () {
+                    vars.toastTimeout = null;
                     x.textContent === msg && (x.className = x.className.replace("show", ""));
                 }, miliseconds || 3000);
                 break;
