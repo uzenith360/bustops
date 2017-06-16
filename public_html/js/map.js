@@ -609,6 +609,7 @@ window.onload = function () {
                             return;
                         }
                         
+                        vars.tripMode && stopTripMode();
                         toast('Getting place', 0);
                         var location = place.geometry.location;
                         
@@ -1188,6 +1189,12 @@ window.onload = function () {
         endLoc && (vars.route['tripEnd'] = endLoc);
         
         vars.route['tripStart'] && vars.route['tripEnd'] && getRoute();
+    }
+    
+    function stopTripMode(){
+        if(vars.tripMode){
+            document.getElementById('tC').click();
+        }
     }
 
     function toast(msg, mode, miliseconds) {
