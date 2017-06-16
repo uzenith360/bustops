@@ -47,8 +47,10 @@ window.onload = function () {
         bustopToEndRoutePolyLine: null,
         getDirectionsSidenavBody: null,
         toastTimeout: null,
-        placeSearchMarker:null,
-        thrsVisibleMarkers:false
+        placeSearchMarker: null,
+        thrsVisibleMarkers: false,
+        startRouteMarker: null,
+        endRouteMarker: null
     };
 
     //init
@@ -192,7 +194,7 @@ window.onload = function () {
     }
     function myLocSuccess(pos) {
         !vars.acquiredCurrentLoc && toast('Getting my location', 0);
-        
+
         if (pos.coords.accuracy < config.accuracyCutoffPoint || !vars.acquiredCurrentLoc) {
             var newLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude};
 
@@ -284,7 +286,7 @@ window.onload = function () {
                     return setTimeout(_, 5);
                 }
 
-                vars.myMarker.setMap(vars.map);
+                vars.myMarker.setVisible(true);
 
                 var iconMe = document.getElementById('iM');
                 iconMe.classList.remove('my-location-normal');
@@ -330,10 +332,11 @@ window.onload = function () {
         if (!vars.myMarker) {
             vars.myMarker = new vars.googleMaps.Marker({
                 position: vars.myLoc,
-                //map: vars.map,
+                map: vars.map,
                 title: 'me',
                 icon: 'http://maps.google.com/mapfiles/kml/paddle/blu-circle_maps.png',
-                 anchorPoint: vars.googleMaps.Point(0, -29)
+                anchorPoint: vars.googleMaps.Point(0, -29),
+                visible: false
             });
             var contentContainer = document.createElement('div'), contentHeading = document.createElement('strong'), contentBody = document.createElement('div');
 
@@ -356,7 +359,7 @@ window.onload = function () {
         }
 
         vars.myMarker.setPosition(vars.myLoc);
-        vars.myMarker.setMap(vars.map);
+        vars.myMarker.setVisible(true);
     }
 
     function updateLocationsMarkers(locs) {
@@ -475,7 +478,7 @@ window.onload = function () {
         meCntrl.addEventListener('click', function () {
             if (!vars.watchingMyLoc) {
                 vars.watchingMyLoc = true;
-                
+
                 watchMyLocation();
                 return;
             }
@@ -497,7 +500,7 @@ window.onload = function () {
 
             vars.tripMode && tripCntl.click();
 
-            vars.myMarker.setMap(null);
+            vars.myMarker.setVisible(false);
 
             var iconMe = document.getElementById('iM');
             iconMe.classList.remove('my-location-blue');
@@ -540,6 +543,32 @@ window.onload = function () {
         });
 
         direction.addEventListener('click', function () {
+            if (!vars.startRouteMarker) {
+                vars.startRouteMarker = new vars.googleMaps.Marker({
+                    map: vars.map,
+                    title: 'Start of journey',
+                    anchorPoint: new vars.googleMaps.Point(0, -29),
+                    icon: 'http://maps.google.com/mapfiles/kml/shapes/man_maps.png',
+                    visible: false,
+                    draggable: true
+                });
+                vars.endRouteMarker = new vars.googleMaps.Marker({
+                    map: vars.map,
+                    title: 'Destination',
+                    anchorPoint: new vars.googleMaps.Point(0, -29),
+                    icon: 'http://maps.google.com/mapfiles/kml/shapes/flag_maps.png',
+                    visible: false,
+                    draggable: true
+                });
+                
+                vars.googleMaps.event.addListener(vars.startRouteMarker, 'dragend', function(){
+                    searchRoute(vars.startRouteMarker.getPosition());
+                });
+                vars.googleMaps.event.addListener(vars.endRouteMarker, 'dragend', function(){
+                    searchRoute(null, vars.endRouteMarker.getPosition());
+                });
+            }
+
             document.getElementById("getDirectionsSidenav").style.width = "410px";
         });
         document.getElementById('getDirectionsSidenavClose').addEventListener('click', function () {
@@ -570,15 +599,28 @@ window.onload = function () {
                 },
                 minLength: 2,
                 select: function (event, ui) {
+                    toast('Getting place', 1);
+                    
                     var service = new vars.googleMaps.places.PlacesService(vars.map);
                     service.getDetails({placeId: ui.item.id}, function (place, status) {
                         if (status !== vars.googleMaps.places.PlacesServiceStatus.OK) {
+                            toast('Problem getting place', 2);
                             console.log(status);
                             return;
                         }
-                        vars.route[inputName] = place.geometry.location;
+                        
+                        toast('Getting place', 0);
+                        var location = place.geometry.location;
 
-                        vars.route['tripStart'] && vars.route['tripEnd'] && getRoute();
+                        if (inputName === 'tripStart') {
+                            searchRoute(location);
+                            vars.startRouteMarker.setPosition(location);
+                            vars.startRouteMarker.setVisible(true);
+                        } else {
+                            searchRoute(null, location);
+                            vars.endRouteMarker.setPosition(location);
+                            vars.endRouteMarker.setVisible(true);
+                        }
                     });
                 },
                 autoFocus: true,
@@ -598,7 +640,9 @@ window.onload = function () {
         autocomplete.bindTo('bounds', vars.map);
 
         var infowindow = new vars.googleMaps.InfoWindow();
-        var marker  = vars.placeSearchMarker= new vars.googleMaps.Marker({});
+        var marker = vars.placeSearchMarker = new vars.googleMaps.Marker({
+            map: vars.map
+        });
         vars.googleMaps.event.addListener(marker, 'click', function () {
             infowindow.open(vars.map, marker);
         });
@@ -625,14 +669,13 @@ window.onload = function () {
              });*/
             marker.setPosition(place.geometry.location);
             marker.setVisible(true);
-            marker.setMap(vars.map);
 
             infowindow.setContent('<div><strong>' + place.name + '</strong><br>' +
                     // 'Place ID: ' + place.place_id + '<br>' +
                     place.formatted_address +
                     '</div>');
             infowindow.open(vars.map, marker);
-            
+
             vars.thrsVisibleMarkers = true;
         });
 
@@ -724,7 +767,7 @@ window.onload = function () {
                             (vars.locations[response.result] = {data: data, marker: new Place(data, {map: vars.map, loc: {lat: lat, lng: lng}, title: 'New location'}, getMarkerData)}).marker.showInfo();
 
                             zDialog.close();
-                            
+
                             vars.thrsVisibleMarkers = true;
                         } else {
                             var field = formElements[response.err.msg.field];
@@ -908,6 +951,7 @@ window.onload = function () {
                         response.forEach(function (data) {
                             //prevents duplicating markers in d map
                             if (vars.locations.hasOwnProperty(data._id['$oid'])) {
+                                vars.locations[data._id['$oid']].show();
                                 return;
                             }
 
@@ -915,11 +959,11 @@ window.onload = function () {
                             delete data._id;
 
                             vars.locations[data.id] = {data: data, marker: new Place(data, {map: vars.map, loc: data.latlng, title: 'saved location'}, data.type === 'BUSTOP' && getMarkerData)};
-                        vars.thrsVisibleMarkers = true;
+                            vars.thrsVisibleMarkers = true;
                         });
                     } catch (e) {
                         //parse error, probable caused by server spitting out error instead of data
-                        console.error('location parse error');
+                        console.error('location parse error: '+response);
                     }
                 } else {
                     //server didnt return anything
@@ -1022,10 +1066,6 @@ window.onload = function () {
                 panel: vars.getDirectionsSidenavBody
             });
         }
-        
-        vars.thrsVisibleMarkers && hideAllMarkers();
-        
-        clearPrevRouteDirections();
 
         var bounds = new vars.googleMaps.LatLngBounds(), startLoc = vars.route['tripStart'], endLoc = vars.route['tripEnd']
                 , origToBustop = startLoc.lat() + ',' + startLoc.lng() + '|' + route.n[0].latlng.lat + ',' + route.n[0].latlng.lng, routeNlen = route.n.length
@@ -1034,7 +1074,7 @@ window.onload = function () {
         bounds.extend(endLoc);
         vars.map.fitBounds(bounds);
 
-toast('Drawing route', 1);
+        toast('Drawing route', 1);
         $.get('https://roads.googleapis.com/v1/snapToRoads', {
             interpolate: true,
             key: config.key,
@@ -1049,6 +1089,10 @@ toast('Drawing route', 1);
                 bounds.extend(startLoc);
                 bounds.extend(endLoc);
                 vars.map.fitBounds(bounds);
+
+                vars.thrsVisibleMarkers && hideAllMarkers();
+                clearPrevRouteDirections();
+
 
                 startData.snappedPoints.forEach(function (point) {
                     startToBustopLine.push({lat: point.location.latitude, lng: point.location.longitude});
@@ -1108,72 +1152,35 @@ toast('Drawing route', 1);
 
     function clearPrevRouteDirections() {
         //clears the route that was previously created doesnt reset the map, rest is done wen user first searches for a route path
+        //i really want the polylines to go that's y i have to setMap to null
         vars.bustopToEndRoutePolyLine && (vars.bustopToEndRoutePolyLine.setMap(null), vars.startToBustopRoutePolyLine.setMap(null));
         //vars.directionsService;
         //vars.directionsDisplay;
-        
+
         vars.getDirectionsSidenavBody.innerHTML = '';
     }
-    function hideAllMarkers(){
-        vars.myMarker && vars.placeSearchMarker.setMap(null);
-        
-        for(var location in vars.locations){
+    function hideAllMarkers() {
+        vars.myMarker && vars.placeSearchMarker.setVisible(false);
+
+        for (var location in vars.locations) {
             vars.locations[location].marker.hide();
         }
-        
+
         vars.thrsVisibleMarkers = false;
     }
-    function showAllMarkers(){
-        vars.myMarker && vars.placeSearchMarker.setMap(vars.map);
-        
-        for(var location in vars.locations){
+    function showAllMarkers() {
+        vars.myMarker && vars.placeSearchMarker.setVisible(true);
+
+        for (var location in vars.locations) {
             vars.locations[location].marker.show();
         }
     }
-
-    function drawPath(from, to) {
-        console.log(from);
-        console.log(to);
-        //try to look for updated code on this!!!!!!!
-
-        !vars.directionsService && (vars.directionsService = new vars.googleMaps.DirectionsService());
-
-        var directionsDisplay = new vars.googleMaps.DirectionsRenderer({map: vars.map});
-
-
-        /*var start = new vars.googleMaps.LatLng(from.lat, from.lng);
-         //var end = new google.maps.LatLng(38.334818, -181.884886);
-         var end = new vars.googleMaps.LatLng(to.lat, to.lng);*/
-        /*
-         var startMarker = new google.maps.Marker({
-         position: start,
-         map: map,
-         draggable: true
-         });
-         var endMarker = new google.maps.Marker({
-         position: end,
-         map: map,
-         draggable: true
-         });
-         */
-        var bounds = new vars.googleMaps.LatLngBounds();
-        bounds.extend(from);
-        bounds.extend(to);
-        vars.map.fitBounds(bounds);
-        var request = {
-            origin: from,
-            destination: to,
-            travelMode: vars.googleMaps.TravelMode.DRIVING
-        };
-        vars.directionsService.route(request, function (response, status) {//Google returns other useful information that i coule add to make the direction stuff better like walk/take bike 23m(15min), turn left e.t.c
-            if (status === vars.googleMaps.DirectionsStatus.OK) {
-                directionsDisplay.setDirections(response);
-                directionsDisplay.setMap(vars.map);
-            } else {
-                console.log("Directions Request from " + from.toUrlValue(6) + " to " + to.toUrlValue(6) + " failed: " + status);
-            }
-        });
-
+    
+    function searchRoute(startLoc, endLoc){
+        startLoc && (vars.route['tripStart'] = startLoc);
+        endLoc && (vars.route['tripEnd'] = endLoc);
+        
+        vars.route['tripStart'] && vars.route['tripEnd'] && getRoute();
     }
 
     function toast(msg, mode, miliseconds) {
