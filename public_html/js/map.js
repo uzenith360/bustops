@@ -951,7 +951,7 @@ window.onload = function () {
                         response.forEach(function (data) {
                             //prevents duplicating markers in d map
                             if (vars.locations.hasOwnProperty(data._id['$oid'])) {
-                                vars.locations[data._id['$oid']].show();
+                                vars.locations[data._id['$oid']].marker.show();
                                 return;
                             }
 
@@ -963,7 +963,8 @@ window.onload = function () {
                         });
                     } catch (e) {
                         //parse error, probable caused by server spitting out error instead of data
-                        console.error('location parse error: '+response);
+                        console.error('location parse error: '+e);
+                        console.error(response);
                     }
                 } else {
                     //server didnt return anything
@@ -1102,6 +1103,7 @@ window.onload = function () {
                     path: startToBustopLine,
                     strokeColor: '#428bca',
                     strokeWeight: 5,
+                    strokeOpacity:.6,
                     map: vars.map
                 });
 
@@ -1114,6 +1116,7 @@ window.onload = function () {
                     path: bustopToDestLine,
                     strokeColor: '#5cb85c',
                     strokeWeight: 5,
+                    strokeOpacity:.6,
                     map: vars.map
                 });
 
