@@ -40,6 +40,7 @@ window.onload = function () {
         locations: {},
         busRouteForm: document.getElementById('busRouteForm').elements,
         addStopCt: 0,
+        addDestinationCt: 1,
         directionsService: null,
         directionsDisplay: null,
         route: {},
@@ -90,82 +91,110 @@ window.onload = function () {
             div.innerHTML = "<div " + " class=\"col-xs-8\"><input disabled  type=\"text\" class=\"form-control\" name=\"stop[]\" placeholder=\"Stop " + ++vars.addStopCt + "\"><input type=\"text\" style=\"display:none\" name=\"stoph[]\"></div><div class=\"col-xs-2\"><input class=\"form-control\" name=\"fares[]\" type=\"number\" placeholder=\"Fares (&#8358;)\"></div><div class=\"col-xs-2\"><button type=\"button\" class=\"btn btn-warning\" id=\"cSt-" + vars.addStopCt + "\">Clear</button></div>";
             stops.appendChild(div);
         });
+        document.getElementById('aD').addEventListener('click', function () {
+            var div = document.createElement("div");
+            div.setAttribute("class", "row");
+            div.setAttribute("style", "margin-top:5px;");
+            div.innerHTML = '<div class="col-xs-10"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-arrow-down"></i></span><input type="text" class="form-control" name="destination[]" placeholder="Destination ' + ++vars.addDestinationCt + '"></div></div><div class="col-xs-2"><button type="button" id="cD-' + vars.addDestinationCt + '" class="btn btn-warning">Clear</button></div>';
+            document.getElementById("destinations").appendChild(div);
+        });
         $('body').on('click', '[id |= "cSt"]', function () {
             var id = $(this).prop('id').split('-')[1] - 1;
             (vars.busRouteForm['fares[]'][id] || vars.busRouteForm['fares[]']).value = '', (vars.busRouteForm['stop[]'][id] || vars.busRouteForm['stop[]']).value = '', (vars.busRouteForm['stoph[]'][id] || vars.busRouteForm['stoph[]']).value = '';
+        }).on('click', '[id |= "cD"]', function () {
+            var id = $(this).prop('id').split('-')[1] - 1;
+            (vars.busRouteForm['destination[]'][id] || vars.busRouteForm['destination[]']).value = '';
         });
         $('#busRouteForm').parsley().on('form:submit', function (e) {
             var form = document.getElementById('busRouteForm'), formElements = form.elements,
                     startTime = formElements['startTime'].value, endTime = formElements['endTime'].value,
-                    type = formElements['type'].value, admin_id = vars.adminId, value, hub = formElements['hubh'].value, stops = [], fares = [],
+                    type = formElements['type'].value, admin_id = vars.adminId, value, hub = formElements['hubh'].value, stops = [], fares = [], destinations = [],
                     sendBtn = formElements['save'], heading = document.getElementById('busRouteFormHeading');
 
-            for (var i = 0, list = formElements['stoph[]'], listLength = list.length || 1; i < listLength; ++i) {
-                (value = (list[i] || list).value) && stops.push(value);
+            for (var i = 0, list = formElements['stoph[]'], listF = formElements['fares[]'], listLength = list.length || 1; i < listLength; ++i) {
+                (value = (list[i] || list).value) && stops.push(value) && (value = (listF[i] || listF).value) && fares.push(value);
             }
-            for (var i = 0, list = formElements['fares[]']/*, listLength = list.length || 1*/; i < listLength; ++i) {
-                (value = (list[i] || list).value) && fares.push(value);
+            //for (var i = 0, list = formElements['fares[]']/*, listLength = list.length || 1*/; i < listLength; ++i) {
+            //  (value = (list[i] || list).value) && fares.push(value);
+            //}
+            for (var i = 0, list = formElements['destination[]'], listLength = list.length || 1; i < listLength; ++i) {
+                (value = (list[i] || list).value) && destinations.push(value);
             }
 
-            //Make the button change color and display saving
-            sendBtn.classList.remove('btn-primary');
-            sendBtn.classList.remove('btn-danger');
-            sendBtn.classList.add('btn-warning');
-            sendBtn.disabled = true;
-            sendBtn.innerHTML = 'Saving';
-            heading.innerHTML = 'Saving...';
+            if (stops.length) {
+                if (stops.length === fares.length) {
+                    //Make the button change color and display saving
+                    sendBtn.classList.remove('btn-primary');
+                    sendBtn.classList.remove('btn-danger');
+                    sendBtn.classList.add('btn-warning');
+                    sendBtn.disabled = true;
+                    sendBtn.innerHTML = 'Saving';
+                    heading.innerHTML = 'Saving...';
 
-            $.ajax({
-                type: "POST",
-                url: 'save_route.php',
-                data: {type: type, stops: stops, hub: hub, fares: fares, admin_id: admin_id, startTime: startTime, endTime: endTime},
-                dataType: 'JSON',
-                success: function (response) {
-                    if (!response.err) {
-                        //Display submitted
+                    $.ajax({
+                        type: "POST",
+                        url: 'save_route.php',
+                        data: {type: type, stops: stops, hub: hub, fares: fares, admin_id: admin_id, startTime: startTime, endTime: endTime, destinations: destinations},
+                        dataType: 'JSON',
+                        success: function (response) {
+                            if (!response.err) {
+                                //Display submitted
 
-                        /*
-                         * No need to change the button class back to primary since were closing the dialog anyway
-                         */
-                        sendBtn.classList.remove('btn-warning');
-                        sendBtn.classList.add('btn-success');
-                        sendBtn.innerHTML = 'Success';
-                        heading.innerHTML = 'Saved';
+                                /*
+                                 * No need to change the button class back to primary since were closing the dialog anyway
+                                 */
+                                sendBtn.classList.remove('btn-warning');
+                                sendBtn.classList.add('btn-success');
+                                sendBtn.innerHTML = 'Success';
+                                heading.innerHTML = 'Saved';
 
-                        form.reset();
-                    } else {
-                        var field = formElements[response.err.msg.field];
+                                form.reset();
+                            } else {
+                                var field = formElements[response.err.msg.field];
 
-                        switch (response.err.error) {
-                            case 'VALIDATION':
-                                heading.innerHTML = 'Review some field(s)';
-                                break;
-                            case 'MISSINGINFO':
-                                heading.innerHTML = 'Missing route information';
-                                break;
-                            case 'NOSTOPS':
-                                heading.innerHTML = 'No stops were specified';
-                                break;
-                            default:
-                                heading.innerHTML = 'Problem Saving, please try again';
-                                break;
+                                switch (response.err.error) {
+                                    case 'VALIDATION':
+                                        heading.innerHTML = 'Review some field(s)';
+                                        break;
+                                    case 'MISSINGINFO':
+                                        heading.innerHTML = 'Missing route information';
+                                        break;
+                                    case 'NOSTOPS':
+                                        heading.innerHTML = 'No stops were specified';
+                                        break;
+                                    default:
+                                        heading.innerHTML = 'Problem Saving, please try again';
+                                        break;
+                                }
+
+                                sendBtn.classList.remove('btn-warning');
+                                sendBtn.classList.add('btn-danger');
+                                sendBtn.innerHTML = 'Try again';
+                                field && $(field).parsley().addError && $(field).parsley().addError('error', {message: response.err.msg.message});
+                            }
+                        }, error: function (jqXHR, textStatus, errorThrown) {
+                            sendBtn.classList.remove('btn-warning');
+                            sendBtn.classList.add('btn-danger');
+                            sendBtn.innerHTML = 'Try again';
+                            heading.innerHTML = 'Try saving again';
+                        }, complete: function () {
+                            sendBtn.disabled = false;
                         }
-
-                        sendBtn.classList.remove('btn-warning');
-                        sendBtn.classList.add('btn-danger');
-                        sendBtn.innerHTML = 'Try again';
-                        field && $(field).parsley().addError && $(field).parsley().addError('error', {message: response.err.msg.message});
-                    }
-                }, error: function (jqXHR, textStatus, errorThrown) {
-                    sendBtn.classList.remove('btn-warning');
-                    sendBtn.classList.add('btn-danger');
-                    sendBtn.innerHTML = 'Try again';
-                    heading.innerHTML = 'Try saving again';
-                }, complete: function () {
-                    sendBtn.disabled = false;
+                    });
+                } else {
+                    sendBtn.classList.remove('btn-danger');
+                    sendBtn.classList.remove('btn-success');
+                    sendBtn.classList.remove('btn-primary');
+                    sendBtn.classList.add('btn-warning');
+                    heading.innerHTML = 'Missing information for bustop';
                 }
-            });
-
+            } else {
+                sendBtn.classList.remove('btn-danger');
+                sendBtn.classList.remove('btn-success');
+                sendBtn.classList.remove('btn-primary');
+                sendBtn.classList.add('btn-warning');
+                heading.innerHTML = 'No bustops specified';
+            }
             return false;
         });
 
@@ -647,7 +676,8 @@ window.onload = function () {
 
         var infowindow = new vars.googleMaps.InfoWindow();
         var marker = vars.placeSearchMarker = new vars.googleMaps.Marker({
-            map: vars.map
+            map: vars.map,
+            draggable: true
         });
         vars.googleMaps.event.addListener(marker, 'click', function () {
             infowindow.open(vars.map, marker);
@@ -1129,13 +1159,13 @@ window.onload = function () {
                     map: vars.map
                 });
 
-                var i = 1, len = route.n.length - 1, midPoints = [], origin = route.n[0].latlng, destination, directions;
+                var i = 1, len = route.n.length - 1, midPoints = [], origin = route.n[0].latlng, destination, directions = '<div>Enter a ' + origin.names.join(', ') + 'enter a ' + route.r[0].t + ' going to ' + route.n[1].names.join(', ') + '</div>';
                 while (i < len) {
                     //route.r[i] - relation for this path
                     //drawPath(route.n[i].latlng, route.n[++i].latlng);
                     //directions+='<div></div>';
 
-                    directions += '';
+                    directions += 'At ';
 
 
                     midPoints.push({location: route.n[i++].latlng});

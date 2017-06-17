@@ -36,7 +36,7 @@
             <div id="getDirectionsSidenavBody">
                 <!--Put a tabbed menu for my directions and google directions-->
                 <ul class="nav nav-tabs">
-                    <li class="active"><a data-toggle="tab" href="#bustopsDirectionsPanel">Bustops directions</a></li>
+                    <li class="active"><a data-toggle="tab" href="#bustopsDirectionsPanel">Bustop directions</a></li>
                     <li><a data-toggle="tab" href="#googleDirectionsPanel">Google directions</a></li>
                 </ul>
                 <div class="tab-content">
@@ -115,6 +115,19 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-xs-10">
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><i class="glyphicon glyphicon-arrow-down"></i></span>
+                                        <input data-parsley-required type="text" class="form-control" name="destination[]" placeholder="Destination 1">
+                                    </div>
+                                </div>
+                                <div class="col-xs-2"><button type="button" id="cD-1" class="btn btn-warning">Clear</button></div>
+                            </div>
+                            <div id="destinations"></div>
+                            <p id="aD" class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add destination</p>
                         </div>
                         <div class="row">
                             <div class="form-group col-xs-10">

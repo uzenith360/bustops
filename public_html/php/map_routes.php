@@ -5,7 +5,7 @@ require_once 'neo4j_client.php';
 //Create new bustops if they dnt already exists
 //Map the bustops to other bustops that interlink
 //Save in mongodb too, incase thrs a problem and we'll need to rebuild the graph
-function map_routes($routeInfo) {
+function map_routes($id,$routeInfo) {
     //Warning: This function wouldn't work well if the routes stops are more than 255
 
     global $neo4jClient;
@@ -22,11 +22,11 @@ function map_routes($routeInfo) {
     array_unshift($transportStops, $routeInfo['hub']);
     for ($i = 0, $stopsLength = count($transportStops), $stopsLengthMinus1 = $stopsLength - 1, $relCt = 0; $i < $stopsLength; ++$i) {
         $stoptag = 's' . $i;
-        $stops .= 'MERGE (' . $stoptag . '{i: "' . $transportStops[$i] . '"}) ON CREATE SET ' . $stoptag . '.c="' . $timecreated . '" ';
+        $stops .= 'MERGE (' . $stoptag . ':BUSTOP{i: "' . $transportStops[$i] . '"}) ON CREATE SET ' . $stoptag . '.c="' . $timecreated . '" ';
         if ($i < $stopsLengthMinus1) {
             for ($i0 = $i; $i0 < $stopsLengthMinus1; ++$i0) {
                 $reltag = 'r' . $relCt;
-                $routes .= 'MERGE (' . $stoptag . ')-[' . $reltag . ':' . $transportType . ']->(s' . ($i0 + 1) . ') SET ' . $reltag . '.f=' . $transportFares[$i] . ',' . $reltag . '.m="' . $timecreated. '",' . $reltag . '.s="' . $startTime. '",' . $reltag . '.e="' . $endTime . '" ';
+                $routes .= 'MERGE (' . $stoptag . ')-[' . $reltag . ':' . $transportType . ']->(s' . ($i0 + 1) . ') SET ' . $reltag . '.f=' . $transportFares[$i] . ',' . $reltag . '.m="' . $timecreated. '",' . $reltag . '.s="' . $startTime. '",' . $reltag . '.e="' . $endTime  . '",' . $reltag . '.i="' . $id . '" ';
                 ++$relCt;
             }
         }

@@ -15,9 +15,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $cleanedUserInputMap = array_map(function($value) {
         return htmlspecialchars(strip_tags(trim(isset($_POST[$value]) ? $_POST[$value] : '')));
-    }, ['type' => 'type', 'admin_id' => 'admin_id', 'hub' => 'hub', 'startTime'=>'startTime', 'endTime'=>'endTime']);
+    }, ['type' => 'type', 'admin_id' => 'admin_id', 'hub' => 'hub', 'startTime' => 'startTime', 'endTime' => 'endTime']);
     $cleanedUserInputMap['stops'] = is_array($_POST['stops']) ? $_POST['stops'] : [];
     $cleanedUserInputMap['fares'] = is_array($_POST['fares']) ? $_POST['fares'] : [];
+    $cleanedUserInputMap['destinations'] = array_filter(array_map(function($destination) {
+                return htmlspecialchars(strip_tags(trim($destination)));
+            }, is_array($_POST['destinations']) ? $_POST['destinations'] : []));
 
     $validationResult = $form_validate([
         'admin_id' => 'required',
@@ -27,22 +30,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'startTime' => 'required',
         'endTime' => 'required',
         'stops' => 'required|array|arrayminlength:1', //array now
+        'destinations' => 'required|array|arrayminlength:1', //array now
             ], $cleanedUserInputMap);
 
     if (empty($validationResult)) {
         require_once 'php/mongodb_insert.php';
 
         $ntMissingInfo = true;
-        for ($i = 0, $routeInfoStops = $cleanedUserInputMap['stops'], $routeInfoFares = $cleanedUserInputMap['fares'], $routeInfoCt = count($routeInfoStops), $newStops = [], $cleanStops = [], $cleanFares = []; $i < $routeInfoCt; ++$i) {
-            $cleanStop = htmlspecialchars(strip_tags(trim($routeInfoStops[$i])));
-            $cleanFare = htmlspecialchars(strip_tags(trim($routeInfoFares[$i])));
-            if (($cleanStop && !$cleanFare) || (!$cleanStop && $cleanFare)) {
-                $ntMissingInfo = false;
-                break;
-            } else if ($cleanStop && $cleanFare) {
-                $cleanStops[$i] = $cleanStop;
-                $cleanFares[$i] = $cleanFare;
+        $routeInfoStops = $cleanedUserInputMap['stops'];
+        $routeInfoFares = $cleanedUserInputMap['fares'];
+        $routeInfoCt = count($routeInfoStops);
+        if (count($routeInfoStops) === count($routeInfoFares)) {
+            for ($i = 0, $newStops = [], $cleanStops = [], $cleanFares = []; $i < $routeInfoCt; ++$i) {
+                $cleanStop = htmlspecialchars(strip_tags(trim($routeInfoStops[$i])));
+                $cleanFare = htmlspecialchars(strip_tags(trim($routeInfoFares[$i])));
+                if (($cleanStop && !$cleanFare) || (!$cleanStop && $cleanFare)) {
+                    $ntMissingInfo = false;
+                    break;
+                } else if ($cleanStop && $cleanFare) {
+                    $cleanStops[$i] = $cleanStop;
+                    $cleanFares[$i] = $cleanFare;
+                }
             }
+        } else {
+            $ntMissingInfo = false;
         }
 
         if ($ntMissingInfo) {
@@ -54,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (($id = mongoDB_insert($cleanedUserInputMap, 'routes'))) {
                     require_once 'php/map_routes.php';
                     //actually create the routes
-                    if (!($response['result'] = map_routes($cleanedUserInputMap))) {
+                    if (!($response['result'] = map_routes($id, $cleanedUserInputMap))) {
                         $response ['err'] = ['error' => 'DB', 'msg' => 'Problem saving data, please try again'];
                         mongoDB_delete($id, 'routes');
                     }
