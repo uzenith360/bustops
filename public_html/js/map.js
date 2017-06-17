@@ -45,7 +45,7 @@ window.onload = function () {
         route: {},
         startToBustopRoutePolyLine: null,
         bustopToEndRoutePolyLine: null,
-        getDirectionsSidenavBody: null,
+        googleDirectionsPanel: null,
         toastTimeout: null,
         placeSearchMarker: null,
         thrsVisibleMarkers: false,
@@ -560,16 +560,17 @@ window.onload = function () {
                     visible: false,
                     draggable: true
                 });
-                
-                vars.googleMaps.event.addListener(vars.startRouteMarker, 'dragend', function(){
+
+                vars.googleMaps.event.addListener(vars.startRouteMarker, 'dragend', function () {
                     searchRoute(vars.startRouteMarker.getPosition());
                 });
-                vars.googleMaps.event.addListener(vars.endRouteMarker, 'dragend', function(){
+                vars.googleMaps.event.addListener(vars.endRouteMarker, 'dragend', function () {
                     searchRoute(null, vars.endRouteMarker.getPosition());
                 });
             }
 
             document.getElementById("getDirectionsSidenav").style.width = "410px";
+            document.getElementById('tripDirectionsForm').elements['tripStart'].focus();
         });
         document.getElementById('getDirectionsSidenavClose').addEventListener('click', function () {
             document.getElementById("getDirectionsSidenav").style.width = "0";
@@ -600,7 +601,7 @@ window.onload = function () {
                 minLength: 2,
                 select: function (event, ui) {
                     toast('Getting place', 1);
-                    
+
                     var service = new vars.googleMaps.places.PlacesService(vars.map);
                     service.getDetails({placeId: ui.item.id}, function (place, status) {
                         if (status !== vars.googleMaps.places.PlacesServiceStatus.OK) {
@@ -608,21 +609,23 @@ window.onload = function () {
                             console.log(status);
                             return;
                         }
-                        
+
                         vars.tripMode && stopTripMode();
                         toast('Getting place', 0);
                         var location = place.geometry.location;
-                        
+
                         vars.map.panTo(location);
 
                         if (inputName === 'tripStart') {
                             searchRoute(location);
                             vars.startRouteMarker.setPosition(location);
                             vars.startRouteMarker.setVisible(true);
+                            document.getElementById('tripDirectionsForm').elements['tripEnd'].focus();
                         } else {
                             searchRoute(null, location);
                             vars.endRouteMarker.setPosition(location);
                             vars.endRouteMarker.setVisible(true);
+                            document.getElementById('tripDirectionsForm').elements['tripStart'].focus();
                         }
                     });
                 },
@@ -966,7 +969,7 @@ window.onload = function () {
                         });
                     } catch (e) {
                         //parse error, probable caused by server spitting out error instead of data
-                        console.error('location parse error: '+e);
+                        console.error('location parse error: ' + e);
                         console.error(response);
                     }
                 } else {
@@ -1018,10 +1021,8 @@ window.onload = function () {
         return edited;
     }
 
-    function getRoute() {
+    function getRoute(startLoc, endLoc, cb) {
         toast('Getting route', 1);
-
-        var startLoc = vars.route['tripStart'], endLoc = vars.route['tripEnd'];
 
         //show getn route or sth (UI display)
 
@@ -1034,13 +1035,16 @@ window.onload = function () {
                 if (Object.keys(response).length) {
                     //Only draw routes urself from whr d trip starts to the nearest bustops and from d last drop to the destination
                     drawRoute(response);
+                    cb(null);
                 } else {
                     //No results
                     toast('No route found', 2, 5000);
+                    cb(new Error('No route found'));
                 }
             }, error: function () {
                 //Display error occured or sth, in the white div below the search input o, nt in dialog! Dialogs are annoying
                 toast('Problem getting route', 2, 5000);
+                cb(new Error('Problem getting route'));
             }, complete: function () {
                 toast('Getting route', 0);
             }
@@ -1065,11 +1069,11 @@ window.onload = function () {
         //Note: some routes might be walking routes, i.e, wen u get down from bus and walk to the office, but u still walk through a road, so it may also be represented as a driving route, test both options
 
         if (!vars.directionsService) {
-            vars.getDirectionsSidenavBody = document.getElementById('getDirectionsSidenavBody');
+            vars.googleDirectionsPanel = document.getElementById('googleDirectionsPanel');
             vars.directionsService = new vars.googleMaps.DirectionsService;
             vars.directionsDisplay = new vars.googleMaps.DirectionsRenderer({
                 map: vars.map,
-                panel: vars.getDirectionsSidenavBody
+                panel: vars.googleDirectionsPanel
             });
         }
 
@@ -1108,7 +1112,7 @@ window.onload = function () {
                     path: startToBustopLine,
                     strokeColor: '#428bca',
                     strokeWeight: 5,
-                    strokeOpacity:.5,
+                    strokeOpacity: .5,
                     map: vars.map
                 });
 
@@ -1121,7 +1125,7 @@ window.onload = function () {
                     path: bustopToDestLine,
                     strokeColor: '#5cb85c',
                     strokeWeight: 5,
-                    strokeOpacity:.5,
+                    strokeOpacity: .5,
                     map: vars.map
                 });
 
@@ -1130,6 +1134,10 @@ window.onload = function () {
                     //route.r[i] - relation for this path
                     //drawPath(route.n[i].latlng, route.n[++i].latlng);
                     //directions+='<div></div>';
+
+                    directions += '';
+
+
                     midPoints.push({location: route.n[i++].latlng});
                 }
                 destination = route.n[i].latlng;
@@ -1151,11 +1159,6 @@ window.onload = function () {
                 });
             });
         });
-
-
-
-
-
     }
 
     function clearPrevRouteDirections() {
@@ -1165,7 +1168,7 @@ window.onload = function () {
         //vars.directionsService;
         //vars.directionsDisplay;
 
-        vars.getDirectionsSidenavBody.innerHTML = '';
+        vars.googleDirectionsPanel.innerHTML = '';
     }
     function hideAllMarkers() {
         vars.myMarker && vars.placeSearchMarker.setVisible(false);
@@ -1183,39 +1186,46 @@ window.onload = function () {
             vars.locations[location].marker.show();
         }
     }
-    
-    function searchRoute(startLoc, endLoc){
-        startLoc && (vars.route['tripStart'] = startLoc);
-        endLoc && (vars.route['tripEnd'] = endLoc);
-        
-        vars.route['tripStart'] && vars.route['tripEnd'] && getRoute();
+
+    function searchRoute(startLoc, endLoc) {
+        var loc;
+
+        startLoc && (loc = vars.route['tripStart'], vars.route['tripStart'] = startLoc) || endLoc && (loc = vars.route['tripEnd'], vars.route['tripEnd'] = endLoc);
+
+        vars.route['tripStart'] && vars.route['tripEnd'] && getRoute(vars.route['tripStart'], vars.route['tripEnd'], function (err) {
+            if (err) {
+                ((startLoc && (vars.route['tripStart'] = loc) && vars.startRouteMarker) || ((vars.route['tripEnd'] = loc) && vars.endRouteMarker)).setPosition(loc);
+            }
+        });
     }
-    
-    function stopTripMode(){
-        if(vars.tripMode){
+
+    function stopTripMode() {
+        if (vars.tripMode) {
             document.getElementById('tC').click();
         }
     }
 
     function toast(msg, mode, miliseconds) {
+        console.log(arguments);
         //mode: 0 hide, 1: show, 2: show and hide after some miliseconds
 
         // Get the snackbar DIV
         var x = document.getElementById("snackbar");
-
-        vars.toastTimeout && vars.toastTimeout.clearTimeout();
 
         switch (mode) {
             case 0:
                 x.textContent === msg && (x.className = "");
                 break;
             case 1:
+                vars.toastTimeout && vars.toastTimeout.clearTimeout(), vars.toastTimeout = null;
                 x.textContent = msg;
                 // Add the "show" class to DIV
                 x.className = "show";
                 break;
             case 2:
+                vars.toastTimeout && vars.toastTimeout.clearTimeout(), vars.toastTimeout = null;
                 x.textContent = msg;
+                x.className = "show";
                 // After 3 seconds, remove the show class from DIV
                 vars.toastTimeout = setTimeout(function () {
                     vars.toastTimeout = null;
