@@ -144,7 +144,7 @@ body {
     border-radius: 2px; /* Rounded borders */
     padding: 16px; /* Padding */
     position: fixed; /* Sit on top of the screen */
-    z-index: 1; /* Add a z-index if needed */
+    z-index: 100000; /* Add a z-index if needed */
     left: 50%; /* Center the snackbar */
     bottom: 30px; /* 30px from the bottom */
 }
@@ -178,6 +178,9 @@ However, delay the fade out process for 2.5 seconds */
 @keyframes fadeout {
     from {bottom: 30px; opacity: 1;}
     to {bottom: 0; opacity: 0;}
+}
+#bustopsDirectionsPanel, #googleDirectionsPanel{
+    padding-top: 10px;
 }
 .my-location[disabled]{cursor:default}
 .my-location-icon-common{display:block;height:18px;left:5px;margin:0;padding:0;position:absolute;top:5px;width:18px}

@@ -35,6 +35,20 @@
             </div>
             <div id="getDirectionsSidenavBody">
                 <!--Put a tabbed menu for my directions and google directions-->
+                <ul class="nav nav-tabs">
+                    <li class="active"><a data-toggle="tab" href="#bustopsDirectionsPanel">Bustops directions</a></li>
+                    <li><a data-toggle="tab" href="#googleDirectionsPanel">Google directions</a></li>
+                </ul>
+                <div class="tab-content">
+                    <div id="bustopsDirectionsPanel" class="tab-pane fade in active">
+                        <p>No directions</p>
+                    </div>
+                    <div id="googleDirectionsPanel" class="tab-pane fade">
+                        <p>No directions</p>
+                    </div>
+                </div>
+
+                <div id="getDirectionsSidenavBodyGoogleDirections"></div>
             </div>
         </div>
         <div class="container-fluid">
