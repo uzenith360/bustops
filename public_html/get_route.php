@@ -54,7 +54,7 @@ if (($startLat = doubleval($_GET['start']['lat'])) && ($startLng = doubleval($_G
                 }
                 foreach ($route->value('p')->relationships() as $relationship) {
                     $relationshipValues = $relationship->values();
-                    $relationships[] = array_merge(['t' => $relationship->type()], $relationshipValues, ['d'=>(array)$mongoDB->executeQuery('bustops.routes', new MongoDB\Driver\Query(['_id' => new MongoDB\BSON\ObjectID($relationshipValues['i'])], ['projection' => ['_id' => 0, 'destinations'=>1]]))->toArray()[0]]);
+                    $relationships[] = array_merge(['t' => $relationship->type()], $relationshipValues, (array)$mongoDB->executeQuery('bustops.routes', new MongoDB\Driver\Query(['_id' => new MongoDB\BSON\ObjectID($relationshipValues['i'])], ['projection' => ['_id' => 0, 'destinations'=>1]]))->toArray()[0]);
                 }
 
                 echo json_encode(['n' => $nodes, 'r' => $relationships]);
