@@ -38,12 +38,12 @@ function map_routes($id, $routeInfo) {
         $stops && $tx->run($stops);
 
         for ($i = 0, $routes = ''; $i < $stopsLength; ++$i) {
-            $activeStopMatch = 'MATCH (s:BUSTOP{i: "' . $transportStops[$i] . '"}) ';
+            $activeStopMatch = 'MATCH (s:BUSTOP{i: "' . $transportStops[$i] . '"})';
             for ($i0 = $i + 1, $routes = '', $matches = '', $relCt = 0; $i0 < $stopsLength; ++$i0) {
                 $reltag = 'r' . $relCt;
                 $stopTag = 's' . $relCt;
                 $matches .= ',(' . $stopTag . ':BUSTOP{i: "' . $transportStops[$i0] . '"})';
-                $routes .= 'MERGE (s)-[' . $reltag . ':' . $transportType . ']->(' . $stopTag . ') SET ' . $reltag . '.f=' . $transportFares[$i0 - 1] . ',' . $reltag . '.m="' . $timecreated . '",' . $reltag . '.s="' . $startTime . '",' . $reltag . '.e="' . $endTime . '",' . $reltag . '.i="' . $id . '" ';
+                $routes .= 'MERGE (s)-[' . $reltag . ':' . $transportType . ']->(' . $stopTag . ') SET ' . $reltag . '.f=' . $transportFares[$i] . ',' . $reltag . '.m="' . $timecreated . '",' . $reltag . '.s="' . $startTime . '",' . $reltag . '.e="' . $endTime . '",' . $reltag . '.i="' . $id . '" ';
                 ++$relCt;
 
                 if (!($i0 % 5)) {
