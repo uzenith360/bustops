@@ -1162,23 +1162,23 @@ window.onload = function () {
                 var i = 1, len = route.n.length - 1, midPoints = [], origin = route.n[0].latlng, destination, directions = '';
 
                 //start with google walking directions or tell d person to take bike to the bustop
-                directions = '';
+                directions = '<div class="directionsGroup"></div>';
 
-                directions += '<div>At  ' + route.n[0].names.join(', ') + ' enter a ' + route.r[0].t + ' going to ' + route.r[0].destinations.join(', ') + '</div>';
+                directions += '<div class="directionsGroup">At  ' + route.n[0].names.join(', ') + ' enter a ' + route.r[0].t + ' going to ' + route.r[0].destinations.join(', ') + '</div>';
 
                 while (i < len) {
                     //route.r[i] - relation for this path
                     //drawPath(route.n[i].latlng, route.n[++i].latlng);
                     //directions+='<div></div>';
 
-                    directions += '<div>Stop at '+route.n[i].names.join(', ')+' enter a ' + route.r[i].t + ' going to ' + route.r[i].destinations.join(', ') + '</div>';
+                    directions += '<div class="directionsGroup">Stop at '+route.n[i].names.join(', ')+' enter a ' + route.r[i].t + ' going to ' + route.r[i].destinations.join(', ') + '</div>';
 
 
                     midPoints.push({location: route.n[i++].latlng});
                 }
-                directions += '<div>Stop at '+route.n[i].names.join(', ')+'</div>';
+                directions += '<div class="directionsGroup">Stop at '+route.n[i].names.join(', ')+'</div>';
                 //continue with google walking directions or tell d person to take bike to his destination
-               directions += '';
+               directions += '<div class="directionsGroup"></div>';
             
             document.getElementById('bustopsDirectionsPanel').innerHTML = directions;
             
