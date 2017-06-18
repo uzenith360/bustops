@@ -1159,18 +1159,30 @@ window.onload = function () {
                     map: vars.map
                 });
 
-                var i = 1, len = route.n.length - 1, midPoints = [], origin = route.n[0].latlng, destination, directions = '<div>Enter a ' + origin.names.join(', ') + 'enter a ' + route.r[0].t + ' going to ' + route.n[1].names.join(', ') + '</div>';
+                var i = 1, len = route.n.length - 1, midPoints = [], origin = route.n[0].latlng, destination, directions = '';
+
+                //start with google walking directions or tell d person to take bike to the bustop
+                directions = '';
+
+                directions += '<div>At  ' + route.n[0].names.join(', ') + ' enter a ' + route.r[0].t + ' going to ' + route.r[0].destinations.join(', ') + '</div>';
+
                 while (i < len) {
                     //route.r[i] - relation for this path
                     //drawPath(route.n[i].latlng, route.n[++i].latlng);
                     //directions+='<div></div>';
 
-                    directions += 'At ';
+                    directions += '<div>Stop at '+route.n[i].names.join(', ')+' enter a ' + route.r[i].t + ' going to ' + route.r[i].destinations.join(', ') + '</div>';
 
 
                     midPoints.push({location: route.n[i++].latlng});
                 }
-                destination = route.n[i].latlng;
+                directions += '<div>Stop at '+route.n[i].names.join(', ')+'</div>';
+                //continue with google walking directions or tell d person to take bike to his destination
+               directions += '';
+            
+            document.getElementById('bustopsDirectionsPanel').innerHTML = directions;
+            
+            destination = route.n[i].latlng;
 
                 vars.directionsService.route({
                     origin: origin,
