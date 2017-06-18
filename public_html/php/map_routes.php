@@ -16,18 +16,7 @@ function map_routes($id, $routeInfo) {
     $endTime = $routeInfo['endTime'];
 
     array_unshift($transportStops, $routeInfo['hub']);
-    /* for ($i = 0, $stopsLength = count($transportStops), $stopsLengthMinus1 = $stopsLength - 1, $relCt = 0; $i < $stopsLength; ++$i) {
-      $stoptag = 's' . $i;
-      $stops .= 'MERGE (' . $stoptag . ':BUSTOP{i: "' . $transportStops[$i] . '"}) ON CREATE SET ' . $stoptag . '.c="' . $timecreated . '" ';
-      if ($i < $stopsLengthMinus1) {
-      for ($i0 = $i; $i0 < $stopsLengthMinus1; ++$i0) {
-      $reltag = 'r' . $relCt;
-      $routes .= 'MERGE (' . $stoptag . ')-[' . $reltag . ':' . $transportType . ']->(s' . ($i0 + 1) . ') SET ' . $reltag . '.f=' . $transportFares[$i] . ',' . $reltag . '.m="' . $timecreated. '",' . $reltag . '.s="' . $startTime. '",' . $reltag . '.e="' . $endTime  . '",' . $reltag . '.i="' . $id . '" ';
-      ++$relCt;
-      }
-      }
-      } */
-
+    
     $max_execution_time = ini_get('max_execution_time');
     try {
         ini_set('max_execution_time', 180);
@@ -41,11 +30,11 @@ function map_routes($id, $routeInfo) {
             $stoptag = 's' . $i;
             $stops .= 'MERGE (' . $stoptag . ':BUSTOP{i: "' . $transportStops[$i] . '"}) ON CREATE SET ' . $stoptag . '.c="' . $timecreated . '" ';
 
-            if (!($i % 10)) {//echo $stops .'\n';
+            if (!($i % 10)) {
                 $tx->run($stops);
                 $stops = '';
             }
-        }//echo $stops .'\n';
+        }
         $stops && $tx->run($stops);
 
         for ($i = 0, $routes = ''; $i < $stopsLength; ++$i) {
@@ -57,20 +46,19 @@ function map_routes($id, $routeInfo) {
                 $routes .= 'MERGE (s)-[' . $reltag . ':' . $transportType . ']->(' . $stopTag . ') SET ' . $reltag . '.f=' . $transportFares[$i0 - 1] . ',' . $reltag . '.m="' . $timecreated . '",' . $reltag . '.s="' . $startTime . '",' . $reltag . '.e="' . $endTime . '",' . $reltag . '.i="' . $id . '" ';
                 ++$relCt;
 
-                if (!($i0 % 5)) {//echo $activeStopMatch . $routes .'\n';
+                if (!($i0 % 5)) {
                     $tx->run($activeStopMatch . $matches . $routes);
                     $routes = '';
                 }
-            }//echo $activeStopMatch . $routes;
+            }
             $routes && $tx->run($activeStopMatch . $matches . $routes);
         }
 
         $tx->commit();
-        return null;
+        
         ini_set('max_execution_time', $max_execution_time);
         return true;
     } catch (GraphAware\Neo4j\Client\Exception\Neo4jException $e) {
-        echo print_r($e);
         ini_set('max_execution_time', $max_execution_time);
         return false;
     }
