@@ -48,7 +48,7 @@ function map_routes($id, $routeInfo) {
 
                 if (!($i0 % 5)) {
                     $tx->run($activeStopMatch . $matches . $routes);
-                    $routes = '';
+                    $routes = $matches = '';
                 }
             }
             $routes && $tx->run($activeStopMatch . $matches . $routes);
