@@ -1236,7 +1236,6 @@ window.onload = function () {
     }
 
     function toast(msg, mode, miliseconds) {
-        console.log(arguments);
         //mode: 0 hide, 1: show, 2: show and hide after some miliseconds
 
         // Get the snackbar DIV
