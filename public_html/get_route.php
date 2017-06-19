@@ -27,13 +27,13 @@ if (($startLat = doubleval($_GET['start']['lat'])) && ($startLng = doubleval($_G
     $routes = [];
 
     //get points close to start
-    foreach ($mongoDB->executeQuery('bustops.bustops', new MongoDB\Driver\Query(['loc' => ['$near' => ['$geometry' => ['type' => 'Point', 'coordinates' => [$startLng, $startLat]], '$maxDistance' => 5000]]], ['limit' => $nearBustopsLimit, 'projection' => ['loc' => 0]])) as $r) {
+    foreach ($mongoDB->executeQuery('bustops.bustops', new MongoDB\Driver\Query(['loc' => ['$near' => ['$geometry' => ['type' => 'Point', 'coordinates' => [$startLng, $startLat]]/*, '$maxDistance' => 5000*/]]], ['limit' => $nearBustopsLimit, 'projection' => ['loc' => 0]])) as $r) {
         $startNearBustops[] = $r;
     }
 
 
     //get points close to end
-    foreach ($mongoDB->executeQuery('bustops.bustops', new MongoDB\Driver\Query(['loc' => ['$near' => ['$geometry' => ['type' => 'Point', 'coordinates' => [$endLng, $endLat]], '$maxDistance' => 5000]]], ['limit' => $nearBustopsLimit, 'projection' => ['loc' => 0]])) as $r) {
+    foreach ($mongoDB->executeQuery('bustops.bustops', new MongoDB\Driver\Query(['loc' => ['$near' => ['$geometry' => ['type' => 'Point', 'coordinates' => [$endLng, $endLat]]/*, '$maxDistance' => 5000*/]]], ['limit' => $nearBustopsLimit, 'projection' => ['loc' => 0]])) as $r) {
         $endNearBustops[] = $r;
     }
 
@@ -43,7 +43,8 @@ if (($startLat = doubleval($_GET['start']['lat'])) && ($startLng = doubleval($_G
                 continue;
             }
             
-            if (($route = $neo4jClient->run('MATCH (a:BUSTOP{ i: "' . $startNearBustop->_id . '" }),(b:BUSTOP{ i: "' . $endNearBustop->_id . '" }), p = shortestPath((a)-[*]->(b)) RETURN p')->firstRecord())) {
+            if (($route = $neo4jClient->run('MATCH (a:BUSTOP{ i: "' . $startNearBustop->_id . '" }),(b:BUSTOP{ i: "' . $endNearBustop->_id . '" }), p = shortestPath((a)-[*]->(b)) RETURN p')->records())) {
+                $route = $route[0];
                 $nodes = [];
                 $relationships = [];
                 $value;
