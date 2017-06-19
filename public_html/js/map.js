@@ -52,7 +52,7 @@ window.onload = function () {
         thrsVisibleMarkers: false,
         startRouteMarker: null,
         endRouteMarker: null,
-        wayPointMarkers:[]
+        wayPointMarkers: []
     };
 
     //init
@@ -581,7 +581,7 @@ window.onload = function () {
                     icon: 'http://maps.google.com/mapfiles/kml/shapes/man_maps.png',
                     visible: false,
                     draggable: true,
-                    zIndex:500
+                    zIndex: 500
                 });
                 vars.endRouteMarker = new vars.googleMaps.Marker({
                     map: vars.map,
@@ -590,7 +590,7 @@ window.onload = function () {
                     icon: 'http://maps.google.com/mapfiles/kml/shapes/flag_maps.png',
                     visible: false,
                     draggable: true,
-                    zIndex:500
+                    zIndex: 500
                 });
 
                 vars.googleMaps.event.addListener(vars.startRouteMarker, 'dragend', function () {
@@ -1106,8 +1106,8 @@ window.onload = function () {
             vars.directionsDisplay = new vars.googleMaps.DirectionsRenderer({
                 map: vars.map,
                 panel: vars.googleDirectionsPanel,
-                preserveViewport:true,
-                suppressMarkers:true
+                preserveViewport: true,
+                suppressMarkers: true
             });
         }
 
@@ -1145,22 +1145,22 @@ window.onload = function () {
                     travelMode: 'WALKING'
                 }, function (startToBustopWalkingResponse, status) {
                     if (status === 'OK') {
-                        var startToBustopWalkingDirections = startToBustopWalkingResponse.routes[0].legs[0], directions = '';
+                        var startToBustopWalkingDirections = startToBustopWalkingResponse.routes[0].legs[0], directions = '<div class="table-responsive"><table class="table">';
 
-//start with google walking directions or tell d person to take bike to the bustop
-                        directions += '<div class="directionsGroup">From ' + startToBustopWalkingDirections.start_address + '</div>';
+                        //start with google walking directions or tell d person to take bike to the bustop
+                        directions += '<tr><td>From ' + startToBustopWalkingDirections.start_address + '</td></tr>';
 
                         var i0 = 0, steps = startToBustopWalkingDirections.steps, stepsCt = steps.length;
                         while (i0 < stepsCt) {
-                            directions += '<div class="directionsGroup">' + steps[i0++].instructions + '</div>';
+                            directions += '<tr><td>' + steps[i0++].instructions + '</td></tr>';
                         }
-                        directions += '<div class="directionsGroup">When you get to ' + startToBustopWalkingDirections.end_address + ' go to ' + route.n[0].names.join(', ') + ' bustop</div>';
+                        directions += '<tr><td>When you get to ' + startToBustopWalkingDirections.end_address + ' go to ' + route.n[0].names.join(', ') + ' bustop</td></tr>';
                     } else {
                         //start with google walking directions or tell d person to take bike to the bustop
-                        directions += '<div class="directionsGroup">From where you are, trek or take a bike to ' + route.n[0].names.join(', ') + '</div>';
+                        directions += '<tr><td>From where you are, trek or take a bike to ' + route.n[0].names.join(', ') + '</td></tr>';
                     }
 
-                    directions += '<div class="directionsGroup">At ' + route.n[0].names.join(', ') + ' enter a ' + route.r[0].t + ' going to ' + route.r[0].destinations.join(', ') + '</div>';
+                    directions += '<tr><td>At ' + route.n[0].names.join(', ') + ' enter a ' + route.r[0].t + ' going to ' + route.r[0].destinations.join(', ') + '</td></tr>';
 
                     var i = 1, len = route.n.length - 1, midPoints = [], destination;
                     while (i < len) {//show trip time lines with fares,distance and time, calulate total in trip summary 
@@ -1168,11 +1168,11 @@ window.onload = function () {
                         //drawPath(route.n[i].latlng, route.n[++i].latlng);
                         //directions+='<div></div>';
 
-                        directions += '<div class="directionsGroup">Stop at ' + route.n[i].names.join(', ') + ' enter a ' + route.r[i].t + ' going to ' + route.r[i].destinations.join(', ') + '</div>';
+                        directions += '<tr><td>Stop at ' + route.n[i].names.join(', ') + ' enter a ' + route.r[i].t + ' going to ' + route.r[i].destinations.join(', ') + '</td></tr>';
 
                         midPoints.push({location: route.n[i++].latlng});
                     }
-                    directions += '<div class="directionsGroup">Stop at ' + route.n[i].names.join(', ') + '</div>';
+                    directions += '<tr><td>Stop at ' + route.n[i].names.join(', ') + '</td></tr>';
 
                     vars.directionsService.route({
                         origin: lastBustopLoc,
@@ -1183,21 +1183,23 @@ window.onload = function () {
                             var bustopToEndWalkingDirections = bustopToEndWalkingResponse.routes[0].legs[0];
 
                             //continue with google walking directions or tell d person to take bike to his destination
-                            directions += '<div class="directionsGroup">From ' + route.n[i].names.join(', ') + ' at ' + bustopToEndWalkingDirections.start_address + '</div>';
+                            directions += '<tr><td>From ' + route.n[i].names.join(', ') + ' at ' + bustopToEndWalkingDirections.start_address + '</td></tr>';
 
                             var i0 = 0, steps = bustopToEndWalkingDirections.steps, stepsCt = steps.length;
                             while (i0 < stepsCt) {
-                                directions += '<div class="directionsGroup">' + steps[i0++].instructions + '</div>';
+                                directions += '<tr><td>' + steps[i0++].instructions + '</tr>';
                             }
-                            directions += '<div class="directionsGroup">When you get to ' + bustopToEndWalkingDirections.end_address + ' go to your destination</div>';
+                            directions += '<tr><td>When you get to ' + bustopToEndWalkingDirections.end_address + ' go to your destination</td></tr>';
 
                         } else {
                             //start with google walking directions or tell d person to take bike to the bustop
-                            directions += '<div class="directionsGroup">From ' + route.n[i].names.join(', ') + ' trek or take a bike to your destination</div>';
+                            directions += '<tr><td>From ' + route.n[i].names.join(', ') + ' trek or take a bike to your destination</td></tr>';
                         }
 
                         //put directions in table and show details
 
+
+                        directions += '</table></div>';
                         document.getElementById('bustopsDirectionsPanel').innerHTML = directions;
                     });
 
@@ -1239,13 +1241,12 @@ window.onload = function () {
                                 strokeOpacity: .5,
                                 map: vars.map
                             });
-                            
-                            
-                            var routeR = route.r, totalFares =0;
-                            route.n.forEach(function(step, idx){
+
+                            var routeR = route.r, totalFares = 0;
+                            route.n.forEach(function (step, idx) {
                                 step.type = 'STEP';
-                                step.description = routeR[idx] ? '&#8358;'+(totalFares += routeR[idx].f, routeR[idx].f):'Total &#8358;'+totalFares;
-                                vars.wayPointMarkers.push(new Place(step, {map: vars.map, loc: step.latlng, title: 'step', label:String(idx+1)}));
+                                step.description = routeR[idx] ? '&#8358;' + (totalFares += routeR[idx].f, routeR[idx].f) : 'Total &#8358;' + totalFares;
+                                vars.wayPointMarkers.push(new Place(step, {map: vars.map, loc: step.latlng, title: 'step', label: String(idx + 1)}));
                             });
 
                             vars.directionsDisplay.setDirections(response);
@@ -1266,11 +1267,11 @@ window.onload = function () {
         vars.bustopToEndRoutePolyLine && (vars.bustopToEndRoutePolyLine.setMap(null), vars.startToBustopRoutePolyLine.setMap(null));
         //vars.directionsService;
         //vars.directionsDisplay;
-        
-        vars.wayPointMarkers.forEach(function(wayPointMarker){
+
+        vars.wayPointMarkers.forEach(function (wayPointMarker) {
             wayPointMarker.remove();
         });
-        vars.wayPointMarkers=[];
+        vars.wayPointMarkers = [];
 
         vars.googleDirectionsPanel.innerHTML = '';
     }

@@ -179,12 +179,18 @@ However, delay the fade out process for 2.5 seconds */
     from {bottom: 30px; opacity: 1;}
     to {bottom: 0; opacity: 0;}
 }
-#bustopsDirectionsPanel, #googleDirectionsPanel{
+#directionsPanel{
+    border:1px solid #ddd;
+    border-top-color: transparent;
+    border-radius: 0 0 4px 4px;
+    margin-top: -1px;
+}
+/*#bustopsDirectionsPanel, #googleDirectionsPanel{
     padding-top: 10px;
-}
-.directionsGroup+.directionsGroup{
+}*/
+/*.directionsGroup+.directionsGroup{
     padding-top: 15px;
-}
+}*/
 .my-location[disabled]{cursor:default}
 .my-location-icon-common{display:block;height:18px;left:5px;margin:0;padding:0;position:absolute;top:5px;width:18px}
 .my-location .my-location-cookie{background-image:url(../img/my-location.png);background-size:180px 18px}
