@@ -1140,28 +1140,27 @@ window.onload = function () {
                     destination: origin,
                     //waypoints: midPoints,
                     travelMode: 'WALKING'
-                }, function (response, status) {
+                }, function (startToBustopWalkingResponse, status) {
                     if (status === 'OK') {
-                        console.log(response);
-                        var startToBustopWalkingDirections = response.routes[0].legs[0], directions = '';
-                        
+                        var startToBustopWalkingDirections = startToBustopWalkingResponse.routes[0].legs[0], directions = '';
+
 //start with google walking directions or tell d person to take bike to the bustop
-                        directions = '<div class="directionsGroup">From '+startToBustopWalkingDirections.start_address+'</div>';
-                        
-                        var i0 = 0, steps=startToBustopWalkingDirections.steps,stepsCt = steps.length;
-                        while(i0 < stepsCt){
-                            directions += '<div class="directionsGroup">'+steps[i0++].instructions+'</div>';
+                        directions += '<div class="directionsGroup">From ' + startToBustopWalkingDirections.start_address + '</div>';
+
+                        var i0 = 0, steps = startToBustopWalkingDirections.steps, stepsCt = steps.length;
+                        while (i0 < stepsCt) {
+                            directions += '<div class="directionsGroup">' + steps[i0++].instructions + '</div>';
                         }
-                        directions +='<div class="directionsGroup">When you get to '+startToBustopWalkingDirections.end_address+' go to '+route.n[0].names.join(', ')+' bustop</div>';
+                        directions += '<div class="directionsGroup">When you get to ' + startToBustopWalkingDirections.end_address + ' go to ' + route.n[0].names.join(', ') + ' bustop</div>';
                     } else {
                         //start with google walking directions or tell d person to take bike to the bustop
-                        directions = '<div class="directionsGroup">From where you are, trek or take a bike to ' + route.n[0].names.join(', ') + '</div>';
+                        directions += '<div class="directionsGroup">From where you are, trek or take a bike to ' + route.n[0].names.join(', ') + '</div>';
                     }
 
                     directions += '<div class="directionsGroup">At ' + route.n[0].names.join(', ') + ' enter a ' + route.r[0].t + ' going to ' + route.r[0].destinations.join(', ') + '</div>';
-                    
+
                     var i = 1, len = route.n.length - 1, midPoints = [], destination;
-                    while (i < len) {
+                    while (i < len) {//show trip time lines with fares,distance and time, calulate total in trip summary 
                         //route.r[i] - relation for this path
                         //drawPath(route.n[i].latlng, route.n[++i].latlng);
                         //directions+='<div></div>';
@@ -1171,10 +1170,32 @@ window.onload = function () {
                         midPoints.push({location: route.n[i++].latlng});
                     }
                     directions += '<div class="directionsGroup">Stop at ' + route.n[i].names.join(', ') + '</div>';
-                    //continue with google walking directions or tell d person to take bike to his destination
-                    directions += '<div class="directionsGroup"></div>';
 
-                    document.getElementById('bustopsDirectionsPanel').innerHTML = directions;
+                    vars.directionsService.route({
+                        origin: lastBustopLoc,
+                        destination: endLoc,
+                        //waypoints: midPoints,
+                        travelMode: 'WALKING'
+                    }, function (bustopToEndWalkingResponse, status) {
+                        if (status === 'OK') {
+                            var bustopToEndWalkingDirections = bustopToEndWalkingResponse.routes[0].legs[0];
+
+                            //continue with google walking directions or tell d person to take bike to his destination
+                            directions += '<div class="directionsGroup">From ' + route.n[i].names.join(', ') + ' at ' + bustopToEndWalkingDirections.start_address + '</div>';
+
+                            var i0 = 0, steps = bustopToEndWalkingDirections.steps, stepsCt = steps.length;
+                            while (i0 < stepsCt) {
+                                directions += '<div class="directionsGroup">' + steps[i0++].instructions + '</div>';
+                            }
+                            directions += '<div class="directionsGroup">When you get to ' + bustopToEndWalkingDirections.end_address + ' go to your destination</div>';
+
+                        } else {
+                            //start with google walking directions or tell d person to take bike to the bustop
+                            directions += '<div class="directionsGroup">From ' + route.n[i].names.join(', ') + ' trek or take a bike to your destination</div>';
+                        }
+
+                        document.getElementById('bustopsDirectionsPanel').innerHTML = directions;
+                    });
 
 
                     destination = route.n[i].latlng;
