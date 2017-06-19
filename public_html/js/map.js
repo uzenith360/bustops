@@ -618,7 +618,7 @@ window.onload = function () {
                         }
                         toast('Getting places', 0);
                         //Bolden the occurences of the search text in d prediction
-                        console.log(predictions);
+                        //console.log(predictions);
 
                         cb(predictions.map(function (prediction) {
                             return prediction['place_id'] && {value: prediction['description'], id: prediction['place_id']};
@@ -1107,9 +1107,9 @@ window.onload = function () {
             });
         }
 
-        var bounds = new vars.googleMaps.LatLngBounds(), startLoc = vars.route['tripStart'], endLoc = vars.route['tripEnd']
-                , origToBustop = startLoc.lat() + ',' + startLoc.lng() + '|' + route.n[0].latlng.lat + ',' + route.n[0].latlng.lng, routeNlen = route.n.length
-                , bustopToDest = route.n[routeNlen - 1].latlng.lat + ',' + route.n[routeNlen - 1].latlng.lng + '|' + endLoc.lat() + ',' + endLoc.lng();
+        var bounds = new vars.googleMaps.LatLngBounds(), startLoc = vars.route['tripStart'], endLoc = vars.route['tripEnd'], routeNlen = route.n.length, firstBustopLoc = route.n[0].latlng, lastBustopLoc = route.n[routeNlen - 1].latlng
+                , origToBustop = startLoc.lat() + ',' + startLoc.lng() + '|' + firstBustopLoc.lat + ',' + firstBustopLoc.lng
+                , bustopToDest = lastBustopLoc.lat + ',' + lastBustopLoc.lng + '|' + endLoc.lat() + ',' + endLoc.lng();
         bounds.extend(startLoc);
         bounds.extend(endLoc);
         vars.map.fitBounds(bounds);
@@ -1125,39 +1125,13 @@ window.onload = function () {
                 key: config.key,
                 path: bustopToDest
             }, function (endData) {
-                var bounds = new vars.googleMaps.LatLngBounds(), startToBustopLine = [startLoc], bustopToDestLine = [];
+                var bounds = new vars.googleMaps.LatLngBounds();
                 bounds.extend(startLoc);
                 bounds.extend(endLoc);
                 vars.map.fitBounds(bounds);
 
                 vars.thrsVisibleMarkers && hideAllMarkers();
                 clearPrevRouteDirections();
-
-
-                startData.snappedPoints.forEach(function (point) {
-                    startToBustopLine.push({lat: point.location.latitude, lng: point.location.longitude});
-                });
-
-                vars.startToBustopRoutePolyLine = new vars.googleMaps.Polyline({
-                    path: startToBustopLine,
-                    strokeColor: '#428bca',
-                    strokeWeight: 5,
-                    strokeOpacity: .5,
-                    map: vars.map
-                });
-
-                endData.snappedPoints.forEach(function (point) {
-                    bustopToDestLine.push({lat: point.location.latitude, lng: point.location.longitude});
-                });
-                bustopToDestLine.push(endLoc);
-
-                vars.bustopToEndRoutePolyLine = new vars.googleMaps.Polyline({
-                    path: bustopToDestLine,
-                    strokeColor: '#5cb85c',
-                    strokeWeight: 5,
-                    strokeOpacity: .5,
-                    map: vars.map
-                });
 
                 var i = 1, len = route.n.length - 1, midPoints = [], origin = route.n[0].latlng, destination, directions = '';
 
@@ -1171,18 +1145,18 @@ window.onload = function () {
                     //drawPath(route.n[i].latlng, route.n[++i].latlng);
                     //directions+='<div></div>';
 
-                    directions += '<div class="directionsGroup">Stop at '+route.n[i].names.join(', ')+' enter a ' + route.r[i].t + ' going to ' + route.r[i].destinations.join(', ') + '</div>';
+                    directions += '<div class="directionsGroup">Stop at ' + route.n[i].names.join(', ') + ' enter a ' + route.r[i].t + ' going to ' + route.r[i].destinations.join(', ') + '</div>';
 
 
                     midPoints.push({location: route.n[i++].latlng});
                 }
-                directions += '<div class="directionsGroup">Stop at '+route.n[i].names.join(', ')+'</div>';
+                directions += '<div class="directionsGroup">Stop at ' + route.n[i].names.join(', ') + '</div>';
                 //continue with google walking directions or tell d person to take bike to his destination
-               directions += '<div class="directionsGroup"></div>';
-            
-            document.getElementById('bustopsDirectionsPanel').innerHTML = directions;
-            
-            destination = route.n[i].latlng;
+                directions += '<div class="directionsGroup"></div>';
+
+                document.getElementById('bustopsDirectionsPanel').innerHTML = directions;
+
+                destination = route.n[i].latlng;
 
                 vars.directionsService.route({
                     origin: origin,
@@ -1192,6 +1166,36 @@ window.onload = function () {
                 }, function (response, status) {
                     if (status === 'OK') {
                         toast('Drawing route', 0);
+
+                        var routeLegs = response.routes[0].legs, startToBustopLine = [startLoc], bustopToDestLine = [routeLegs[routeLegs.length - 1].end_location];
+
+                        startData.snappedPoints.forEach(function (point) {
+                            startToBustopLine.push({lat: point.location.latitude, lng: point.location.longitude});
+                        });
+                        startToBustopLine.push(routeLegs[0].start_location);
+
+                        vars.startToBustopRoutePolyLine = new vars.googleMaps.Polyline({
+                            path: startToBustopLine,
+                            strokeColor: '#428bca',
+                            strokeWeight: 5,
+                            strokeOpacity: .5,
+                            map: vars.map
+                        });
+
+                        endData.snappedPoints.forEach(function (point) {
+                            bustopToDestLine.push({lat: point.location.latitude, lng: point.location.longitude});
+                        });
+                        bustopToDestLine.push(endLoc);
+
+                        vars.bustopToEndRoutePolyLine = new vars.googleMaps.Polyline({
+                            path: bustopToDestLine,
+                            strokeColor: '#5cb85c',
+                            strokeWeight: 5,
+                            strokeOpacity: .5,
+                            map: vars.map
+                        });
+
+
                         vars.directionsDisplay.setDirections(response);
                     } else {
                         //display an error status
@@ -1255,16 +1259,16 @@ window.onload = function () {
 
         switch (mode) {
             case 0:
-                x.textContent === msg && (x.className = "");
+                x.textContent === msg && (x.className = "", window.clearTimeout(vars.toastTimeout)), vars.toastTimeout = null;
                 break;
             case 1:
-                vars.toastTimeout && vars.toastTimeout.clearTimeout(), vars.toastTimeout = null;
+                vars.toastTimeout && window.clearTimeout(vars.toastTimeout), vars.toastTimeout = null;
                 x.textContent = msg;
                 // Add the "show" class to DIV
                 x.className = "show";
                 break;
             case 2:
-                vars.toastTimeout && vars.toastTimeout.clearTimeout(), vars.toastTimeout = null;
+                vars.toastTimeout && window.clearTimeout(vars.toastTimeout), vars.toastTimeout = null;
                 x.textContent = msg;
                 x.className = "show";
                 // After 3 seconds, remove the show class from DIV
