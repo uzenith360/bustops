@@ -51,7 +51,8 @@ window.onload = function () {
         placeSearchMarker: null,
         thrsVisibleMarkers: false,
         startRouteMarker: null,
-        endRouteMarker: null
+        endRouteMarker: null,
+        wayPointMarkers:[]
     };
 
     //init
@@ -579,7 +580,8 @@ window.onload = function () {
                     anchorPoint: new vars.googleMaps.Point(0, -29),
                     icon: 'http://maps.google.com/mapfiles/kml/shapes/man_maps.png',
                     visible: false,
-                    draggable: true
+                    draggable: true,
+                    zIndex:500
                 });
                 vars.endRouteMarker = new vars.googleMaps.Marker({
                     map: vars.map,
@@ -587,7 +589,8 @@ window.onload = function () {
                     anchorPoint: new vars.googleMaps.Point(0, -29),
                     icon: 'http://maps.google.com/mapfiles/kml/shapes/flag_maps.png',
                     visible: false,
-                    draggable: true
+                    draggable: true,
+                    zIndex:500
                 });
 
                 vars.googleMaps.event.addListener(vars.startRouteMarker, 'dragend', function () {
@@ -1103,7 +1106,9 @@ window.onload = function () {
             vars.directionsService = new vars.googleMaps.DirectionsService;
             vars.directionsDisplay = new vars.googleMaps.DirectionsRenderer({
                 map: vars.map,
-                panel: vars.googleDirectionsPanel
+                panel: vars.googleDirectionsPanel,
+                preserveViewport:true,
+                suppressMarkers:true
             });
         }
 
@@ -1138,7 +1143,6 @@ window.onload = function () {
                 vars.directionsService.route({
                     origin: startLoc,
                     destination: origin,
-                    //waypoints: midPoints,
                     travelMode: 'WALKING'
                 }, function (startToBustopWalkingResponse, status) {
                     if (status === 'OK') {
@@ -1174,7 +1178,6 @@ window.onload = function () {
                     vars.directionsService.route({
                         origin: lastBustopLoc,
                         destination: endLoc,
-                        //waypoints: midPoints,
                         travelMode: 'WALKING'
                     }, function (bustopToEndWalkingResponse, status) {
                         if (status === 'OK') {
@@ -1198,7 +1201,6 @@ window.onload = function () {
 
                         document.getElementById('bustopsDirectionsPanel').innerHTML = directions;
                     });
-
 
                     destination = route.n[i].latlng;
 
@@ -1238,7 +1240,11 @@ window.onload = function () {
                                 strokeOpacity: .5,
                                 map: vars.map
                             });
-
+                            
+                            route.n.forEach(function(step, idx){
+                                step.type = 'STEP';
+                                vars.wayPointMarkers.push(new Place(step, {map: vars.map, loc: step.latlng, title: 'step', label:String(idx+1)}));
+                            });
 
                             vars.directionsDisplay.setDirections(response);
                         } else {
@@ -1258,6 +1264,11 @@ window.onload = function () {
         vars.bustopToEndRoutePolyLine && (vars.bustopToEndRoutePolyLine.setMap(null), vars.startToBustopRoutePolyLine.setMap(null));
         //vars.directionsService;
         //vars.directionsDisplay;
+        
+        vars.wayPointMarkers.forEach(function(wayPointMarker){
+            wayPointMarker.remove();
+        });
+        vars.wayPointMarkers=[];
 
         vars.googleDirectionsPanel.innerHTML = '';
     }

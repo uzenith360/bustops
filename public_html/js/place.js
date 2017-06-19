@@ -15,6 +15,8 @@ function Place(info, options, onGetData) {
             anchorPointY = -13;
             anchorPointX = -2;
             break;
+        case 'STEP':
+            break;
         case 'BAR':
             break;
         case 'CAFE':
@@ -182,13 +184,14 @@ function Place(info, options, onGetData) {
         position: options.loc,
         map: options.map,
         title: options.title,
+        label:options.label,
         anchorPoint: new googleMaps.Point(anchorPointX, anchorPointY),
         icon: icon
     });
     googleMaps.event.addListener(marker, 'click', function () {
         infowindow.open(options.map, marker);
     });
-    
+
     if (onGetData) {
         getDataElem = document.createElement('a');
         getDataElem.setAttribute('style', 'cursor:pointer;display:block;text-align:right;margin-top:5px;');
@@ -196,7 +199,7 @@ function Place(info, options, onGetData) {
         content.appendChild(getDataElem);
 
         getDataElem.addEventListener('click', function () {
-            if(onGetData({names:info.address_components||info.names, id:info.id})){
+            if (onGetData({names: info.address_components || info.names, id: info.id})) {
                 infowindow.close();
             }
         });
@@ -219,4 +222,11 @@ Place.prototype.hide = function () {
 Place.prototype.show = function () {
 //the marker
     this._marker.setVisible(true);
+};
+Place.prototype.remove = function () {
+//the marker
+    this._marker.setMap(null);
+
+//remove the info window
+    this._infowindow.close();
 };
