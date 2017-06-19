@@ -666,7 +666,6 @@ window.onload = function () {
             });
         });
 
-
         vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(icoSpan);
         vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(input);
         vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(direction);
@@ -1241,8 +1240,11 @@ window.onload = function () {
                                 map: vars.map
                             });
                             
+                            
+                            var routeR = route.r, totalFares =0;
                             route.n.forEach(function(step, idx){
                                 step.type = 'STEP';
+                                step.description = routeR[idx] ? '&#8358;'+(totalFares += routeR[idx].f, routeR[idx].f):'Total &#8358;'+totalFares;
                                 vars.wayPointMarkers.push(new Place(step, {map: vars.map, loc: step.latlng, title: 'step', label:String(idx+1)}));
                             });
 
