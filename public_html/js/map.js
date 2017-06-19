@@ -601,7 +601,7 @@ window.onload = function () {
                 });
             }
 
-            document.getElementById("getDirectionsSidenav").style.width = "410px";
+            document.getElementById("getDirectionsSidenav").style.width = "440px";
             document.getElementById('tripDirectionsForm').elements['tripStart'].focus();
         });
         document.getElementById('getDirectionsSidenavClose').addEventListener('click', function () {
@@ -1144,23 +1144,27 @@ window.onload = function () {
                     destination: origin,
                     travelMode: 'WALKING'
                 }, function (startToBustopWalkingResponse, status) {
+                    var directions = '<div class="table-responsive"><table style="margin-bottom:0px;" class="table table-striped"><thead><tr><td></td><td style="width:265px;"></td><td></td></tr></thead><tbody>';
+                    
                     if (status === 'OK') {
-                        var startToBustopWalkingDirections = startToBustopWalkingResponse.routes[0].legs[0], directions = '<div class="table-responsive"><table class="table">';
+                        console.log(startToBustopWalkingResponse);
+                        var startToBustopWalkingDirections = startToBustopWalkingResponse.routes[0].legs[0];
 
                         //start with google walking directions or tell d person to take bike to the bustop
-                        directions += '<tr><td>From ' + startToBustopWalkingDirections.start_address + '</td></tr>';
+                        directions += '<tr><td><img src="img/directions_place.png" alt="Place"/></td><td>From ' + startToBustopWalkingDirections.start_address + '</td><td></td></tr>';
 
                         var i0 = 0, steps = startToBustopWalkingDirections.steps, stepsCt = steps.length;
                         while (i0 < stepsCt) {
-                            directions += '<tr><td>' + steps[i0++].instructions + '</td></tr>';
+                            directions += '<tr><td><img src="img/directions_walk.png" alt="Walking directions"/></td><td>' + steps[i0].instructions + '</td><td>' + steps[i0].duration.text + ' <small style="display:block">(' + steps[i0].distance.text + ')</small></td></tr>';
+                            ++i0;
                         }
-                        directions += '<tr><td>When you get to ' + startToBustopWalkingDirections.end_address + ' go to ' + route.n[0].names.join(', ') + ' bustop</td></tr>';
+                        directions += '<tr><td><img src="img/directions_walk.png" alt="Walking directions"/></td><td>When you get to ' + startToBustopWalkingDirections.end_address + ' go to ' + route.n[0].names.join(', ') + ' bustop</td><td></td></tr>';
                     } else {
                         //start with google walking directions or tell d person to take bike to the bustop
-                        directions += '<tr><td>From where you are, trek or take a bike to ' + route.n[0].names.join(', ') + '</td></tr>';
+                        directions += '<tr><td><img src="img/directions.png" alt="Directions"/></td><td>From where you are, trek or take a bike to ' + route.n[0].names.join(', ') + '</td><td></td></tr>';
                     }
 
-                    directions += '<tr><td>At ' + route.n[0].names.join(', ') + ' enter a ' + route.r[0].t + ' going to ' + route.r[0].destinations.join(', ') + '</td></tr>';
+                    directions += '<tr><td><img src="img/directions_bus.png" alt="Bus directions"/></td><td>At ' + route.n[0].names.join(', ') + ' enter a ' + route.r[0].t + ' going to ' + route.r[0].destinations.join(', ') + '</td><td>&#8358;'+route.r[0].f+'</td></tr>';
 
                     var i = 1, len = route.n.length - 1, midPoints = [], destination;
                     while (i < len) {//show trip time lines with fares,distance and time, calulate total in trip summary 
@@ -1168,11 +1172,11 @@ window.onload = function () {
                         //drawPath(route.n[i].latlng, route.n[++i].latlng);
                         //directions+='<div></div>';
 
-                        directions += '<tr><td>Stop at ' + route.n[i].names.join(', ') + ' enter a ' + route.r[i].t + ' going to ' + route.r[i].destinations.join(', ') + '</td></tr>';
+                        directions += '<tr><td><img src="img/directions_bus.png" alt="Bus directions"/></td><td>Stop at ' + route.n[i].names.join(', ') + ' enter a ' + route.r[i].t + ' going to ' + route.r[i].destinations.join(', ') + '</td><td>&#8358;'+route.r[i].f+'</td></tr>';
 
                         midPoints.push({location: route.n[i++].latlng});
                     }
-                    directions += '<tr><td>Stop at ' + route.n[i].names.join(', ') + '</td></tr>';
+                    directions += '<tr><td><img src="img/directions_bus.png" alt="Bus directions"/></td><td>Stop at ' + route.n[i].names.join(', ') + '</td><td></td></tr>';
 
                     vars.directionsService.route({
                         origin: lastBustopLoc,
@@ -1183,23 +1187,25 @@ window.onload = function () {
                             var bustopToEndWalkingDirections = bustopToEndWalkingResponse.routes[0].legs[0];
 
                             //continue with google walking directions or tell d person to take bike to his destination
-                            directions += '<tr><td>From ' + route.n[i].names.join(', ') + ' at ' + bustopToEndWalkingDirections.start_address + '</td></tr>';
+                            directions += '<tr><td><img src="img/directions_place.png" alt="Place"/></td><td>From ' + route.n[i].names.join(', ') + ' at ' + bustopToEndWalkingDirections.start_address + '</td><td></td></tr>';
 
                             var i0 = 0, steps = bustopToEndWalkingDirections.steps, stepsCt = steps.length;
                             while (i0 < stepsCt) {
-                                directions += '<tr><td>' + steps[i0++].instructions + '</tr>';
+                                directions += '<tr><td><img src="img/directions_walk.png" alt="Walking directions"/></td><td>' + steps[i0].instructions + '<td>' + steps[i0].duration.text + ' <small style="display:block">(' + steps[i0].distance.text + ')</small></td></tr>';
+                                ++i0;
                             }
-                            directions += '<tr><td>When you get to ' + bustopToEndWalkingDirections.end_address + ' go to your destination</td></tr>';
+                            directions += '<tr><td><img src="img/directions_walk.png" alt="Walking directions"/></td><td>When you get to ' + bustopToEndWalkingDirections.end_address + ' go to your destination</td><td></td></tr>';
 
                         } else {
                             //start with google walking directions or tell d person to take bike to the bustop
-                            directions += '<tr><td>From ' + route.n[i].names.join(', ') + ' trek or take a bike to your destination</td></tr>';
+                            directions += '<tr><td><img src="img/directions.png" alt="Directions"/></td><td>From ' + route.n[i].names.join(', ') + ' trek or take a bike to your destination</td><td></td></tr>';
                         }
 
                         //put directions in table and show details
+                        //show trip summary
 
 
-                        directions += '</table></div>';
+                        directions += '</tbody></table></div>';
                         document.getElementById('bustopsDirectionsPanel').innerHTML = directions;
                     });
 

@@ -71,7 +71,7 @@ body {
 }
 #getDirectionsSidenavHeadingTravelMode img{
     height: 39px;
-    margin-right: 32px;
+    margin-right: 34px;
     padding: 6px;
     cursor: pointer;
 }
@@ -181,9 +181,18 @@ However, delay the fade out process for 2.5 seconds */
 }
 #directionsPanel{
     border:1px solid #ddd;
+    border-top: none;
     border-top-color: transparent;
     border-radius: 0 0 4px 4px;
-    margin-top: -1px;
+}
+#bustopsDirectionsPanel table tbody tr:first-child{
+    border-top-style:hidden;
+}
+#bustopsDirectionsPanel table thead tr:first-child>td{
+    padding:0px;
+}
+#googleDirectionsPanel table{
+    margin-top: 0px;
 }
 /*#bustopsDirectionsPanel, #googleDirectionsPanel{
     padding-top: 10px;
