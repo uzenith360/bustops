@@ -1194,6 +1194,8 @@ window.onload = function () {
                             directions += '<div class="directionsGroup">From ' + route.n[i].names.join(', ') + ' trek or take a bike to your destination</div>';
                         }
 
+                        //put directions in table and show details
+
                         document.getElementById('bustopsDirectionsPanel').innerHTML = directions;
                     });
 
