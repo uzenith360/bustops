@@ -47,6 +47,7 @@ window.onload = function () {
         startToBustopRoutePolyLine: null,
         bustopToEndRoutePolyLine: null,
         googleDirectionsPanel: null,
+        bustopsDirectionsPanel:null,
         toastTimeout: null,
         placeSearchMarker: null,
         thrsVisibleMarkers: false,
@@ -1102,6 +1103,7 @@ window.onload = function () {
 
         if (!vars.directionsService) {
             vars.googleDirectionsPanel = document.getElementById('googleDirectionsPanel');
+            vars.bustopsDirectionsPanel = document.getElementById('bustopsDirectionsPanel');
             vars.directionsService = new vars.googleMaps.DirectionsService;
             vars.directionsDisplay = new vars.googleMaps.DirectionsRenderer({
                 map: vars.map,
@@ -1119,6 +1121,7 @@ window.onload = function () {
         vars.map.fitBounds(bounds);
 
         toast('Drawing route', 1);
+        vars.googleDirectionsPanel.innerHTML = vars.bustopsDirectionsPanel.innerHTML = '<p style="padding: 10px 15px;">Getting directions...</p>';
         $.get('https://roads.googleapis.com/v1/snapToRoads', {
             interpolate: true,
             key: config.key,
@@ -1147,7 +1150,6 @@ window.onload = function () {
                     var directions = '<div class="table-responsive"><table style="margin-bottom:0px;" class="table table-striped"><thead><tr><td></td><td style="width:265px;"></td><td></td></tr></thead><tbody>';
                     
                     if (status === 'OK') {
-                        console.log(startToBustopWalkingResponse);
                         var startToBustopWalkingDirections = startToBustopWalkingResponse.routes[0].legs[0];
 
                         //start with google walking directions or tell d person to take bike to the bustop
@@ -1168,10 +1170,6 @@ window.onload = function () {
 
                     var i = 1, len = route.n.length - 1, midPoints = [], destination;
                     while (i < len) {//show trip time lines with fares,distance and time, calulate total in trip summary 
-                        //route.r[i] - relation for this path
-                        //drawPath(route.n[i].latlng, route.n[++i].latlng);
-                        //directions+='<div></div>';
-
                         directions += '<tr><td><img src="img/directions_bus.png" alt="Bus directions"/></td><td>Stop at ' + route.n[i].names.join(', ') + ' enter a ' + route.r[i].t + ' going to ' + route.r[i].destinations.join(', ') + '</td><td>&#8358;'+route.r[i].f+'</td></tr>';
 
                         midPoints.push({location: route.n[i++].latlng});
@@ -1216,7 +1214,7 @@ window.onload = function () {
                         destination: destination,
                         waypoints: midPoints,
                         travelMode: 'DRIVING'
-                    }, function (response, status) {
+                    }, function (response, status) {console.log(response);
                         if (status === 'OK') {
                             toast('Drawing route', 0);
 
@@ -1259,6 +1257,7 @@ window.onload = function () {
                         } else {
                             //display an error status
                             toast('Problem drawing route', 2);
+                            vars.googleDirectionsPanel.innerHTML = '<p style="padding: 10px 15px;">Problem getting directions</p>';
                             console.log('Could not display directions due to: ' + status);
                         }
                     });
