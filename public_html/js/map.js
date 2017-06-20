@@ -47,7 +47,7 @@ window.onload = function () {
         startToBustopRoutePolyLine: null,
         bustopToEndRoutePolyLine: null,
         googleDirectionsPanel: null,
-        bustopsDirectionsPanel:null,
+        bustopsDirectionsPanel: null,
         toastTimeout: null,
         placeSearchMarker: null,
         thrsVisibleMarkers: false,
@@ -1147,10 +1147,10 @@ window.onload = function () {
                     destination: origin,
                     travelMode: 'WALKING'
                 }, function (startToBustopWalkingResponse, status) {
-                    var directions = '<div class="table-responsive"><table style="margin-bottom:0px;" class="table table-striped"><thead><tr><td></td><td style="width:265px;"></td><td></td><td></td></tr></thead><tbody>', timeLineTime = new Date();
-                    
-                    timeLineTime;
-                    
+                    var directions = '<div class="table-responsive"><table style="margin-bottom:0px;" class="table table-striped"><thead><tr><td></td><td style="width:265px;"></td><td></td><td></td></tr></thead><tbody>', timeLine = 0;
+
+                    timeLine;
+
                     if (status === 'OK') {
                         var startToBustopWalkingDirections = startToBustopWalkingResponse.routes[0].legs[0];
 
@@ -1168,11 +1168,11 @@ window.onload = function () {
                         directions += '<tr><td><img src="img/directions.png" alt="Directions"/></td><td>From where you are, trek or take a bike to ' + route.n[0].names.join(', ') + '</td><td></td><td></td></tr>';
                     }
 
-                    directions += '<tr><td><img src="img/directions_bus.png" alt="Bus directions"/></td><td>At ' + route.n[0].names.join(', ') + ' enter a ' + route.r[0].t + ' going to ' + route.r[0].destinations.join(', ') + '</td><td>&#8358;'+route.r[0].f+'<div id="bTi-0"></div></td><td></td></tr>';
+                    directions += '<tr><td><img src="img/directions_bus.png" alt="Bus directions"/></td><td>At ' + route.n[0].names.join(', ') + ' enter a ' + route.r[0].t + ' going to ' + route.r[0].destinations.join(', ') + '</td><td>&#8358;' + route.r[0].f + '<div id="bTi-0"></div></td><td></td></tr>';
 
                     var i = 1, len = route.n.length - 1, midPoints = [], destination;
                     while (i < len) {//show trip time lines with fares,distance and time, calulate total in trip summary 
-                        directions += '<tr><td><img src="img/directions_bus.png" alt="Bus directions"/></td><td>Stop at ' + route.n[i].names.join(', ') + ' enter a ' + route.r[i].t + ' going to ' + route.r[i].destinations.join(', ') + '</td><td>&#8358;'+route.r[i].f+'<div id="bTi-'+i+'"></div></td><td></td></tr>';
+                        directions += '<tr><td><img src="img/directions_bus.png" alt="Bus directions"/></td><td>Stop at ' + route.n[i].names.join(', ') + ' enter a ' + route.r[i].t + ' going to ' + route.r[i].destinations.join(', ') + '</td><td>&#8358;' + route.r[i].f + '<div id="bTi-' + i + '"></div></td><td></td></tr>';
 
                         midPoints.push({location: route.n[i++].latlng});
                     }
@@ -1216,17 +1216,18 @@ window.onload = function () {
                         destination: destination,
                         waypoints: midPoints,
                         travelMode: 'DRIVING'
-                    }, function (response, status) {console.log(response);
+                    }, function (response, status) {
+                        console.log(response);
                         if (status === 'OK') {
                             toast('Drawing route', 0);
 
                             var routeLegs = response.routes[0].legs, startToBustopLine = [startLoc], bustopToDestLine = [routeLegs[routeLegs.length - 1].end_location];
 
-                        routeLegs.forEach(function(leg, idx){
-                            document.getElementById('bTi-'+idx).innerHTML = '' + leg.duration.text + '<small style="display:block">(' + leg.distance.text + ')</small>';
-                        });    
-                        
-                        startData.snappedPoints.forEach(function (point) {
+                            routeLegs.forEach(function (leg, idx) {
+                                document.getElementById('bTi-' + idx).innerHTML = '' + leg.duration.text + '<small style="display:block">(' + leg.distance.text + ')</small>';
+                            });
+
+                            startData.snappedPoints.forEach(function (point) {
                                 startToBustopLine.push({lat: point.location.latitude, lng: point.location.longitude});
                             });
                             startToBustopLine.push(routeLegs[0].start_location);
@@ -1348,5 +1349,56 @@ window.onload = function () {
                 }, miliseconds || 3000);
                 break;
         }
+    }
+
+    function timeTextToMinutes(timeText) {
+        var tokens = timeText.split(' '), minutes = 0;
+
+        for (var i = 0, tokensLength = tokens.length; i < tokensLength; i += 2) {
+            switch (tokens[i + 1]) {
+                case 'min':
+                case 'mins':
+                    minutes += tokens[i];
+                    break;
+                case 'hr':
+                case 'hrs':
+                    minutes += tokens[i] * 60;
+                    break;
+                case 'day':
+                case 'days':
+                    minutes += tokens[i] * 1440;
+                    break;
+            }
+        }
+
+        return minutes;
+    }
+    function minutesToTimeText(minutes) {
+        var dy = Math.floor(minutes / 1440) || '', hr = Math.floor((minutes / 60) % 24) || '', min = minutes % 60 || '';
+
+        return ((dy && (dy + ' day')) + ' ' + (hr && (hr + ' hr')) + ' ' + (min && (min + ' min'))).trim();
+    }
+
+    function distanceTextToMeters(distanceText) {
+        var tokens = distanceText.split(' '), meters = 0;
+
+        for (var i = 0, tokensLength = tokens.length; i < tokensLength; i += 2) {
+            switch (tokens[i + 1]) {
+                case 'm':
+                    meters += tokens[i];
+                    break;
+                case 'km':
+                    meters += tokens[i] * 1000;
+                    break;
+            }
+        }
+
+        return meters;
+    }
+
+    function metersToDistanceText(meters) {
+        var km = Math.floor(meters / 1000) || '', m = meters % 1000 || '';
+
+        return ((km && (km + ' km')) + ' ' + (m && (m + ' m'))).trim();
     }
 };
