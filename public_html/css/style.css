@@ -195,6 +195,14 @@ However, delay the fade out process for 2.5 seconds */
     margin-top: 0px;
     border:none;
 }
+#getDirectionsSidenavBodyInfo{
+    margin-top: 20px;
+}
+#tripSummary{
+    border-radius:4px;
+    border:1px solid #ddd;
+    border-top:none;
+}
 /*#bustopsDirectionsPanel, #googleDirectionsPanel{
     padding-top: 10px;
 }*/

@@ -1147,7 +1147,7 @@ window.onload = function () {
                     destination: origin,
                     travelMode: 'WALKING'
                 }, function (startToBustopWalkingResponse, status) {
-                    var directions = '<div class="table-responsive"><table style="margin-bottom:0px;" class="table table-striped"><thead><tr><td></td><td style="width:250px;"></td><td></td><td></td></tr></thead><tbody>', timeLineMeters = 0, date = new Date();
+                    var directions = '<div class="table-responsive"><table style="margin-bottom:0px;" class="table table-striped"><thead><tr><td></td><td style="width:250px;"></td><td></td><td></td></tr></thead><tbody>', timeLineMeters = 0, date = new Date(), startDate = new Date();
 
                     if (status === 'OK') {
                         var startToBustopWalkingDirections = startToBustopWalkingResponse.routes[0].legs[0];
@@ -1220,7 +1220,13 @@ window.onload = function () {
                         if (status === 'OK') {
                             toast('Drawing route', 0);
 
-                            var routeLegs = response.routes[0].legs, startToBustopLine = [startLoc], bustopToDestLine = [routeLegs[routeLegs.length - 1].end_location], timeLineCntdIdx = 0;
+                            var routeLegs = response.routes[0].legs, startToBustopLine = [startLoc], bustopToDestLine = [routeLegs[routeLegs.length - 1].end_location], timeLineCntdIdx = 0, routeR = route.r, totalFares = 0;
+
+                            route.n.forEach(function (step, idx) {
+                                step.type = 'STEP';
+                                step.description = routeR[idx] ? '&#8358;' + (totalFares += routeR[idx].f, routeR[idx].f) : 'Total &#8358;' + totalFares;
+                                vars.wayPointMarkers.push(new Place(step, {map: vars.map, loc: step.latlng, title: 'step', label: String(idx + 1)}));
+                            });
 
                             routeLegs.forEach(function (leg, idx) {
                                 document.getElementById('tL' + idx).textContent = timeFormat((date.setMinutes(date.getMinutes() + (timeLineMeters += leg.distance.value, Math.ceil(leg.duration.value / 60))), date));
@@ -1233,7 +1239,14 @@ window.onload = function () {
                             timeLineCntd.forEach(function (info) {
                                 document.getElementById('tL' + ++timeLineCntdIdx).textContent = timeFormat((date.setMinutes(date.getMinutes() + (timeLineMeters += info[0], Math.ceil(info[1] / 60))), date));
                             });
-                            
+
+                            document.getElementById('tFares').innerHTML = '&#8358;' + totalFares;
+                            document.getElementById('tBustops').textContent = routeR.length;
+                            document.getElementById('tArrivalTime').textContent = timeFormat(date);
+                            document.getElementById('tTime').textContent = minutesToTimeText(((date.getTime() - startDate.getTime()) / 60000).toFixed(2));
+                            document.getElementById('tDistance').textContent = metersToDistanceText(timeLineMeters);
+                            document.getElementById('getDirectionsSidenavBodyInfo').style.display = 'block';
+
                             startData.snappedPoints.forEach(function (point) {
                                 startToBustopLine.push({lat: point.location.latitude, lng: point.location.longitude});
                             });
@@ -1258,13 +1271,6 @@ window.onload = function () {
                                 strokeWeight: 5,
                                 strokeOpacity: .5,
                                 map: vars.map
-                            });
-
-                            var routeR = route.r, totalFares = 0;
-                            route.n.forEach(function (step, idx) {
-                                step.type = 'STEP';
-                                step.description = routeR[idx] ? '&#8358;' + (totalFares += routeR[idx].f, routeR[idx].f) : 'Total &#8358;' + totalFares;
-                                vars.wayPointMarkers.push(new Place(step, {map: vars.map, loc: step.latlng, title: 'step', label: String(idx + 1)}));
                             });
 
                             vars.directionsDisplay.setDirections(response);
@@ -1358,7 +1364,7 @@ window.onload = function () {
         }
     }
 
-    function timeTextToMinutes(timeText) {
+    /*function timeTextToMinutes(timeText) {
         var tokens = timeText.split(' '), minutes = 0;
 
         for (var i = 0, tokensLength = tokens.length; i < tokensLength; i += 2) {
@@ -1379,14 +1385,14 @@ window.onload = function () {
         }
 
         return minutes;
-    }
+    }*/
     function minutesToTimeText(minutes) {
         var dy = Math.floor(minutes / 1440) || '', hr = Math.floor((minutes / 60) % 24) || '', min = minutes % 60 || '';
 
         return ((dy && (dy + ' day')) + ' ' + (hr && (hr + ' hr')) + ' ' + (min && (min + ' min'))).trim();
     }
 
-    function distanceTextToMeters(distanceText) {
+    /*function distanceTextToMeters(distanceText) {
         var tokens = distanceText.split(' '), meters = 0;
 
         for (var i = 0, tokensLength = tokens.length; i < tokensLength; i += 2) {
@@ -1401,7 +1407,7 @@ window.onload = function () {
         }
 
         return meters;
-    }
+    }*/
 
     function metersToDistanceText(meters) {
         var km = Math.floor(meters / 1000) || '', m = meters % 1000 || '';
