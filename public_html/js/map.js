@@ -48,6 +48,7 @@ window.onload = function () {
         bustopToEndRoutePolyLine: null,
         googleDirectionsPanel: null,
         bustopsDirectionsPanel: null,
+        getDirectionsSidenavBodyInfo: null,
         toastTimeout: null,
         placeSearchMarker: null,
         thrsVisibleMarkers: false,
@@ -1104,6 +1105,7 @@ window.onload = function () {
         if (!vars.directionsService) {
             vars.googleDirectionsPanel = document.getElementById('googleDirectionsPanel');
             vars.bustopsDirectionsPanel = document.getElementById('bustopsDirectionsPanel');
+            vars.getDirectionsSidenavBodyInfo = document.getElementById('getDirectionsSidenavBodyInfo');
             vars.directionsService = new vars.googleMaps.DirectionsService;
             vars.directionsDisplay = new vars.googleMaps.DirectionsRenderer({
                 map: vars.map,
@@ -1146,10 +1148,10 @@ window.onload = function () {
                     origin: startLoc,
                     destination: origin,
                     travelMode: 'WALKING'
-                }, function (startToBustopWalkingResponse, status) {
+                }, function (startToBustopWalkingResponse, start) {
                     var directions = '<div class="table-responsive"><table style="margin-bottom:0px;" class="table table-striped"><thead><tr><td></td><td style="width:250px;"></td><td></td><td></td></tr></thead><tbody>', timeLineMeters = 0, date = new Date(), startDate = new Date();
 
-                    if (status === 'OK') {
+                    if (start === 'OK') {
                         var startToBustopWalkingDirections = startToBustopWalkingResponse.routes[0].legs[0];
 
                         //start with google walking directions or tell d person to take bike to the bustop
@@ -1168,7 +1170,7 @@ window.onload = function () {
 
                     directions += '<tr><td><img src="img/directions_bus.png" alt="Bus directions"/></td><td>At ' + route.n[0].names.join(', ') + ' enter a ' + route.r[0].t + ' going to ' + route.r[0].destinations.join(', ') + '</td><td>&#8358;' + route.r[0].f + '<div id="bTi-0"></div></td><td>' + timeFormat(date) + '</td></tr>';
 
-                    var i = 1, len = route.n.length - 1, midPoints = [], destination, timeLineCntdIdCt = -1, timeLineCntd = [];
+                    var i = 1, len = route.n.length - 1, midPoints = [], destination, timeLineCntdIdCt = -1, timeLineCntd = [], bustopToEndDirectionServiceOK;
                     while (i < len) {//show trip time lines with fares,distance and time, calulate total in trip summary 
                         directions += '<tr><td><img src="img/directions_bus.png" alt="Bus directions"/></td><td>Stop at ' + route.n[i].names.join(', ') + ' enter a ' + route.r[i].t + ' going to ' + route.r[i].destinations.join(', ') + '</td><td>&#8358;' + route.r[i].f + '<div id="bTi-' + i + '"></div></td><td id="tL' + ++timeLineCntdIdCt + '"></td></tr>';
 
@@ -1182,6 +1184,7 @@ window.onload = function () {
                         travelMode: 'WALKING'
                     }, function (bustopToEndWalkingResponse, status) {
                         if (status === 'OK') {
+                            bustopToEndDirectionServiceOK = true;
                             var bustopToEndWalkingDirections = bustopToEndWalkingResponse.routes[0].legs[0];
 
                             //continue with google walking directions or tell d person to take bike to his destination
@@ -1196,6 +1199,7 @@ window.onload = function () {
                             directions += '<tr><td><img src="img/directions_walk.png" alt="Walking directions"/></td><td>When you get to ' + bustopToEndWalkingDirections.end_address + ' go to your destination</td><td></td><td id="tL' + ++timeLineCntdIdCt + '"></td></tr>';
 
                         } else {
+                            bustopToEndDirectionServiceOK = false;
                             //start with google walking directions or tell d person to take bike to the bustop
                             directions += '<tr><td><img src="img/directions.png" alt="Directions"/></td><td>From ' + route.n[i].names.join(', ') + ' trek or take a bike to your destination</td><td></td><td></td></tr>';
                         }
@@ -1229,7 +1233,7 @@ window.onload = function () {
                                 //make the wayPoint marker visisble
                             });
                             //to make my man and the start bustop marker visible
-                            vars.map.panBy(0,0);
+                            vars.map.panBy(0, 0);
 
                             routeLegs.forEach(function (leg, idx) {
                                 document.getElementById('tL' + idx).textContent = timeFormat((date.setMinutes(date.getMinutes() + (timeLineMeters += leg.distance.value, Math.ceil(leg.duration.value / 60))), date));
@@ -1237,18 +1241,20 @@ window.onload = function () {
                                 document.getElementById('bTi-' + idx).innerHTML = '' + leg.duration.text + '<small style="display:block">(' + leg.distance.text + ')</small>';
                             });
 
-                            document.getElementById('tL' + timeLineCntdIdx).textContent = timeFormat(date);
-                            document.getElementById('tL' + ++timeLineCntdIdx).textContent = timeFormat(date);
-                            timeLineCntd.forEach(function (info) {
-                                document.getElementById('tL' + ++timeLineCntdIdx).textContent = timeFormat((date.setMinutes(date.getMinutes() + (timeLineMeters += info[0], Math.ceil(info[1] / 60))), date));
-                            });
+                            if (bustopToEndDirectionServiceOK) {
+                                document.getElementById('tL' + timeLineCntdIdx).textContent = timeFormat(date);
+                                document.getElementById('tL' + ++timeLineCntdIdx).textContent = timeFormat(date);
+                                timeLineCntd.forEach(function (info) {
+                                    document.getElementById('tL' + ++timeLineCntdIdx).textContent = timeFormat((date.setMinutes(date.getMinutes() + (timeLineMeters += info[0], Math.ceil(info[1] / 60))), date));
+                                });
+                            }
 
                             document.getElementById('tFares').innerHTML = '&#8358;' + totalFares;
                             document.getElementById('tBustops').textContent = routeR.length;
                             document.getElementById('tArrivalTime').textContent = timeFormat(date);
                             document.getElementById('tTime').textContent = minutesToTimeText(((date.getTime() - startDate.getTime()) / 60000).toFixed(2));
                             document.getElementById('tDistance').textContent = metersToDistanceText(timeLineMeters);
-                            document.getElementById('getDirectionsSidenavBodyInfo').style.display = 'block';
+                            vars.getDirectionsSidenavBodyInfo.style.display = 'block';
 
                             startData.snappedPoints.forEach(function (point) {
                                 startToBustopLine.push({lat: point.location.latitude, lng: point.location.longitude});
@@ -1302,6 +1308,7 @@ window.onload = function () {
         vars.wayPointMarkers = [];
 
         vars.googleDirectionsPanel.innerHTML = '';
+        vars.getDirectionsSidenavBodyInfo.style.display = 'none';
     }
     function hideAllMarkers() {
         vars.myMarker && vars.placeSearchMarker.setVisible(false);
