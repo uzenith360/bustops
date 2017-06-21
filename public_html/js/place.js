@@ -186,7 +186,8 @@ function Place(info, options, onGetData) {
         title: options.title,
         label:options.label,
         anchorPoint: new googleMaps.Point(anchorPointX, anchorPointY),
-        icon: icon
+        icon: icon,
+        visible:true
     });
     googleMaps.event.addListener(marker, 'click', function () {
         infowindow.open(options.map, marker);

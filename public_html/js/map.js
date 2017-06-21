@@ -1226,7 +1226,10 @@ window.onload = function () {
                                 step.type = 'STEP';
                                 step.description = routeR[idx] ? '&#8358;' + (totalFares += routeR[idx].f, routeR[idx].f) : 'Total &#8358;' + totalFares;
                                 vars.wayPointMarkers.push(new Place(step, {map: vars.map, loc: step.latlng, title: 'step', label: String(idx + 1)}));
+                                //make the wayPoint marker visisble
                             });
+                            //to make my man and the start bustop marker visible
+                            vars.map.panBy(0,0);
 
                             routeLegs.forEach(function (leg, idx) {
                                 document.getElementById('tL' + idx).textContent = timeFormat((date.setMinutes(date.getMinutes() + (timeLineMeters += leg.distance.value, Math.ceil(leg.duration.value / 60))), date));
@@ -1365,49 +1368,49 @@ window.onload = function () {
     }
 
     /*function timeTextToMinutes(timeText) {
-        var tokens = timeText.split(' '), minutes = 0;
-
-        for (var i = 0, tokensLength = tokens.length; i < tokensLength; i += 2) {
-            switch (tokens[i + 1]) {
-                case 'min':
-                case 'mins':
-                    minutes += tokens[i];
-                    break;
-                case 'hr':
-                case 'hrs':
-                    minutes += tokens[i] * 60;
-                    break;
-                case 'day':
-                case 'days':
-                    minutes += tokens[i] * 1440;
-                    break;
-            }
-        }
-
-        return minutes;
-    }*/
+     var tokens = timeText.split(' '), minutes = 0;
+     
+     for (var i = 0, tokensLength = tokens.length; i < tokensLength; i += 2) {
+     switch (tokens[i + 1]) {
+     case 'min':
+     case 'mins':
+     minutes += tokens[i];
+     break;
+     case 'hr':
+     case 'hrs':
+     minutes += tokens[i] * 60;
+     break;
+     case 'day':
+     case 'days':
+     minutes += tokens[i] * 1440;
+     break;
+     }
+     }
+     
+     return minutes;
+     }*/
     function minutesToTimeText(minutes) {
         var dy = Math.floor(minutes / 1440) || '', hr = Math.floor((minutes / 60) % 24) || '', min = minutes % 60 || '';
 
-        return ((dy && (dy + ' day')) + ' ' + (hr && (hr + ' hr')) + ' ' + (min && (min + ' min'))).trim();
+        return ((dy && (dy + ' day' + (dy > 1 ? 's' : ''))) + ' ' + (hr && (hr + ' hr' + (hr > 1 ? 's' : ''))) + ' ' + (min && (min + ' min' + (min > 1 ? 's' : '')))).trim();
     }
 
     /*function distanceTextToMeters(distanceText) {
-        var tokens = distanceText.split(' '), meters = 0;
-
-        for (var i = 0, tokensLength = tokens.length; i < tokensLength; i += 2) {
-            switch (tokens[i + 1]) {
-                case 'm':
-                    meters += tokens[i];
-                    break;
-                case 'km':
-                    meters += tokens[i] * 1000;
-                    break;
-            }
-        }
-
-        return meters;
-    }*/
+     var tokens = distanceText.split(' '), meters = 0;
+     
+     for (var i = 0, tokensLength = tokens.length; i < tokensLength; i += 2) {
+     switch (tokens[i + 1]) {
+     case 'm':
+     meters += tokens[i];
+     break;
+     case 'km':
+     meters += tokens[i] * 1000;
+     break;
+     }
+     }
+     
+     return meters;
+     }*/
 
     function metersToDistanceText(meters) {
         var km = Math.floor(meters / 1000) || '', m = meters % 1000 || '';
@@ -1416,7 +1419,7 @@ window.onload = function () {
     }
 
     function timeFormat(date) {
-        var hr = date.getHours() + 1, min = date.getMinutes(), ampm;
+        var hr = date.getHours(), min = date.getMinutes(), ampm;
         return (hr > 12 ? (ampm = 'pm') && hr - 12 : (ampm = 'am') && hr) + ':' + ((min > 9 ? '' : '0') + min) + ampm;
     }
 };
