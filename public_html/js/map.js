@@ -48,13 +48,14 @@ window.onload = function () {
         bustopToEndRoutePolyLine: null,
         googleDirectionsPanel: null,
         bustopsDirectionsPanel: null,
-        getDirectionsSidenavBodyInfo: null,
+        tripSummary: null,
         toastTimeout: null,
         placeSearchMarker: null,
         thrsVisibleMarkers: false,
         startRouteMarker: null,
         endRouteMarker: null,
-        wayPointMarkers: []
+        wayPointMarkers: [],
+        loadLocationsDisabled: false
     };
 
     //init
@@ -220,12 +221,18 @@ window.onload = function () {
     }
 
 
-    function watchMyLocation() {
+    function watchMyLocation(cb) {
         toast('Getting my location', 1);
-        vars.locationWatch = navigator.geolocation.watchPosition(myLocSuccess, myLocError, {enableHighAccuracy: true/*, maximumAge: 30000, timeout: 27000*/});
+        vars.locationWatch = navigator.geolocation.watchPosition(function (pos) {
+            myLocSuccess(pos);
+            cb && cb();
+        }, function (err) {
+            myLocError(err);
+            cb && cb(new Error(err));
+        }, {enableHighAccuracy: true/*, maximumAge: 30000, timeout: 27000*/});
     }
     function myLocSuccess(pos) {
-        !vars.acquiredCurrentLoc && toast('Getting my location', 0);
+        !vars.acquiredCurrentLoc && toast('Getting my location', 0), toast('Acquired location', 2);
 
         if (pos.coords.accuracy < config.accuracyCutoffPoint || !vars.acquiredCurrentLoc) {
             var newLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude};
@@ -485,7 +492,7 @@ window.onload = function () {
         meCntrl.appendChild(icoMeBtn);
         tripCntl.setAttribute('id', 'tC');
         tripCntl.setAttribute('title', 'Trip mode');
-        tripCntl.setAttribute('style', 'cursor:pointer;margin-right:10px;margin-bottom:10px;width: 28px; height: 27px;padding:6px 6px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;font-family: Roboto;font-size: 100%;font-weight: 300;');
+        tripCntl.setAttribute('style', 'cursor:pointer;margin-right:10px;margin-bottom:10px;width: 28px; height: 27px;padding:6px 6px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);-webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;font-family: Roboto;font-size: 100%;font-weight: 300;');
         tripCntlIcon.setAttribute('id', 'tCI');
         tripCntlIcon.classList.add('glyphicon');
         tripCntlIcon.classList.add('glyphicon-record');
@@ -494,7 +501,7 @@ window.onload = function () {
         dir.setAttribute('src', 'img/heading.png');
         dir.setAttribute('id', 'h');
         dirCntl.setAttribute('title', 'Your heading');
-        dirCntl.setAttribute('style', 'display:none;margin-right:10px;margin-bottom:10px;width: 28px; height: 27px;padding:4px 4px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
+        dirCntl.setAttribute('style', 'display:none;margin-right:10px;margin-bottom:10px;width: 28px; height: 27px;padding:4px 4px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);-webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
         dirCntl.appendChild(dir);
         directionBtn.classList.add('btn');
         directionBtn.classList.add('btn-info');
@@ -504,14 +511,18 @@ window.onload = function () {
         directionImg.setAttribute('style', 'width:20px;');
         directionBtn.appendChild(directionImg);
         direction.setAttribute('title', 'Get directions');
-        direction.setAttribute('style', 'margin-left:5px;margin-top:10px;width:29px;height:29px;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
+        direction.setAttribute('style', 'margin-left:5px;margin-top:10px;width:29px;height:29px;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);-webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
         direction.appendChild(directionBtn);
 
         meCntrl.addEventListener('click', function () {
             if (!vars.watchingMyLoc) {
                 vars.watchingMyLoc = true;
 
-                watchMyLocation();
+                watchMyLocation(function(err){
+                    if(!err){
+                       meCntrl.click(); 
+                    }
+                });
                 return;
             }
 
@@ -974,6 +985,10 @@ window.onload = function () {
     }
 
     function loadLocations() {
+        if (vars.loadLocationsDisabled) {
+            return;
+        }
+
         //call the php script to get a locations within this bounds
         //the ajax request would be a get request, since its a light and frequently called request
         //throttle the requests from like 500/700ms to 1 second
@@ -1056,6 +1071,7 @@ window.onload = function () {
     }
 
     function getRoute(startLoc, endLoc, cb) {
+        vars.loadLocationsDisabled = true;
         toast('Getting route', 1);
 
         //show getn route or sth (UI display)
@@ -1105,7 +1121,7 @@ window.onload = function () {
         if (!vars.directionsService) {
             vars.googleDirectionsPanel = document.getElementById('googleDirectionsPanel');
             vars.bustopsDirectionsPanel = document.getElementById('bustopsDirectionsPanel');
-            vars.getDirectionsSidenavBodyInfo = document.getElementById('getDirectionsSidenavBodyInfo');
+            vars.tripSummary = document.getElementById('tripSummary');
             vars.directionsService = new vars.googleMaps.DirectionsService;
             vars.directionsDisplay = new vars.googleMaps.DirectionsRenderer({
                 map: vars.map,
@@ -1254,7 +1270,7 @@ window.onload = function () {
                             document.getElementById('tArrivalTime').textContent = timeFormat(date);
                             document.getElementById('tTime').textContent = minutesToTimeText(((date.getTime() - startDate.getTime()) / 60000).toFixed(2));
                             document.getElementById('tDistance').textContent = metersToDistanceText(timeLineMeters);
-                            vars.getDirectionsSidenavBodyInfo.style.display = 'block';
+                            vars.tripSummary.style.display = 'block';
 
                             startData.snappedPoints.forEach(function (point) {
                                 startToBustopLine.push({lat: point.location.latitude, lng: point.location.longitude});
@@ -1308,7 +1324,7 @@ window.onload = function () {
         vars.wayPointMarkers = [];
 
         vars.googleDirectionsPanel.innerHTML = '';
-        vars.getDirectionsSidenavBodyInfo.style.display = 'none';
+        vars.tripSummary.style.display = 'none';
     }
     function hideAllMarkers() {
         vars.myMarker && vars.placeSearchMarker.setVisible(false);
@@ -1325,6 +1341,15 @@ window.onload = function () {
         for (var location in vars.locations) {
             vars.locations[location].marker.show();
         }
+    }
+
+    function deactivateDirectionSearch() {
+        document.getElementById('getDirectionsSidenavClose').click();
+        vars.startRouteMarker.setMap(null);
+        vars.endRouteMarker.setMap(null);
+        clearPrevRouteDirections();
+        showAllMarkers();
+        vars.loadLocationsDisabled = false;
     }
 
     function searchRoute(startLoc, endLoc) {
