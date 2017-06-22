@@ -58,7 +58,7 @@ window.onload = function () {
         loadLocationsDisabled: false,
         travelMode: 'ALL',
         selectedTravelMode: null,
-        searchRouteBusy:false
+        searchRouteBusy: false
     };
 
     //init
@@ -212,7 +212,7 @@ window.onload = function () {
             searchRoute(undefined, undefined, travelMode === 'ALL' ? null : travelMode, function (err) {
                 if (err && err.message !== 'INCOMPLETE_ROUTE_INFO') {
                     $_this.removeClass('travelModeActive');
-                    $('#getDirectionsSidenavHeadingTravelMode img[data-mode="' + vars.travelMode + '"]').addClass('travelModeActive');
+                    $('#getDirectionsSidenavHeadingTravelMode img[data-mode="' + vars.selectedTravelMode || vars.travelMode + '"]').addClass('travelModeActive');
                 } else {
                     (vars.selectedTravelMode || $('#getDirectionsSidenavHeadingTravelMode img[data-mode="ALL"]')).removeClass('travelModeActive');
 
@@ -1128,6 +1128,13 @@ window.onload = function () {
                 cb(new Error('Problem getting route'));
             }, complete: function () {
                 toast('Getting route', 0);
+
+                var bounds = new vars.googleMaps.LatLngBounds();
+                bounds.extend(startLoc);
+                bounds.extend(endLoc);
+                vars.map.fitBounds(bounds);
+                //to make my man and the start bustop marker visible
+                vars.map.panBy(0, 0);
             }
         });
     }
@@ -1162,12 +1169,9 @@ window.onload = function () {
             });
         }
 
-        var bounds = new vars.googleMaps.LatLngBounds(), startLoc = vars.route['tripStart'], endLoc = vars.route['tripEnd'], routeNlen = route.n.length, firstBustopLoc = route.n[0].latlng, lastBustopLoc = route.n[routeNlen - 1].latlng
+        var startLoc = vars.route['tripStart'], endLoc = vars.route['tripEnd'], routeNlen = route.n.length, firstBustopLoc = route.n[0].latlng, lastBustopLoc = route.n[routeNlen - 1].latlng
                 , origToBustop = startLoc.lat() + ',' + startLoc.lng() + '|' + firstBustopLoc.lat + ',' + firstBustopLoc.lng
                 , bustopToDest = lastBustopLoc.lat + ',' + lastBustopLoc.lng + '|' + endLoc.lat() + ',' + endLoc.lng();
-        bounds.extend(startLoc);
-        bounds.extend(endLoc);
-        vars.map.fitBounds(bounds);
 
         toast('Drawing route', 1);
         vars.tripSummary.style.display = 'none';
@@ -1254,84 +1258,83 @@ window.onload = function () {
 
                         directions += '</tbody></table></div>';
                         vars.bustopsDirectionsPanel.innerHTML = directions;
-                    });
 
-                    destination = route.n[i].latlng;
+                        destination = route.n[i].latlng;
 
-                    vars.directionsService.route({
-                        origin: origin,
-                        destination: destination,
-                        waypoints: midPoints,
-                        travelMode: 'DRIVING'
-                    }, function (response, status) {
-                        if (status === 'OK') {
-                            toast('Drawing route', 0);
+                        vars.directionsService.route({
+                            origin: origin,
+                            destination: destination,
+                            waypoints: midPoints,
+                            travelMode: 'DRIVING'
+                        }, function (response, status) {
+                            if (status === 'OK') {
+                                toast('Drawing route', 0);
 
-                            var routeLegs = response.routes[0].legs, startToBustopLine = [startLoc], bustopToDestLine = [routeLegs[routeLegs.length - 1].end_location], timeLineCntdIdx = 0, routeR = route.r, totalFares = 0;
+                                var routeLegs = response.routes[0].legs, startToBustopLine = [startLoc], bustopToDestLine = [routeLegs[routeLegs.length - 1].end_location], timeLineCntdIdx = 0, routeR = route.r, totalFares = 0;
 
-                            route.n.forEach(function (step, idx) {
-                                step.type = 'STEP';
-                                step.description = routeR[idx] ? '&#8358;' + (totalFares += routeR[idx].f, routeR[idx].f) : 'Total &#8358;' + totalFares;
-                                vars.wayPointMarkers.push(new Place(step, {map: vars.map, loc: step.latlng, title: 'step', label: String(idx + 1)}));
-                                //make the wayPoint marker visisble
-                            });
-                            //to make my man and the start bustop marker visible
-                            vars.map.panBy(0, 0);
-
-                            routeLegs.forEach(function (leg, idx) {
-                                document.getElementById('tL' + idx).textContent = timeFormat((date.setMinutes(date.getMinutes() + (timeLineMeters += leg.distance.value, Math.ceil(leg.duration.value / 60))), date));
-                                ++timeLineCntdIdx;
-                                document.getElementById('bTi-' + idx).innerHTML = '' + leg.duration.text + '<small style="display:block">(' + leg.distance.text + ')</small>';
-                            });
-
-                            if (bustopToEndDirectionServiceOK) {
-                                document.getElementById('tL' + timeLineCntdIdx).textContent = timeFormat(date);
-                                document.getElementById('tL' + ++timeLineCntdIdx).textContent = timeFormat(date);
-                                timeLineCntd.forEach(function (info) {
-                                    document.getElementById('tL' + ++timeLineCntdIdx).textContent = timeFormat((date.setMinutes(date.getMinutes() + (timeLineMeters += info[0], Math.ceil(info[1] / 60))), date));
+                                route.n.forEach(function (step, idx) {
+                                    step.type = 'STEP';
+                                    step.description = routeR[idx] ? '&#8358;' + (totalFares += routeR[idx].f, routeR[idx].f) : 'Total &#8358;' + totalFares;
+                                    vars.wayPointMarkers.push(new Place(step, {map: vars.map, loc: step.latlng, title: 'step', label: String(idx + 1)}));
+                                    //make the wayPoint marker visisble
                                 });
+
+                                routeLegs.forEach(function (leg, idx) {
+                                    document.getElementById('tL' + idx).textContent = timeFormat((date.setMinutes(date.getMinutes() + (timeLineMeters += leg.distance.value, Math.ceil(leg.duration.value / 60))), date));
+                                    ++timeLineCntdIdx;
+                                    document.getElementById('bTi-' + idx).innerHTML = '' + leg.duration.text + '<small style="display:block">(' + leg.distance.text + ')</small>';
+                                });
+
+                                if (bustopToEndDirectionServiceOK) {
+                                    document.getElementById('tL' + timeLineCntdIdx).textContent = timeFormat(date);
+                                    document.getElementById('tL' + ++timeLineCntdIdx).textContent = timeFormat(date);
+                                    timeLineCntd.forEach(function (info) {
+                                        document.getElementById('tL' + ++timeLineCntdIdx).textContent = timeFormat((date.setMinutes(date.getMinutes() + (timeLineMeters += info[0], Math.ceil(info[1] / 60))), date));
+                                    });
+                                }
+
+                                document.getElementById('tFares').innerHTML = '&#8358;' + totalFares;
+                                document.getElementById('tBustops').textContent = routeR.length;
+                                document.getElementById('tArrivalTime').textContent = timeFormat(date);
+                                document.getElementById('tTime').textContent = minutesToTimeText(((date.getTime() - startDate.getTime()) / 60000).toFixed(2));
+                                document.getElementById('tDistance').textContent = metersToDistanceText(timeLineMeters);
+                                vars.tripSummary.style.display = 'block';
+
+                                startData.snappedPoints.forEach(function (point) {
+                                    startToBustopLine.push({lat: point.location.latitude, lng: point.location.longitude});
+                                });
+                                startToBustopLine.push(routeLegs[0].start_location);
+
+                                vars.startToBustopRoutePolyLine = new vars.googleMaps.Polyline({
+                                    path: startToBustopLine,
+                                    strokeColor: '#428bca',
+                                    strokeWeight: 5,
+                                    strokeOpacity: .5,
+                                    map: vars.map
+                                });
+
+                                endData.snappedPoints.forEach(function (point) {
+                                    bustopToDestLine.push({lat: point.location.latitude, lng: point.location.longitude});
+                                });
+                                bustopToDestLine.push(endLoc);
+
+                                vars.bustopToEndRoutePolyLine = new vars.googleMaps.Polyline({
+                                    path: bustopToDestLine,
+                                    strokeColor: '#5cb85c',
+                                    strokeWeight: 5,
+                                    strokeOpacity: .5,
+                                    map: vars.map
+                                });
+
+                                vars.googleDirectionsPanel.innerHTML = '';
+                                vars.directionsDisplay.setDirections(response);
+                            } else {
+                                //display an error status
+                                toast('Problem drawing route', 2);
+                                vars.googleDirectionsPanel.innerHTML = '<p style="padding: 10px 15px;">Problem getting directions</p>';
+                                console.log('Could not display directions due to: ' + status);
                             }
-
-                            document.getElementById('tFares').innerHTML = '&#8358;' + totalFares;
-                            document.getElementById('tBustops').textContent = routeR.length;
-                            document.getElementById('tArrivalTime').textContent = timeFormat(date);
-                            document.getElementById('tTime').textContent = minutesToTimeText(((date.getTime() - startDate.getTime()) / 60000).toFixed(2));
-                            document.getElementById('tDistance').textContent = metersToDistanceText(timeLineMeters);
-                            vars.tripSummary.style.display = 'block';
-
-                            startData.snappedPoints.forEach(function (point) {
-                                startToBustopLine.push({lat: point.location.latitude, lng: point.location.longitude});
-                            });
-                            startToBustopLine.push(routeLegs[0].start_location);
-
-                            vars.startToBustopRoutePolyLine = new vars.googleMaps.Polyline({
-                                path: startToBustopLine,
-                                strokeColor: '#428bca',
-                                strokeWeight: 5,
-                                strokeOpacity: .5,
-                                map: vars.map
-                            });
-
-                            endData.snappedPoints.forEach(function (point) {
-                                bustopToDestLine.push({lat: point.location.latitude, lng: point.location.longitude});
-                            });
-                            bustopToDestLine.push(endLoc);
-
-                            vars.bustopToEndRoutePolyLine = new vars.googleMaps.Polyline({
-                                path: bustopToDestLine,
-                                strokeColor: '#5cb85c',
-                                strokeWeight: 5,
-                                strokeOpacity: .5,
-                                map: vars.map
-                            });
-
-                            vars.directionsDisplay.setDirections(response);
-                        } else {
-                            //display an error status
-                            toast('Problem drawing route', 2);
-                            vars.googleDirectionsPanel.innerHTML = '<p style="padding: 10px 15px;">Problem getting directions</p>';
-                            console.log('Could not display directions due to: ' + status);
-                        }
+                        });
                     });
                 });
             });
@@ -1377,15 +1380,17 @@ window.onload = function () {
     }
 
     function searchRoute(startLoc, endLoc, tripMode, cb) {
-        if(vars.searchRouteBusy){
+        if (vars.searchRouteBusy) {
             return;
         }
-        
+
         vars.searchRouteBusy = true;
-        
+
         var loc;
 
         startLoc && (loc = vars.route['tripStart'], vars.route['tripStart'] = startLoc) || endLoc && (loc = vars.route['tripEnd'], vars.route['tripEnd'] = endLoc);
+
+        tripMode = tripMode || tripMode === null ? tripMode : ((tripMode = (vars.selectedTravelMode || $('#getDirectionsSidenavHeadingTravelMode img[data-mode="ALL"]')).attr('data-mode')) === 'ALL' ? null : tripMode);
 
         if (vars.route['tripStart'] && vars.route['tripEnd']) {
             getRoute(vars.route['tripStart'], vars.route['tripEnd'], function (err) {
@@ -1394,7 +1399,7 @@ window.onload = function () {
                 }
 
                 cb && cb(err);
-                
+
                 vars.searchRouteBusy = false;
             }, tripMode);
         } else {

@@ -18,6 +18,8 @@ if (($startLat = doubleval($_GET['start']['lat'])) && ($startLng = doubleval($_G
     require_once 'php/mongodb.php';
     require_once 'php/neo4j_client.php';
 
+    $mode = filter_input(INPUT_GET, 'mode', FILTER_SANITIZE_STRING);
+
     $nearBustopsLimit = 10;
     $startNearBustops = [];
     $endNearBustops = [];
@@ -27,23 +29,23 @@ if (($startLat = doubleval($_GET['start']['lat'])) && ($startLng = doubleval($_G
     $routes = [];
 
     //get points close to start
-    foreach ($mongoDB->executeQuery('bustops.bustops', new MongoDB\Driver\Query(['loc' => ['$near' => ['$geometry' => ['type' => 'Point', 'coordinates' => [$startLng, $startLat]]/*, '$maxDistance' => 5000*/]]], ['limit' => $nearBustopsLimit, 'projection' => ['loc' => 0]])) as $r) {
+    foreach ($mongoDB->executeQuery('bustops.bustops', new MongoDB\Driver\Query(['loc' => ['$near' => ['$geometry' => ['type' => 'Point', 'coordinates' => [$startLng, $startLat]]/* , '$maxDistance' => 5000 */]]], ['limit' => $nearBustopsLimit, 'projection' => ['loc' => 0]])) as $r) {
         $startNearBustops[] = $r;
     }
 
 
     //get points close to end
-    foreach ($mongoDB->executeQuery('bustops.bustops', new MongoDB\Driver\Query(['loc' => ['$near' => ['$geometry' => ['type' => 'Point', 'coordinates' => [$endLng, $endLat]]/*, '$maxDistance' => 5000*/]]], ['limit' => $nearBustopsLimit, 'projection' => ['loc' => 0]])) as $r) {
+    foreach ($mongoDB->executeQuery('bustops.bustops', new MongoDB\Driver\Query(['loc' => ['$near' => ['$geometry' => ['type' => 'Point', 'coordinates' => [$endLng, $endLat]]/* , '$maxDistance' => 5000 */]]], ['limit' => $nearBustopsLimit, 'projection' => ['loc' => 0]])) as $r) {
         $endNearBustops[] = $r;
     }
 
     foreach ($startNearBustops as $startNearBustop) {
         foreach ($endNearBustops as $endNearBustop) {
-            if(!strcmp($startNearBustop->_id, $endNearBustop->_id)){
+            if (!strcmp($startNearBustop->_id, $endNearBustop->_id)) {
                 continue;
             }
-            
-            if (($route = $neo4jClient->run('MATCH (a:BUSTOP{ i: "' . $startNearBustop->_id . '" }),(b:BUSTOP{ i: "' . $endNearBustop->_id . '" }), p = shortestPath((a)-[*]->(b)) RETURN p')->records())) {
+
+            if (($route = $neo4jClient->run('MATCH (a:BUSTOP{ i: "' . $startNearBustop->_id . '" }),(b:BUSTOP{ i: "' . $endNearBustop->_id . '" }), p = shortestPath((a)-[' . ($mode ? ':'.$mode : '*') . ']->(b)) RETURN p')->records())) {
                 $route = $route[0];
                 $nodes = [];
                 $relationships = [];
@@ -51,11 +53,11 @@ if (($startLat = doubleval($_GET['start']['lat'])) && ($startLng = doubleval($_G
 
                 foreach ($route->value('p')->nodes() as $node) {
                     //get the details of the nodes
-                    $nodes[] = (array)$mongoDB->executeQuery('bustops.locations', new MongoDB\Driver\Query(['_id' => new MongoDB\BSON\ObjectID($node->values()['i'])], ['projection' => ['_id' => 0]]))->toArray()[0];
+                    $nodes[] = (array) $mongoDB->executeQuery('bustops.locations', new MongoDB\Driver\Query(['_id' => new MongoDB\BSON\ObjectID($node->values()['i'])], ['projection' => ['_id' => 0]]))->toArray()[0];
                 }
                 foreach ($route->value('p')->relationships() as $relationship) {
                     $relationshipValues = $relationship->values();
-                    $relationships[] = array_merge(['t' => $relationship->type()], $relationshipValues, (array)$mongoDB->executeQuery('bustops.routes', new MongoDB\Driver\Query(['_id' => new MongoDB\BSON\ObjectID($relationshipValues['i'])], ['projection' => ['_id' => 0, 'destinations'=>1]]))->toArray()[0]);
+                    $relationships[] = array_merge(['t' => $relationship->type()], $relationshipValues, (array) $mongoDB->executeQuery('bustops.routes', new MongoDB\Driver\Query(['_id' => new MongoDB\BSON\ObjectID($relationshipValues['i'])], ['projection' => ['_id' => 0, 'destinations' => 1]]))->toArray()[0]);
                 }
 
                 echo json_encode(['n' => $nodes, 'r' => $relationships]);
