@@ -55,7 +55,10 @@ window.onload = function () {
         startRouteMarker: null,
         endRouteMarker: null,
         wayPointMarkers: [],
-        loadLocationsDisabled: false
+        loadLocationsDisabled: false,
+        travelMode: 'ALL',
+        selectedTravelMode: null,
+        searchRouteBusy:false
     };
 
     //init
@@ -201,6 +204,22 @@ window.onload = function () {
             }
             return false;
         });
+        $('#getDirectionsSidenavHeadingTravelMode img').click(function () {
+            var travelMode = $(this).attr('data-mode'), $_this = $(this);
+
+            $(this).addClass('travelModeActive');
+
+            searchRoute(undefined, undefined, travelMode === 'ALL' ? null : travelMode, function (err) {
+                if (err && err.message !== 'INCOMPLETE_ROUTE_INFO') {
+                    $_this.removeClass('travelModeActive');
+                    $('#getDirectionsSidenavHeadingTravelMode img[data-mode="' + vars.travelMode + '"]').addClass('travelModeActive');
+                } else {
+                    (vars.selectedTravelMode || $('#getDirectionsSidenavHeadingTravelMode img[data-mode="ALL"]')).removeClass('travelModeActive');
+
+                    ((!err && (vars.travelMode = travelMode)) || err.message === 'INCOMPLETE_ROUTE_INFO') && (vars.selectedTravelMode = $_this);
+                }
+            });
+        });
 
         //first init map with last location stored in localStorage, also cheack server and update the vars.loc/vars.pos if the location from server is diff, means wen location changes, i shoud tell d localStorage/server
         //i think wen d script gets the users current location, it should jst put a marker thr, save current location to server and wait till the person requests a route or clicks go to my current location
@@ -232,7 +251,7 @@ window.onload = function () {
         }, {enableHighAccuracy: true/*, maximumAge: 30000, timeout: 27000*/});
     }
     function myLocSuccess(pos) {
-        !vars.acquiredCurrentLoc && toast('Getting my location', 0), toast('Acquired location', 2);
+        !vars.acquiredCurrentLoc && (toast('Getting my location', 0), toast('Acquired location', 2));
 
         if (pos.coords.accuracy < config.accuracyCutoffPoint || !vars.acquiredCurrentLoc) {
             var newLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude};
@@ -518,9 +537,9 @@ window.onload = function () {
             if (!vars.watchingMyLoc) {
                 vars.watchingMyLoc = true;
 
-                watchMyLocation(function(err){
-                    if(!err){
-                       meCntrl.click(); 
+                watchMyLocation(function (err) {
+                    if (!err) {
+                        meCntrl.click();
                     }
                 });
                 return;
@@ -576,6 +595,20 @@ window.onload = function () {
                     vars.tripMode = true;
                 } else {
                     meCntrl.click();
+                    var chkAcquiredLocCt = 0;
+                    (function _() {
+                        if (++chkAcquiredLocCt === 6) {
+                            return;
+                        }
+
+                        if (!vars.acquiredCurrentLoc) {
+                            return setTimeout(function () {
+                                return _();
+                            }, 800);
+                        }
+
+                        tripCntl.click();
+                    })();
                 }
             } else {
                 tripCntlIcon.style.color = '';
@@ -628,7 +661,6 @@ window.onload = function () {
                     toast('Getting places', 1);
                     autoCompleteService.getQueryPredictions({input: request.term, bounds: config.bounds}, function (predictions, status) {
                         if (status !== vars.googleMaps.places.PlacesServiceStatus.OK) {
-                            console.log(status);
                             toast('Problem getting places', 2);
                             return;
                         }
@@ -651,7 +683,6 @@ window.onload = function () {
                     service.getDetails({placeId: ui.item.id}, function (place, status) {
                         if (status !== vars.googleMaps.places.PlacesServiceStatus.OK) {
                             toast('Problem getting place', 2);
-                            console.log(status);
                             return;
                         }
 
@@ -1070,7 +1101,7 @@ window.onload = function () {
         return edited;
     }
 
-    function getRoute(startLoc, endLoc, cb) {
+    function getRoute(startLoc, endLoc, cb, tripMode) {
         vars.loadLocationsDisabled = true;
         toast('Getting route', 1);
 
@@ -1079,7 +1110,7 @@ window.onload = function () {
         $.ajax({
             type: "GET",
             url: "get_route.php",
-            data: {start: {lat: startLoc.lat(), lng: startLoc.lng()}, end: {lat: endLoc.lat(), lng: endLoc.lng()}},
+            data: {start: {lat: startLoc.lat(), lng: startLoc.lng()}, end: {lat: endLoc.lat(), lng: endLoc.lng()}, mode: tripMode},
             dataType: 'JSON',
             success: function (response) {
                 if (Object.keys(response).length) {
@@ -1139,6 +1170,7 @@ window.onload = function () {
         vars.map.fitBounds(bounds);
 
         toast('Drawing route', 1);
+        vars.tripSummary.style.display = 'none';
         vars.googleDirectionsPanel.innerHTML = vars.bustopsDirectionsPanel.innerHTML = '<p style="padding: 10px 15px;">Getting directions...</p>';
         $.get('https://roads.googleapis.com/v1/snapToRoads', {
             interpolate: true,
@@ -1220,12 +1252,8 @@ window.onload = function () {
                             directions += '<tr><td><img src="img/directions.png" alt="Directions"/></td><td>From ' + route.n[i].names.join(', ') + ' trek or take a bike to your destination</td><td></td><td></td></tr>';
                         }
 
-                        //put directions in table and show details
-                        //show trip summary
-
-
                         directions += '</tbody></table></div>';
-                        document.getElementById('bustopsDirectionsPanel').innerHTML = directions;
+                        vars.bustopsDirectionsPanel.innerHTML = directions;
                     });
 
                     destination = route.n[i].latlng;
@@ -1236,7 +1264,6 @@ window.onload = function () {
                         waypoints: midPoints,
                         travelMode: 'DRIVING'
                     }, function (response, status) {
-                        console.log(response);
                         if (status === 'OK') {
                             toast('Drawing route', 0);
 
@@ -1322,9 +1349,6 @@ window.onload = function () {
             wayPointMarker.remove();
         });
         vars.wayPointMarkers = [];
-
-        vars.googleDirectionsPanel.innerHTML = '';
-        vars.tripSummary.style.display = 'none';
     }
     function hideAllMarkers() {
         vars.myMarker && vars.placeSearchMarker.setVisible(false);
@@ -1352,16 +1376,31 @@ window.onload = function () {
         vars.loadLocationsDisabled = false;
     }
 
-    function searchRoute(startLoc, endLoc) {
+    function searchRoute(startLoc, endLoc, tripMode, cb) {
+        if(vars.searchRouteBusy){
+            return;
+        }
+        
+        vars.searchRouteBusy = true;
+        
         var loc;
 
         startLoc && (loc = vars.route['tripStart'], vars.route['tripStart'] = startLoc) || endLoc && (loc = vars.route['tripEnd'], vars.route['tripEnd'] = endLoc);
 
-        vars.route['tripStart'] && vars.route['tripEnd'] && getRoute(vars.route['tripStart'], vars.route['tripEnd'], function (err) {
-            if (err) {
-                ((startLoc && (vars.route['tripStart'] = loc) && vars.startRouteMarker) || ((vars.route['tripEnd'] = loc) && vars.endRouteMarker)).setPosition(loc);
-            }
-        });
+        if (vars.route['tripStart'] && vars.route['tripEnd']) {
+            getRoute(vars.route['tripStart'], vars.route['tripEnd'], function (err) {
+                if (err && loc) {
+                    ((startLoc && (vars.route['tripStart'] = loc) && vars.startRouteMarker) || ((vars.route['tripEnd'] = loc) && vars.endRouteMarker)).setPosition(loc);
+                }
+
+                cb && cb(err);
+                
+                vars.searchRouteBusy = false;
+            }, tripMode);
+        } else {
+            cb && cb(new Error('INCOMPLETE_ROUTE_INFO'));
+            vars.searchRouteBusy = false;
+        }
     }
 
     function stopTripMode() {
@@ -1378,7 +1417,11 @@ window.onload = function () {
 
         switch (mode) {
             case 0:
-                x.textContent === msg && (x.className = "", window.clearTimeout(vars.toastTimeout)), vars.toastTimeout = null;
+                if (x.textContent === msg) {
+                    x.className = "";
+                    vars.toastTimeout && window.clearTimeout(vars.toastTimeout);
+                    vars.toastTimeout = null;
+                }
                 break;
             case 1:
                 vars.toastTimeout && window.clearTimeout(vars.toastTimeout), vars.toastTimeout = null;
