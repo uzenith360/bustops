@@ -662,7 +662,12 @@ window.onload = function () {
                     toast('Getting your location', 0);
 
                     var inputName = 't' + $(self).prop('id').slice(29);
-                    lockSearchLocation(inputName, new vars.googleMaps.LatLng(pos.coords.latitude, pos.coords.longitude));
+                    lockSearchLocation(inputName, new vars.googleMaps.LatLng(pos.coords.latitude, pos.coords.longitude), undefined, function (err) {
+                        if (err && err.message !== 'INCOMPLETE_ROUTE_INFO') {
+                            document.getElementById('tripDirectionsForm').elements[inputName].value = '';
+                            vars.route[inputName] = null;
+                        }
+                    });
                     document.getElementById('tripDirectionsForm').elements[inputName].value = 'My location';
                 }, function (err) {
                     toast('Problem getting your location', 2, 700);
@@ -709,7 +714,7 @@ window.onload = function () {
 
                         vars.tripMode && stopTripMode();
                         toast('Getting place', 0);
-                        var location = place.geometry.location;//vars.route['tripStart'] vars.route['tripEnd']
+                        var location = place.geometry.location;
 
                         vars.map.panTo(location);
 
@@ -1426,7 +1431,11 @@ window.onload = function () {
                 if (err && loc) {
                     ((startLoc && (vars.route['tripStart'] = loc) && vars.startRouteMarker) || ((vars.route['tripEnd'] = loc) && vars.endRouteMarker)).setPosition(loc);
                 }
-
+                console.warn(vars.route['tripStart'].lat());
+                console.warn(vars.route['tripStart'].lng());
+                console.warn(vars.route['tripEnd'].lat());
+                console.warn(vars.route['tripEnd'].lng());
+//console.log({start: {lat: startLoc.lat(), lng: startLoc.lng()}, end: {lat: endLoc.lat(), lng: endLoc.lng()}});
                 cb && cb(err);
 
                 vars.searchRouteBusy = false;
@@ -1443,14 +1452,14 @@ window.onload = function () {
         }
     }
 
-    function lockSearchLocation(type, location) {
+    function lockSearchLocation(type, location, tripMode, cb) {
         if (type === 'tripStart') {
-            searchRoute(location);
+            searchRoute(location, null, tripMode, cb);
             vars.startRouteMarker.setPosition(location);
             vars.startRouteMarker.setVisible(true);
             document.getElementById('tripDirectionsForm').elements['tripEnd'].focus();
         } else {
-            searchRoute(null, location);
+            searchRoute(null, location, tripMode, cb);
             vars.endRouteMarker.setPosition(location);
             vars.endRouteMarker.setVisible(true);
             document.getElementById('tripDirectionsForm').elements['tripStart'].focus();
