@@ -28,8 +28,26 @@
                 </div>
                 <div id="getDirectionsSidenavHeadingLocation">
                     <form id="tripDirectionsForm">
-                        <div class="form-group"><input data-parsley-required name="tripStart" type="text" placeholder="Where you are now or click from the map"></div>
-                        <div class="form-group"><input data-parsley-required name="tripEnd" type="text" placeholder="Where you are going or click from the map"></div>
+                        <div class="form-group">
+                            <div class="input-group tripDirectionsFormInputGroup" id="tripDirectionsFormInputGroupTripStart">
+                                <input data-parsley-required name="tripStart" type="text" placeholder="Where you are now or click from the map">
+                                <div class="input-group-btn">
+                                    <button class="btn tripDirectionsFormMyLocation" type="button">
+                                        <img src="img/gps_grey.png" id="tripDirectionsFormGtMyLocBtnTripStart" alt="Get my location" title="Get my location"/>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group tripDirectionsFormInputGroup" id="tripDirectionsFormInputGroupTripEnd">
+                                <input data-parsley-required name="tripEnd" type="text" placeholder="Where you are going or click from the map">
+                                <div class="input-group-btn">
+                                    <button class="btn tripDirectionsFormMyLocation" type="button">
+                                        <img src="img/gps_grey.png" id="tripDirectionsFormGtMyLocBtnTripEnd" alt="Get my location" title="Get my location"/>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>

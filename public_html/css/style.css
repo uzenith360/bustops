@@ -90,6 +90,24 @@ body {
     background-color: #284B85;
     border-radius: 50%;
 }
+#tripDirectionsForm input[type="text"]:focus{
+    outline: none;
+  outline: none;
+  outline-offset: 0;
+}
+.tripDirectionsFormMyLocation{
+    color: transparent;
+  background-color: transparent;
+  border: transparent;
+}
+.tripDirectionsFormInputGroup{
+    border-bottom: 1px solid #ccc;
+}
+.tripDirectionsFormInputGroup.active{
+    outline: thin dotted;
+  outline: 5px auto -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
 #getDirectionsSidenavHeadingLocation{
     margin-top: 12px;
 }
@@ -97,7 +115,6 @@ body {
     background-color: transparent;
     color: #fff;
     border: none;
-    border-bottom: 1px solid #ccc;
     display: block;
     width: 100%;
     height: 34px;

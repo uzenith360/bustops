@@ -14,7 +14,7 @@
 //do a provision for stuffs like take bike to the bustop or trek 2mins left to the bustop or take taxi e.t.c, for proximity transport
 //maybe later u can find like 3 close bustops to start and end coords, then map them to provide alternative routes
 
-if (($startLat = doubleval($_GET['start']['lat'])) && ($startLng = doubleval($_GET['start']['lng'])) && ($endLat = doubleval($_GET['end']['lat'])) && ($endLng = doubleval($_GET['end']['lng']))) {
+if (($startLat = doubleval($_GET['start']['lat'])) && ($startLng = doubleval($_GET['start']['lng'])) && ($endLat = doubleval($_GET['end']['lat'])) && ($endLng = doubleval($_GET['end']['lng'])) && !($startLat === $endLat && $startLng === $endLng)) {
     require_once 'php/mongodb.php';
     require_once 'php/neo4j_client.php';
 

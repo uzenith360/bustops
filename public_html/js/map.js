@@ -649,6 +649,25 @@ window.onload = function () {
 
             document.getElementById("getDirectionsSidenav").style.width = "500px";
             document.getElementById('tripDirectionsForm').elements['tripStart'].focus();
+
+            $('.tripDirectionsFormMyLocation img').mouseover(function () {
+                $(this).prop('src', 'img/gps.png');
+            }).mouseout(function () {
+                $(this).prop('src', 'img/gps_grey.png');
+            }).click(function () {
+                toast('Getting your location', 1);
+
+                var self = this;
+                navigator.geolocation.getCurrentPosition(function (pos) {
+                    toast('Getting your location', 0);
+
+                    var inputName = 't' + $(self).prop('id').slice(29);
+                    lockSearchLocation(inputName, new vars.googleMaps.LatLng(pos.coords.latitude, pos.coords.longitude));
+                    document.getElementById('tripDirectionsForm').elements[inputName].value = 'My location';
+                }, function (err) {
+                    toast('Problem getting your location', 2, 700);
+                });
+            });
         });
         document.getElementById('getDirectionsSidenavClose').addEventListener('click', function () {
             document.getElementById("getDirectionsSidenav").style.width = "0";
@@ -656,7 +675,9 @@ window.onload = function () {
 
         var autoCompleteService = new vars.googleMaps.places.AutocompleteService();
         ['tripStart', 'tripEnd'].forEach(function (inputName) {
-            $(document.getElementById('tripDirectionsForm').elements[inputName]).autocomplete({
+            var input = document.getElementById('tripDirectionsForm').elements[inputName];
+
+            $(input).autocomplete({
                 source: function (request, cb) {
                     toast('Getting places', 1);
                     autoCompleteService.getQueryPredictions({input: request.term, bounds: config.bounds}, function (predictions, status) {
@@ -688,25 +709,27 @@ window.onload = function () {
 
                         vars.tripMode && stopTripMode();
                         toast('Getting place', 0);
-                        var location = place.geometry.location;
+                        var location = place.geometry.location;//vars.route['tripStart'] vars.route['tripEnd']
 
                         vars.map.panTo(location);
 
-                        if (inputName === 'tripStart') {
-                            searchRoute(location);
-                            vars.startRouteMarker.setPosition(location);
-                            vars.startRouteMarker.setVisible(true);
-                            document.getElementById('tripDirectionsForm').elements['tripEnd'].focus();
-                        } else {
-                            searchRoute(null, location);
-                            vars.endRouteMarker.setPosition(location);
-                            vars.endRouteMarker.setVisible(true);
-                            document.getElementById('tripDirectionsForm').elements['tripStart'].focus();
-                        }
+                        lockSearchLocation(inputName, location);
                     });
                 },
                 autoFocus: true,
                 delay: 500
+            });
+
+            input.addEventListener('focus', function () {
+                document.getElementById('tripDirectionsFormInputGroup' + inputName.charAt(0).toUpperCase() + inputName.slice(1)).classList.add('active');
+            });
+            input.addEventListener('blur', function () {
+                document.getElementById('tripDirectionsFormInputGroup' + inputName.charAt(0).toUpperCase() + inputName.slice(1)).classList.remove('active');
+            });
+            input.addEventListener('keyup', function (e) {
+                if (!e.target.value) {
+                    vars.route[inputName] = null;
+                }
             });
         });
 
@@ -1393,6 +1416,12 @@ window.onload = function () {
         tripMode = tripMode || tripMode === null ? tripMode : ((tripMode = (vars.selectedTravelMode || $('#getDirectionsSidenavHeadingTravelMode img[data-mode="ALL"]')).attr('data-mode')) === 'ALL' ? null : tripMode);
 
         if (vars.route['tripStart'] && vars.route['tripEnd']) {
+            if (vars.route['tripStart'].lat() === vars.route['tripEnd'].lat() && vars.route['tripStart'].lng() === vars.route['tripEnd'].lng()) {
+                toast('Duplicate locations', 2, 1000);
+                vars.searchRouteBusy = false;
+                return;
+            }
+
             getRoute(vars.route['tripStart'], vars.route['tripEnd'], function (err) {
                 if (err && loc) {
                     ((startLoc && (vars.route['tripStart'] = loc) && vars.startRouteMarker) || ((vars.route['tripEnd'] = loc) && vars.endRouteMarker)).setPosition(loc);
@@ -1411,6 +1440,20 @@ window.onload = function () {
     function stopTripMode() {
         if (vars.tripMode) {
             document.getElementById('tC').click();
+        }
+    }
+
+    function lockSearchLocation(type, location) {
+        if (type === 'tripStart') {
+            searchRoute(location);
+            vars.startRouteMarker.setPosition(location);
+            vars.startRouteMarker.setVisible(true);
+            document.getElementById('tripDirectionsForm').elements['tripEnd'].focus();
+        } else {
+            searchRoute(null, location);
+            vars.endRouteMarker.setPosition(location);
+            vars.endRouteMarker.setVisible(true);
+            document.getElementById('tripDirectionsForm').elements['tripStart'].focus();
         }
     }
 
