@@ -1333,30 +1333,51 @@ window.onload = function () {
                             vars.tripSummary.style.display = 'block';
 
                             if (getDrivingDirectionsStatus === 'OK') {
-                                var i1 = 0, routeN = route.n, routeNLen_1 = routeN.length - 1;
+                                var i1 = 0, routeN = route.n, routeNLen_1 = routeN.length - 1, routeLine, path;
                                 while (i1 < routeNLen_1) {
+                                    path = [routeLegs[i1].start_location];
                                     routeLegs[i1].steps.forEach(function (step) {
-                                        vars.bustopToBustopPolyLines.push(new vars.googleMaps.Polyline({
-                                            path: step.lat_lngs,
-                                            strokeColor: '#42a5f5',
-                                            strokeWeight: 5,
-                                            strokeOpacity: .5,
-                                            map: vars.map
-                                        }));
+                                        Array.prototype.push.apply(path, step.lat_lngs);
                                     });
+                                    path.push(routeLegs[i1].end_location);
+                                    routeLine = new vars.googleMaps.Polyline({
+                                        path: path,
+                                        strokeColor: '#42a5f5',
+                                        strokeWeight: 5,
+                                        strokeOpacity: .5,
+                                        map: vars.map
+                                    });
+
+                                    vars.googleMaps.event.addListener(routeLine, 'mouseover', function () {
+                                        this.setOptions({strokeColor: '#0d47a1'});
+                                    }.bind(routeLine));
+                                    vars.googleMaps.event.addListener(routeLine, 'mouseout', function () {
+                                        this.setOptions({strokeColor: '#42a5f5'});
+                                    }.bind(routeLine));
+
+                                    vars.bustopToBustopPolyLines[i1] = routeLine;
 
                                     ++i1;
                                 }
                             } else {
-                                var i1 = 0, routeN = route.n, routeNLen_1 = routeN.length - 1;
+                                var i1 = 0, routeN = route.n, routeNLen_1 = routeN.length - 1, routeLine;
                                 while (i1 < routeNLen_1) {
-                                    vars.bustopToBustopPolyLines[i1] = new vars.googleMaps.Polyline({
+                                    routeLine = new vars.googleMaps.Polyline({
                                         path: [routeN[i1].latlng, routeN[i1 + 1].latlng],
                                         strokeColor: '#42a5f5',
                                         strokeWeight: 5,
                                         strokeOpacity: .5,
                                         map: vars.map
                                     });
+                                    
+                                    vars.googleMaps.event.addListener(routeLine, 'mouseover', function () {
+                                        this.setOptions({strokeColor: '#0d47a1'});
+                                    }.bind(routeLine));
+                                    vars.googleMaps.event.addListener(routeLine, 'mouseout', function () {
+                                        this.setOptions({strokeColor: '#42a5f5'});
+                                    }.bind(routeLine));
+                                    
+                                    vars.bustopToBustopPolyLines[i1] = routeLine;
 
                                     ++i1;
                                 }
@@ -1380,6 +1401,12 @@ window.onload = function () {
                                 strokeOpacity: .5,
                                 map: vars.map
                             });
+                            vars.googleMaps.event.addListener(vars.startToBustopRoutePolyLine, 'mouseover', function () {
+                                vars.startToBustopRoutePolyLine.setOptions({strokeColor: '#9933CC'});
+                            });
+                            vars.googleMaps.event.addListener(vars.startToBustopRoutePolyLine, 'mouseout', function () {
+                                vars.startToBustopRoutePolyLine.setOptions({strokeColor: '#aa66cc'});
+                            });
 
                             endData.snappedPoints.forEach(function (point) {
                                 bustopToDestLine.push({lat: point.location.latitude, lng: point.location.longitude});
@@ -1392,6 +1419,12 @@ window.onload = function () {
                                 strokeWeight: 5,
                                 strokeOpacity: .5,
                                 map: vars.map
+                            });
+                            vars.googleMaps.event.addListener(vars.bustopToEndRoutePolyLine, 'mouseover', function () {
+                                this.setOptions({strokeColor: '#00695c'});
+                            });
+                            vars.googleMaps.event.addListener(vars.bustopToEndRoutePolyLine, 'mouseout', function () {
+                                this.setOptions({strokeColor: '#5cb85c'});
                             });
                         });
                     });
