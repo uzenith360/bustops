@@ -22,7 +22,6 @@ window.onload = function () {
         bounds: {south: 6.517983648107814, west: 3.3647325001556965, north: 6.530774870245085, east: 3.393678899844417}
     };
     var vars = {
-        adminId: '2',
         loadStart: Date.now(),
         map: null,
         myMarker: null,
@@ -38,9 +37,6 @@ window.onload = function () {
         watchingMyLoc: false,
         locationWatch: null,
         locations: {},
-        busRouteForm: document.getElementById('busRouteForm').elements,
-        addStopCt: 0,
-        addDestinationCt: 1,
         directionsService: null,
         directionsDisplay: null,
         route: {},
@@ -95,119 +91,6 @@ window.onload = function () {
         });
 
         //Attach the event handlers
-        document.getElementById('aS').addEventListener('click', function () {
-            var div = document.createElement("div"), stops = document.getElementById("stops");
-            div.setAttribute("class", "row");
-            vars.addStopCt ? div.setAttribute("style", "margin-top:5px;") : document.getElementById("rIs").innerHTML = "<div class=\"col-xs-10\"><button class=\"btn btn-primary form-control\"  name=\"save\">Save</button></div><div class=\"col-xs-2\"><input type=\"reset\" class=\"btn btn-warning\" value=\"Clear\"></div>";
-            div.innerHTML = "<div " + " class=\"col-xs-8\"><input disabled  type=\"text\" class=\"form-control\" name=\"stop[]\" placeholder=\"Stop " + ++vars.addStopCt + "\"><input type=\"text\" style=\"display:none\" name=\"stoph[]\"></div><div class=\"col-xs-2\"><input class=\"form-control\" name=\"fares[]\" type=\"number\" placeholder=\"Fares (&#8358;)\"></div><div class=\"col-xs-2\"><button type=\"button\" class=\"btn btn-warning\" id=\"cSt-" + vars.addStopCt + "\">Clear</button></div>";
-            stops.appendChild(div);
-        });
-        document.getElementById('aD').addEventListener('click', function () {
-            var div = document.createElement("div");
-            div.setAttribute("class", "row");
-            div.setAttribute("style", "margin-top:5px;");
-            div.innerHTML = '<div class="col-xs-10"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-arrow-down"></i></span><input type="text" class="form-control" name="destination[]" placeholder="Destination ' + ++vars.addDestinationCt + '"></div></div><div class="col-xs-2"><button type="button" id="cD-' + vars.addDestinationCt + '" class="btn btn-warning">Clear</button></div>';
-            document.getElementById("destinations").appendChild(div);
-        });
-        $('body').on('click', '[id |= "cSt"]', function () {
-            var id = $(this).prop('id').split('-')[1] - 1;
-            (vars.busRouteForm['fares[]'][id] || vars.busRouteForm['fares[]']).value = '', (vars.busRouteForm['stop[]'][id] || vars.busRouteForm['stop[]']).value = '', (vars.busRouteForm['stoph[]'][id] || vars.busRouteForm['stoph[]']).value = '';
-        }).on('click', '[id |= "cD"]', function () {
-            var id = $(this).prop('id').split('-')[1] - 1;
-            (vars.busRouteForm['destination[]'][id] || vars.busRouteForm['destination[]']).value = '';
-        });
-        $('#busRouteForm').parsley().on('form:submit', function (e) {
-            var form = document.getElementById('busRouteForm'), formElements = form.elements,
-                    startTime = formElements['startTime'].value, endTime = formElements['endTime'].value,
-                    type = formElements['type'].value, admin_id = vars.adminId, value, hub = formElements['hubh'].value, stops = [], fares = [], destinations = [],
-                    sendBtn = formElements['save'], heading = document.getElementById('busRouteFormHeading');
-
-            for (var i = 0, list = formElements['stoph[]'], listF = formElements['fares[]'], listLength = list.length || 1; i < listLength; ++i) {
-                (value = (list[i] || list).value) && stops.push(value) && (value = (listF[i] || listF).value) && fares.push(value);
-            }
-            //for (var i = 0, list = formElements['fares[]']/*, listLength = list.length || 1*/; i < listLength; ++i) {
-            //  (value = (list[i] || list).value) && fares.push(value);
-            //}
-            for (var i = 0, list = formElements['destination[]'], listLength = list.length || 1; i < listLength; ++i) {
-                (value = (list[i] || list).value) && destinations.push(value);
-            }
-
-            if (stops.length) {
-                if (stops.length === fares.length) {
-                    //Make the button change color and display saving
-                    sendBtn.classList.remove('btn-primary');
-                    sendBtn.classList.remove('btn-danger');
-                    sendBtn.classList.add('btn-warning');
-                    sendBtn.disabled = true;
-                    sendBtn.innerHTML = 'Saving';
-                    heading.innerHTML = 'Saving...';
-
-                    $.ajax({
-                        type: "POST",
-                        url: 'save_route.php',
-                        data: {type: type, stops: stops, hub: hub, fares: fares, admin_id: admin_id, startTime: startTime, endTime: endTime, destinations: destinations},
-                        dataType: 'JSON',
-                        success: function (response) {
-                            if (!response.err) {
-                                //Display submitted
-
-                                /*
-                                 * No need to change the button class back to primary since were closing the dialog anyway
-                                 */
-                                sendBtn.classList.remove('btn-warning');
-                                sendBtn.classList.add('btn-success');
-                                sendBtn.innerHTML = 'Success';
-                                heading.innerHTML = 'Saved';
-
-                                form.reset();
-                            } else {
-                                var field = formElements[response.err.msg.field];
-
-                                switch (response.err.error) {
-                                    case 'VALIDATION':
-                                        heading.innerHTML = 'Review some field(s)';
-                                        break;
-                                    case 'MISSINGINFO':
-                                        heading.innerHTML = 'Missing route information';
-                                        break;
-                                    case 'NOSTOPS':
-                                        heading.innerHTML = 'No stops were specified';
-                                        break;
-                                    default:
-                                        heading.innerHTML = 'Problem Saving, please try again';
-                                        break;
-                                }
-
-                                sendBtn.classList.remove('btn-warning');
-                                sendBtn.classList.add('btn-danger');
-                                sendBtn.innerHTML = 'Try again';
-                                field && $(field).parsley().addError && $(field).parsley().addError('error', {message: response.err.msg.message});
-                            }
-                        }, error: function (jqXHR, textStatus, errorThrown) {
-                            sendBtn.classList.remove('btn-warning');
-                            sendBtn.classList.add('btn-danger');
-                            sendBtn.innerHTML = 'Try again';
-                            heading.innerHTML = 'Try saving again';
-                        }, complete: function () {
-                            sendBtn.disabled = false;
-                        }
-                    });
-                } else {
-                    sendBtn.classList.remove('btn-danger');
-                    sendBtn.classList.remove('btn-success');
-                    sendBtn.classList.remove('btn-primary');
-                    sendBtn.classList.add('btn-warning');
-                    heading.innerHTML = 'Missing information for bustop';
-                }
-            } else {
-                sendBtn.classList.remove('btn-danger');
-                sendBtn.classList.remove('btn-success');
-                sendBtn.classList.remove('btn-primary');
-                sendBtn.classList.add('btn-warning');
-                heading.innerHTML = 'No bustops specified';
-            }
-            return false;
-        });
         $('#getDirectionsSidenavHeadingTravelMode img').click(function () {
             var travelMode = $(this).attr('data-mode'), $_this = $(this);
 
@@ -695,22 +578,26 @@ window.onload = function () {
 
             $(input).autocomplete({
                 source: function (request, cb) {
-                    toast('Getting places', 1);
-                    autoCompleteService.getQueryPredictions({input: request.term, bounds: config.bounds}, function (predictions, status) {
-                        if (status !== vars.googleMaps.places.PlacesServiceStatus.OK) {
-                            toast('Problem getting places', 2);
-                            return;
-                        }
-                        toast('Getting places', 0);
-                        //Bolden the occurences of the search text in d prediction
-                        //console.log(predictions);
+                    var request;
+                    if ((request = request.term.trim())) {
+                        toast('Getting places', 1);
+                        
+                        autoCompleteService.getQueryPredictions({input: request, bounds: config.bounds}, function (predictions, status) {
+                            if (status !== vars.googleMaps.places.PlacesServiceStatus.OK) {
+                                toast('Problem getting places', 2);
+                                return;
+                            }
+                            toast('Getting places', 0);
+                            //Bolden the occurences of the search text in d prediction
+                            //console.log(predictions);
 
-                        cb(predictions.map(function (prediction) {
-                            return prediction['place_id'] && {value: prediction['description'], id: prediction['place_id']};
-                        }).filter(function (prediction) {
-                            return prediction;
-                        }));
-                    });
+                            cb(predictions.map(function (prediction) {
+                                return prediction['place_id'] && {value: prediction['description'], id: prediction['place_id']};
+                            }).filter(function (prediction) {
+                                return prediction;
+                            }));
+                        });
+                    }
                 },
                 minLength: 2,
                 select: function (event, ui) {
@@ -811,118 +698,17 @@ window.onload = function () {
     function onMapcenter_changed() {
         console.log('center_changed');
     }
-    function onMapclick(e) {//console.log(e);
-        /*
-         * stop()	
-         Return Value:  None
-         Prevents this event from propagating further.
-         */
-        var lat = e.latLng.lat(), lng = e.latLng.lng();
-        //wen thinking of fields to send to server for a location look at d json google returns for a location, we'll nt only save d coordinates of a place, we'll also save other details to make searching and bounds searching easily, either strict bounds or biased bounds searching
-        new Dialog('<div z-dialog-heading class="dh">Save location</div>', '<form z-dialog-save_location_form><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span><select data-parsley-required class="form-control" name="type"><option disabled selected>Location type</option><option value="BUSTOP">Bustop</option><option value="MARKET"><img alt="icon">Market</option><option value="SHOP">Shop</option><option value="BANK">Bank</option><option value="ATM">ATM</option><option value="GOVT">Government</option><option value="HOTEL">Hotel</option></select></div></div><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><input data-parsley-required name="names[]" type="text" class="form-control" placeholder="Location name"></div><div z-dialog-locations></div><p z-dialog-add_location class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add location name</p></div><div class="form-group"><input class="form-control" multiple name="pictures[]" type="file" accept="image/jpeg,image/jpg,image/png" data-parsley-filemaxmegabytes="2" data-parsley-trigger="change" data-parsley-dimensions="true" data-parsley-dimensions-options="{\'min_width\': \'100\',\'min_height\': \'100\'}" data-parsley-filemimetypes="image/jpeg,image/jpg,image/png"></div><div class="form-group"><textarea data-parsley-required class="form-control" rows="2" name="addresses[]" placeholder="Address"></textarea><div z-dialog-addresses></div><p z-dialog-add_address class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add address</p></div><div class="form-group"><textarea class="form-control" rows="5" name="description" placeholder="Description"></textarea></div></form>', '<button type="button" z-dialog-cancel class="btn btn-default">Cancel</button><button type="button" z-dialog-send class="btn btn-primary">Save</button>', {send: ['click', function (e) {
-                    //trigger form submission to invoke parsley validation
-                    $('#' + e['z-dialog'].id + 'z-dialog-save_location_form').trigger('submit');
-                }], cancel: ['click', function () {
-                    //close the dialog by returning true
-                    return true;
-                }], add_location: ['click', function (e) {
-                    $('#' + e['z-dialog'].id + 'z-dialog-locations').append('<div style="margin-top:5px;" class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><input name="names[]" type="text" class="form-control" placeholder="Location name" autofocus></div>');
-                }], add_address: ['click', function (e) {
-                    $('#' + e['z-dialog'].id + 'z-dialog-addresses').append('<textarea style="margin-top:5px;" class="form-control" rows="2" name="addresses[]" placeholder="Address"></textarea>');
-                }]}, true, function (zDialog) {
-            //On Dialog Create
-            $('#' + zDialog.id + 'z-dialog-save_location_form').parsley().on('form:submit', function (e) {
-                //after sending ajax request and req is success create the pin and close the dialog
-                var elemPrefix = zDialog.id + 'z-dialog-', form = document.getElementById(elemPrefix + 'save_location_form'), formElements = form.elements,
-                        type = formElements['type'].value, names = [], addresses = [], description = formElements['description'].value,
-                        data, value, formData = new FormData(form), sendBtn = document.getElementById(elemPrefix + 'send'), heading = document.getElementById(elemPrefix + 'heading');
+    function onMapclick(e) {
+        //if the get directions side bar is open, copy d location to d focused or first empty div thr
+        var inputs = document.getElementById('tripDirectionsForm').elements;
 
-                for (var i = 0, list = formElements['names[]'], listLength = list.length || 1; i < listLength; ++i) {
-                    (value = (list[i] || list).value) && names.push(value);
-                }
-                for (var i = 0, list = formElements['addresses[]'], listLength = list.length || 1; i < listLength; ++i) {
-                    (value = (list[i] || list).value) && addresses.push(value);
-                }
-
-                data = {names: names, type: type, addresses: addresses, description: description};
-
-                //Test value for admin id, admin_id is supposed to be saved to seesion on login
-                formData.append('admin_id', vars.adminId);
-                formData.append('lat', lat);
-                formData.append('lng', lng);
-
-                //Make the button change color and display saving
-                sendBtn.classList.remove('btn-primary');
-                sendBtn.classList.remove('btn-danger');
-                sendBtn.classList.add('btn-warning');
-                sendBtn.disabled = true;
-                sendBtn.innerHTML = 'Saving';
-                heading.innerHTML = 'Saving...';
-
-                //u can save everything with php, from php to mongo. i dnt think that needs nodejs
-                $.ajax({
-                    type: "POST",
-                    url: "save_location.php",
-                    data: formData,
-                    dataType: 'JSON',
-                    /*** Options to tell JQuery not to process data or worry about content-type ****/
-                    cache: false,
-                    contentType: false,
-                    processData: false,
-                    /****************************************/
-                    success: function (response) {
-                        if (!response.err) {
-                            //Display submitted
-
-                            /*
-                             * No need to change the button class back to primary since were closing the dialog anyway
-                             */
-                            sendBtn.classList.remove('btn-warning');
-                            sendBtn.classList.add('btn-success');
-                            sendBtn.innerHTML = 'Success';
-                            heading.innerHTML = 'Saved';
-
-                            data.id = response.result;
-
-                            //on success
-                            (vars.locations[response.result] = {data: data, marker: new Place(data, {map: vars.map, loc: {lat: lat, lng: lng}, title: 'New location'}, getMarkerData)}).marker.showInfo();
-
-                            zDialog.close();
-
-                            vars.thrsVisibleMarkers = true;
-                        } else {
-                            var field = formElements[response.err.msg.field];
-
-                            switch (response.err.error) {
-                                case 'VALIDATION':
-                                    heading.innerHTML = 'Review some field(s)';
-                                    break;
-                                default:
-                                    heading.innerHTML = 'Problem Saving, please try again';
-                                    break;
-                            }
-
-                            sendBtn.classList.remove('btn-warning');
-                            sendBtn.classList.add('btn-danger');
-                            sendBtn.innerHTML = 'Try again';
-                            field && $(field).parsley().addError('error', {message: response.err.msg.message});
-                        }
-                    }, error: function () {
-//say problem saving pls check ur network and retry
-//check d text on d save button to retry and change the class to btn-danger or sth, remember to change it back wen d dialog is closed!!!
-                        sendBtn.classList.remove('btn-warning');
-                        sendBtn.classList.add('btn-danger');
-                        sendBtn.innerHTML = 'Try again';
-                        heading.innerHTML = 'Try saving again';
-                    }, complete: function () {
-                        sendBtn.disabled = false;
-                    }
-                });
-
-                return false;
-            });
-        });
-
+        if (!inputs['tripStart'].value.trim()) {
+            inputs['tripStart'].value = 'Clicked location';
+            lockSearchLocation('tripStart', e.latLng);
+        } else if (!inputs['tripEnd'].value.trim()) {
+            inputs['tripEnd'].value = 'Clicked location';
+            lockSearchLocation('tripEnd', e.latLng);
+        }
         console.log('click');
     }
     function onMapdblclick() {
@@ -1083,7 +869,7 @@ window.onload = function () {
                             data.id = data._id['$oid'];
                             delete data._id;
 
-                            vars.locations[data.id] = {data: data, marker: new Place(data, {map: vars.map, loc: data.latlng, title: 'saved location'}, data.type === 'BUSTOP' && getMarkerData)};
+                            vars.locations[data.id] = {data: data, marker: new Place(data, {map: vars.map, loc: data.latlng, title: 'saved location'})};
                             vars.thrsVisibleMarkers = true;
                         });
                     } catch (e) {
@@ -1101,43 +887,6 @@ window.onload = function () {
 
             }
         });
-    }
-
-    function getMarkerData(info) {
-        //Location ID
-        //Maybe write it to the last empty bus routes form
-
-        //if it sees an empty field and succeds in writing, then dnt return true;
-
-        //Only allow automatic entrying of the id of already created busroutes
-
-        var edited = false;
-
-        if (vars.busRouteForm['hubh'].value) {
-            if (vars.busRouteForm['stoph[]']) {
-                for (var i = 0, list = vars.busRouteForm['stop[]'], listh = vars.busRouteForm['stoph[]'], listLength = list.length || 1, listhi, listi; i < listLength; ++i) {
-                    listhi = listh[i] || listh, listi = list[i] || list;
-
-                    if (!listhi.value) {
-                        if ((i ? listh[i - 1].value : vars.busRouteForm['hubh'].value) === info.id) {
-                            break;
-                        }
-
-                        listhi.value = info.id;
-                        listi.value = info.names.join(' ,');
-                        edited = true;
-                        break;
-                    }
-                }
-            }
-        } else {
-            vars.busRouteForm['hubh'].value = info.id;
-            vars.busRouteForm['hub'].value = info.names.join(' ,');
-            edited = true;
-        }
-
-        //close the infowindow if d form was edited
-        return edited;
     }
 
     function getRoute(startLoc, endLoc, cb, tripMode) {
@@ -1517,7 +1266,8 @@ window.onload = function () {
         vars.bustopToBustopTRIDs = [];
     }
     function hideAllMarkers() {
-        vars.myMarker && vars.placeSearchMarker.setVisible(false);
+        vars.myMarker && vars.myMarker.setVisible(false);
+        vars.placeSearchMarker && vars.placeSearchMarker.setVisible(false);
 
         for (var location in vars.locations) {
             vars.locations[location].marker.hide();
@@ -1526,12 +1276,13 @@ window.onload = function () {
         vars.thrsVisibleMarkers = false;
     }
     function showAllMarkers() {
-        vars.myMarker && vars.placeSearchMarker.setVisible(true);
+        vars.myMarker && vars.myMarker.setVisible(true);
+        vars.placeSearchMarker && vars.placeSearchMarker.setVisible(true);
 
         for (var location in vars.locations) {
             vars.locations[location].marker.show();
         }
-        
+
         vars.thrsVisibleMarkers = true;
     }
 
@@ -1547,6 +1298,7 @@ window.onload = function () {
         (vars.googleDirectionsPanel || document.getElementById('googleDirectionsPanel')).innerHTML = (vars.bustopsDirectionsPanel || document.getElementById('bustopsDirectionsPanel')).innerHTML = '<p style="padding: 10px 15px;">No directions</p>';
         (vars.tripSummary || document.getElementById('tripSummary')).style.display = 'none';
         vars.loadLocationsDisabled = false;
+        loadLocations();
     }
 
     function searchRoute(startLoc, endLoc, tripMode, cb) {

@@ -695,22 +695,26 @@ window.onload = function () {
 
             $(input).autocomplete({
                 source: function (request, cb) {
-                    toast('Getting places', 1);
-                    autoCompleteService.getQueryPredictions({input: request.term, bounds: config.bounds}, function (predictions, status) {
-                        if (status !== vars.googleMaps.places.PlacesServiceStatus.OK) {
-                            toast('Problem getting places', 2);
-                            return;
-                        }
-                        toast('Getting places', 0);
-                        //Bolden the occurences of the search text in d prediction
-                        //console.log(predictions);
+                    var request;
+                    if ((request = request.term.trim())) {
+                        toast('Getting places', 1);
+                        
+                        autoCompleteService.getQueryPredictions({input: request, bounds: config.bounds}, function (predictions, status) {
+                            if (status !== vars.googleMaps.places.PlacesServiceStatus.OK) {
+                                toast('Problem getting places', 2);
+                                return;
+                            }
+                            toast('Getting places', 0);
+                            //Bolden the occurences of the search text in d prediction
+                            //console.log(predictions);
 
-                        cb(predictions.map(function (prediction) {
-                            return prediction['place_id'] && {value: prediction['description'], id: prediction['place_id']};
-                        }).filter(function (prediction) {
-                            return prediction;
-                        }));
-                    });
+                            cb(predictions.map(function (prediction) {
+                                return prediction['place_id'] && {value: prediction['description'], id: prediction['place_id']};
+                            }).filter(function (prediction) {
+                                return prediction;
+                            }));
+                        });
+                    }
                 },
                 minLength: 2,
                 select: function (event, ui) {
@@ -1517,7 +1521,8 @@ window.onload = function () {
         vars.bustopToBustopTRIDs = [];
     }
     function hideAllMarkers() {
-        vars.myMarker && vars.placeSearchMarker.setVisible(false);
+        vars.myMarker && vars.myMarker.setVisible(false);
+        vars.placeSearchMarker && vars.placeSearchMarker.setVisible(false);
 
         for (var location in vars.locations) {
             vars.locations[location].marker.hide();
@@ -1526,7 +1531,8 @@ window.onload = function () {
         vars.thrsVisibleMarkers = false;
     }
     function showAllMarkers() {
-        vars.myMarker && vars.placeSearchMarker.setVisible(true);
+       vars.myMarker && vars.myMarker.setVisible(true);
+        vars.placeSearchMarker && vars.placeSearchMarker.setVisible(true);
 
         for (var location in vars.locations) {
             vars.locations[location].marker.show();
@@ -1547,6 +1553,7 @@ window.onload = function () {
         (vars.googleDirectionsPanel || document.getElementById('googleDirectionsPanel')).innerHTML = (vars.bustopsDirectionsPanel || document.getElementById('bustopsDirectionsPanel')).innerHTML = '<p style="padding: 10px 15px;">No directions</p>';
         (vars.tripSummary || document.getElementById('tripSummary')).style.display = 'none';
         vars.loadLocationsDisabled = false;
+        loadLocations();
     }
 
     function searchRoute(startLoc, endLoc, tripMode, cb) {
