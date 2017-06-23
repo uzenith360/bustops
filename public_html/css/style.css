@@ -71,7 +71,7 @@ body {
 }
 #getDirectionsSidenavHeadingTravelMode img{
     height: 39px;
-    margin-right: 48px;
+    margin-right: 13%;
     padding: 6px;
     cursor: pointer;
 }
@@ -141,6 +141,9 @@ body {
 }
 #getDirectionsSidenavClose{
     cursor: pointer;
+    position: absolute;
+    margin-top: 6px;
+    right:38px;
 }
 #getDirectionsSidenavBody{
     padding: 15px 30px 15px 30px;
