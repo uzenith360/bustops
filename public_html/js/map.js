@@ -1198,16 +1198,17 @@ window.onload = function () {
         toast('Drawing route', 1);
         vars.tripSummary.style.display = 'none';
         vars.googleDirectionsPanel.innerHTML = vars.bustopsDirectionsPanel.innerHTML = '<p style="padding: 10px 15px;">Getting directions...</p>';
-        $.get('https://roads.googleapis.com/v1/snapToRoads', {
-            interpolate: true,
-            key: config.key,
-            path: origToBustop
-        }, function (startData) {
-            $.get('https://roads.googleapis.com/v1/snapToRoads', {
+
+        ajax({url: 'https://roads.googleapis.com/v1/snapToRoads', method: 'GET', dataType: 'JSON', data: {
                 interpolate: true,
                 key: config.key,
-                path: bustopToDest
-            }, function (endData) {
+                path: origToBustop
+            }}, function (startDataErr, startData) {
+            ajax({url: 'https://roads.googleapis.com/v1/snapToRoads', method: 'GET', dataType: 'JSON', data: {
+                    interpolate: true,
+                    key: config.key,
+                    path: bustopToDest
+                }}, function (endDataErr, endData) {
                 var bounds = new vars.googleMaps.LatLngBounds();
                 bounds.extend(startLoc);
                 bounds.extend(endLoc);
@@ -1369,23 +1370,26 @@ window.onload = function () {
                                         strokeOpacity: .5,
                                         map: vars.map
                                     });
-                                    
+
                                     vars.googleMaps.event.addListener(routeLine, 'mouseover', function () {
                                         this.setOptions({strokeColor: '#0d47a1'});
                                     }.bind(routeLine));
                                     vars.googleMaps.event.addListener(routeLine, 'mouseout', function () {
                                         this.setOptions({strokeColor: '#42a5f5'});
                                     }.bind(routeLine));
-                                    
+
                                     vars.bustopToBustopPolyLines[i1] = routeLine;
 
                                     ++i1;
                                 }
                             }
 
-                            startData.snappedPoints.forEach(function (point) {
-                                startToBustopLine.push({lat: point.location.latitude, lng: point.location.longitude});
-                            });
+                            if (!startDataErr) {
+                                startData.snappedPoints.forEach(function (point) {
+                                    startToBustopLine.push({lat: point.location.latitude, lng: point.location.longitude});
+                                });
+                            }
+
                             if (getDrivingDirectionsStatus === 'OK') {
                                 startToBustopLine.push(routeLegs[0].start_location);
                                 bustopToDestLine.push(routeLegs[routeLegs.length - 1].end_location);
@@ -1408,9 +1412,11 @@ window.onload = function () {
                                 vars.startToBustopRoutePolyLine.setOptions({strokeColor: '#aa66cc'});
                             });
 
-                            endData.snappedPoints.forEach(function (point) {
-                                bustopToDestLine.push({lat: point.location.latitude, lng: point.location.longitude});
-                            });
+                            if (!endDataErr) {
+                                endData.snappedPoints.forEach(function (point) {
+                                    bustopToDestLine.push({lat: point.location.latitude, lng: point.location.longitude});
+                                });
+                            }
                             bustopToDestLine.push(endLoc);
 
                             vars.bustopToEndRoutePolyLine = new vars.googleMaps.Polyline({
@@ -1616,5 +1622,20 @@ window.onload = function () {
     function timeFormat(date) {
         var hr = date.getHours(), min = date.getMinutes(), ampm;
         return (hr > 12 ? (ampm = 'pm') && hr - 12 : (ampm = 'am') && hr) + ':' + ((min > 9 ? '' : '0') + min) + ampm;
+    }
+
+    function ajax(options, cb) {
+        $.ajax({
+            method: options.method,
+            url: options.url,
+            data: options.data,
+            dataType: options.dataType,
+            success: function (response) {
+                cb(null, response);
+            },
+            failure: function (jqXHR, textStatus, errorThrown) {
+                cb(new Error(textStatus));
+            }
+        });
     }
 };
