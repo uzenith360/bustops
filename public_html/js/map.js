@@ -269,6 +269,7 @@ window.onload = function () {
 
         vars.myMarker.setIcon('http://maps.google.com/mapfiles/kml/paddle/' + accuracy[0] + '-circle_maps.png');
         !isNaN(vars.accuracy) && (vars.accuracyInfowindowElem.innerHTML = '<span>Location accuracy: ' + (vars.accuracy < 150 ? vars.accuracy.toLocaleString() + 'm' : '<span style="color:#d9534f;">' + vars.accuracy.toLocaleString() + 'm</span>') + '</span><br><span style="color:' + accuracy[1] + ';">' + accuracy[2] + '</span>' + (vars.accuracy < 150 ? '' : '<hr style="margin-top:6.5px;margin-bottom:6.5px;"><span>Switch to a device with better accuracy</span>'));
+        vars.myMarker.setVisible(true);
     }
 
     function updateMyMarker() {
@@ -557,7 +558,7 @@ window.onload = function () {
                     var request;
                     if ((request = request.term.trim())) {
                         toast('Getting places', 1);
-                        
+
                         autoCompleteService.getQueryPredictions({input: request, bounds: config.bounds}, function (predictions, status) {
                             if (status !== vars.googleMaps.places.PlacesServiceStatus.OK) {
                                 toast('Problem getting places', 2);
@@ -665,38 +666,38 @@ window.onload = function () {
 
         //also request to get nearby locations from server and display
     }
-    
-    function initDirectionsSearch(){
+
+    function initDirectionsSearch() {
         //JIC
-        if(vars.startRouteMarker){
+        if (vars.startRouteMarker) {
             return;
         }
-        
-        vars.startRouteMarker = new vars.googleMaps.Marker({
-                    map: vars.map,
-                    title: 'Start of journey',
-                    anchorPoint: new vars.googleMaps.Point(0, -29),
-                    icon: 'http://maps.google.com/mapfiles/kml/shapes/man_maps.png',
-                    visible: false,
-                    draggable: true,
-                    zIndex: 500
-                });
-                vars.endRouteMarker = new vars.googleMaps.Marker({
-                    map: vars.map,
-                    title: 'Destination',
-                    anchorPoint: new vars.googleMaps.Point(0, -29),
-                    icon: 'http://maps.google.com/mapfiles/kml/shapes/flag_maps.png',
-                    visible: false,
-                    draggable: true,
-                    zIndex: 500
-                });
 
-                vars.googleMaps.event.addListener(vars.startRouteMarker, 'dragend', function () {
-                    searchRoute(vars.startRouteMarker.getPosition());
-                });
-                vars.googleMaps.event.addListener(vars.endRouteMarker, 'dragend', function () {
-                    searchRoute(null, vars.endRouteMarker.getPosition());
-                });
+        vars.startRouteMarker = new vars.googleMaps.Marker({
+            map: vars.map,
+            title: 'Start of journey',
+            anchorPoint: new vars.googleMaps.Point(0, -29),
+            icon: 'http://maps.google.com/mapfiles/kml/shapes/man_maps.png',
+            visible: false,
+            draggable: true,
+            zIndex: 500
+        });
+        vars.endRouteMarker = new vars.googleMaps.Marker({
+            map: vars.map,
+            title: 'Destination',
+            anchorPoint: new vars.googleMaps.Point(0, -29),
+            icon: 'http://maps.google.com/mapfiles/kml/shapes/flag_maps.png',
+            visible: false,
+            draggable: true,
+            zIndex: 500
+        });
+
+        vars.googleMaps.event.addListener(vars.startRouteMarker, 'dragend', function () {
+            searchRoute(vars.startRouteMarker.getPosition());
+        });
+        vars.googleMaps.event.addListener(vars.endRouteMarker, 'dragend', function () {
+            searchRoute(null, vars.endRouteMarker.getPosition());
+        });
     }
 
     //Map Event handlers
@@ -900,7 +901,6 @@ window.onload = function () {
 
     function getRoute(startLoc, endLoc, cb, tripMode) {
         if (!vars.loadLocationsDisabled) {
-            document.getElementById('Cd').style.display = 'block';
             vars.loadLocationsDisabled = true;
         }
 
@@ -1248,6 +1248,8 @@ window.onload = function () {
                                     document.getElementById(id).classList.remove('info');
                                 });
                             });
+                            
+                            document.getElementById('Cd').style.display = 'block';
                         });
                     });
                 });
@@ -1353,9 +1355,10 @@ window.onload = function () {
 
     function lockSearchLocation(type, location, tripMode, cb) {
         if (!vars.startRouteMarker) {
-                initDirectionsSearch();
-            }
-        
+            initDirectionsSearch();
+        }
+        document.getElementById('Cd').style.display = 'block';
+
         if (type === 'tripStart') {
             searchRoute(location, null, tripMode, cb);
             vars.startRouteMarker.setPosition(location);

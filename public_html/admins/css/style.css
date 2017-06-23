@@ -2,7 +2,7 @@ body {
     font-family: Avenir W01, sans-serif;
 }
 #map{
-    height: 600px;
+    min-height: 600px;
     width: 100%;
 }
 /*#mapControls{
