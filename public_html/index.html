@@ -1,33 +1,199 @@
 <!DOCTYPE html>
-<!--
-This would be like a login page or sth. Ask google :-D
--->
 <html>
     <head>
-        <title>Bustops, your friendly way finder</title>
+        <title>Bustops, your friendly route finder</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="shortcut icon" href="img/favicon.png" />
+        <!--<link rel="shortcut icon" href="img/favicon.png" />
         <link rel="icon" type="image/png" href="img/favicon.png">
-        <link rel="apple-touch-icon" href="img/favicon.png">
+        <link rel="apple-touch-icon" href="img/favicon.png">-->
         <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css"/>
-        <link href="css/font-awesome.min.css" rel="stylesheet" type="text/css"/>
+        <!--<link href="css/font-awesome.min.css" rel="stylesheet" type="text/css"/>-->
         <link href="https://fast.fonts.net/cssapi/a3f033fe-e22c-4e74-980b-f6aba29f2566.css" rel="stylesheet"/>
         <link href="css/style.css" rel="stylesheet" type="text/css"/>
+        <link href="css/parsley.css" rel="stylesheet" type="text/css"/>
+        <link href="css/jquery-ui-autocomplete.css" rel="stylesheet" type="text/css"/>
     </head>
     <body>
-       
-        <!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>>-->
-        <script src="js/jquery.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>
+        <div id="getDirectionsSidenav">
+            <div id="getDirectionsSidenavHeading">
+                <div>
+                    <span id="getDirectionsSidenavHeadingTravelMode">
+                        <img class="travelModeActive" src="img/all_transport.png" data-mode="ALL" alt="All transport" title="All transport"/>
+                        <img src="img/danfo.png" alt="Danfo" title="Danfo" data-mode="DANFO"/>
+                        <img src="img/keke.png" alt="Keke" title="Keke" data-mode="KEKE"/>
+                        <img src="img/brt.png" alt="BRT" title="BRT" data-mode="BRT"/>
+                    </span>
+                    <img style="height: 27px;" id="getDirectionsSidenavClose" src="img/times.png" alt="Close" title="Close"/>
+                </div>
+                <div id="getDirectionsSidenavHeadingLocation">
+                    <form id="tripDirectionsForm">
+                        <div class="form-group">
+                            <div class="input-group tripDirectionsFormInputGroup" id="tripDirectionsFormInputGroupTripStart">
+                                <input data-parsley-required name="tripStart" type="text" placeholder="Where you are now or click from the map">
+                                <div class="input-group-btn">
+                                    <button class="btn tripDirectionsFormMyLocation" type="button">
+                                        <img src="img/gps_grey.png" id="tripDirectionsFormGtMyLocBtnTripStart" alt="Get my location" title="Get my location"/>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group tripDirectionsFormInputGroup" id="tripDirectionsFormInputGroupTripEnd">
+                                <input data-parsley-required name="tripEnd" type="text" placeholder="Where you are going or click from the map">
+                                <div class="input-group-btn">
+                                    <button class="btn tripDirectionsFormMyLocation" type="button">
+                                        <img src="img/gps_grey.png" id="tripDirectionsFormGtMyLocBtnTripEnd" alt="Get my location" title="Get my location"/>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div id="getDirectionsSidenavBody">
+                <!--Put a tabbed menu for my directions and google directions-->
+                <ul class="nav nav-tabs">
+                    <li class="active"><a data-toggle="tab" href="#bustopsDirectionsPanel">Bustop directions</a></li>
+                    <li><a data-toggle="tab" href="#googleDirectionsPanel">Driving directions</a></li>
+                </ul>
+                <div class="tab-content" id="directionsPanel">
+                    <div id="bustopsDirectionsPanel" class="tab-pane fade in active">
+                        <p style="padding: 10px 15px;">No directions</p>
+                    </div>
+                    <div id="googleDirectionsPanel" class="tab-pane fade">
+                        <p style="padding: 10px 15px;">No directions</p>
+                    </div>
+                </div>
+
+                <div id="getDirectionsSidenavBodyInfo">
+                    <div id="tripSummary" style="display: none;">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-striped" style="margin-bottom: 0px;">
+                                <tr><th class="info">Fares: </th><td id="tFares"></td><th class="info">Bus drops: </th><td id="tBustops"></td></tr>
+                                <tr><th class="info">Arrival time: </th><td id="tArrivalTime"></td><th class="info">Trip time: </th><td id="tTime"></td></tr>
+                                <tr><th class="info">Trip distance: </th><td id="tDistance"></td><th class="info"></th><td></td></tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div>
+                        <h6 class="small text-muted">Please note that these directions are only for planning your trip. Estimated fares, arrival time or route may vary due to traffic delays, passenger delays, rush hour conditions, adverse weather conditions or construction work in progress. Please encourage the driver to obey all traffic laws where applicable. Safe trip from bustops.</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class='row'>
+                <div class='col-md-12' style="background-color: #b9def0;padding-right: 0px;padding-left: 0px;">
+                    <div id="map"><h1 class="text-center text-primary">Loading map...</h1></div>
+                    <!--<div id='mapControls'><span class="glyphicon glyphicon-zoom-in"></span><span class="glyphicon glyphicon-zoom-out"></span></div>
+                    <!--put controls for zooming that'll show only after the map has loaded, on the bottom left side-->
+                </div>
+                <div class='col-md-12' style="min-height: 200px;">
+                    <h1 id="busRouteFormHeading">Bus route information</h1>
+                    <form id="busRouteForm">
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-xs-4">
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><i class="glyphicon glyphicon-dashboard"></i></span>
+                                        <select data-parsley-required class="form-control" name="type">
+                                            <option disabled selected>Transport type</option>
+                                            <option value="DANFO">DANFO</option>
+                                            <option value="KEKE">KEKE</option>
+                                            <option value="COASTER">COASTER</option>
+                                            <option value="MOLUE">MOLUE</option>
+                                            <option value="SMALL_BUS">SMALL BUS</option>
+                                            <option value="BRT">BRT</option>
+                                            <option value="WALK">WALK</option>
+                                            <!--- This are proximity forms of transport and may only be used sparingly on close drops that lead to diff places and dnt have an bus/keke connecting them--->
+                                            <option value="OKADA">OKADA</option>
+                                            <option value="TAXI">TAXI</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-xs-4">
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
+                                        <select class="form-control" name="startTime">
+                                            <option value="6:30AM" selected="selected">6:30AM</option>
+                                            <option value="7:00AM">7:00AM</option>
+                                            <option value="8:00AM">8:00AM</option>
+                                            <option value="9:00AM">9:00AM</option>
+                                            <option value="12:00AM">12:00AM</option>
+                                            <option value="4:00PM">4:00PM</option>
+                                            <option value="6:00PM">6:00PM</option>
+                                            <option value="8:00PM">8:00PM</option>
+                                            <option value="10:00PM">10:00PM</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-xs-4">
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
+                                        <select class="form-control" name="endTime">
+                                            <option value="6:30AM">6:30AM</option>
+                                            <option value="7:00AM">7:00AM</option>
+                                            <option value="8:00AM">8:00AM</option>
+                                            <option value="9:00AM">9:00AM</option>
+                                            <option value="12:00AM">12:00AM</option>
+                                            <option value="4:00PM">4:00PM</option>
+                                            <option value="6:00PM">6:00PM</option>
+                                            <option value="8:00PM">8:00PM</option>
+                                            <option value="10:00PM">10:00PM</option>
+                                            <option value="12:00PM" selected="selected">12:00PM</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="row">
+                                <div class="col-xs-10">
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><i class="glyphicon glyphicon-arrow-down"></i></span>
+                                        <input data-parsley-required type="text" class="form-control" name="destination[]" placeholder="Destination 1">
+                                    </div>
+                                </div>
+                                <div class="col-xs-2"><button type="button" id="cD-1" class="btn btn-warning">Clear</button></div>
+                            </div>
+                            <div id="destinations"></div>
+                            <p id="aD" class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add destination</p>
+                        </div>
+                        <div class="row">
+                            <div class="form-group col-xs-10">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span>
+                                    <input disabled  type="text" class="form-control" name="hub" placeholder="Hub">
+                                    <input type="text" style="display:none" name='hubh'>
+                                </div>
+                            </div>
+                            <div class="col-xs-2"><button type="button" onclick="var elems = document.getElementById('busRouteForm').elements;elems['hub'].value = elems['hubh'].value = '';" class="btn btn-warning">Clear</button></div>
+                        </div>
+                        <div class="form-group">
+                            <div id="stops"></div>
+                            <p id="aS" class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add stop</p>
+                        </div>
+                        <div class="form-group row" id="rIs"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div id="snackbar"></div>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+        <!--<script src="js/jquery.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>-->
         <!--use cdn e.g cloudflare to store page resources-->
         <script src="js/dialog.js"></script>
-        <script>
-           $(function(){
-               new Dialog('<button z-dialog-send>send</button>', 'body', 'footer', {send:['click', function(){alert('Yay');}]}, true);
-           });
-        </script>
+        <script src="js/place.js"></script>
+        <script src="js/parsley.min.js" type="text/javascript"></script>
+        <script src="js/parsley-laraextras.min.js" type="text/javascript"></script>
+        <script src="js/parsley-file-validators.js" type="text/javascript"></script>
+        <script src="js/json.pruned.js" type="text/javascript"></script>
+        <script src="js/jquery-ui-autocomplete.js" type="text/javascript"></script>
+        <script src="js/map.js"></script>
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCE_FU6RoHW0EH_UC6agCjWvVjaHtD_SRc&libraries=places" async defer></script>
+        <!--<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>-->
     </body>
 </html>
-

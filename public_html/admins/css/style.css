@@ -1,0 +1,241 @@
+body {
+    font-family: Avenir W01, sans-serif;
+}
+#map{
+    height: 600px;
+    width: 100%;
+}
+/*#mapControls{
+    width: 160px;
+    height: 30px;
+    border: 1px solid #000;
+    margin-top: -30px;
+    position: absolute;
+    z-index: 10000;
+    right:15px;
+}*/
+.controls{
+    z-index: 0; position: absolute; left: 114px; top: 0px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;font-family: Roboto;font-size: 15px;font-weight: 300;height: 29px;margin-left: 17px;margin-top: 10px;outline: none;padding: 0 11px 0 13px;text-overflow: ellipsis;width: 400px;
+}
+.controls:focus {
+    border-color: #4d90fe;
+}
+.dh {
+    color: #fff;
+    background-color: #4d90fe;
+    font-size: 25px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+#tCI:hover{
+    -webkit-filter: brightness(0.9);
+    filter: brightness(0.9);
+}
+#tC:active, .addLocationInfo:active{
+    outline: thin dotted;
+    outline: 5px auto -webkit-focus-ring-color;
+    outline-offset: -2px;
+}
+#h{
+    -webkit-transition: all 1s ease;-moz-transition: all 1s ease;-o-transition: all 1s ease;-ms-transition: all 1s ease;transition: all 1s ease;
+}
+.addLocationInfo{
+    color: #337ab7;
+    cursor: pointer;
+    margin: 5px 0 0 0;
+}
+.addLocationInfo:hover{
+    text-decoration: underline;
+}
+/* The side navigation menu */
+#getDirectionsSidenav {
+    height: 100%; /* 100% Full-height */
+    width: 0; /* 0 width - change this with JavaScript */
+    position: fixed; /* Stay in place */
+    z-index: 1500; /* Stay on top */
+    top: 0;
+    left: 0;
+    background-color: #fff; /* Black*/
+    overflow-x: hidden; /* Disable horizontal scroll */
+    transition: 0.5s; /* 0.5 second transition effect to slide in the sidenav */
+    box-shadow: 0 0 20px rgba(0,0,0,0.3);
+}
+#getDirectionsSidenavHeading{
+    width: 100%;
+    height: 180px;
+    color: #fff;
+    background-color: #337ab7;
+    border-color: #2e6da4;
+    padding: 15px 30px 15px 30px;
+}
+#getDirectionsSidenavHeadingTravelMode img{
+    height: 39px;
+    margin-right: 13%;
+    padding: 6px;
+    cursor: pointer;
+}
+#getDirectionsSidenavHeadingTravelMode img:hover{
+    -webkit-transition: background-color 2s; /* Safari */
+    transition: background-color 2s;
+    background-color: #284B85;
+    border-radius: 50%;
+}
+#getDirectionsSidenavHeadingTravelMode img:active{
+    outline: thin dotted;
+  outline: 5px auto -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
+.travelModeActive{
+    background-color: #284B85;
+    border-radius: 50%;
+}
+#tripDirectionsForm input[type="text"]:focus{
+    outline: none;
+  outline: none;
+  outline-offset: 0;
+}
+.tripDirectionsFormMyLocation{
+    color: transparent;
+  background-color: transparent;
+  border: transparent;
+}
+.tripDirectionsFormInputGroup{
+    border-bottom: 1px solid #ccc;
+}
+.tripDirectionsFormInputGroup.active{
+    outline: thin dotted;
+  outline: 5px auto -webkit-focus-ring-color;
+  outline-offset: -2px;
+}
+#getDirectionsSidenavHeadingLocation{
+    margin-top: 12px;
+}
+#getDirectionsSidenavHeadingLocation input{
+    background-color: transparent;
+    color: #fff;
+    border: none;
+    display: block;
+    width: 100%;
+    height: 34px;
+    padding: 6px 12px;
+    font-size: 14px;
+    line-height: 1.42857143;
+}
+#getDirectionsSidenavHeadingLocation input::-webkit-input-placeholder { /* WebKit, Blink, Edge */
+    color:    #c5c5c5;
+}
+#getDirectionsSidenavHeadingLocation input:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+   color:    #c5c5c5;
+   opacity:  1;
+}
+#getDirectionsSidenavHeadingLocation input::-moz-placeholder { /* Mozilla Firefox 19+ */
+   color:    #c5c5c5;
+   opacity:  1;
+}
+#getDirectionsSidenavHeadingLocation input:-ms-input-placeholder { /* Internet Explorer 10-11 */
+   color:    #c5c5c5;
+}
+#getDirectionsSidenavHeadingLocation input::-ms-input-placeholder { /* Microsoft Edge */
+   color:    #c5c5c5;
+}
+#getDirectionsSidenavClose{
+    cursor: pointer;
+    position: absolute;
+    margin-top: 6px;
+    right:38px;
+}
+#getDirectionsSidenavBody{
+    padding: 15px 30px 15px 30px;
+}
+.widget-mylocation{width:29px;height:29px;position:relative}
+.my-location{background-color:rgba(255,255,255,1);border-radius:2px;box-shadow:0 1px 4px rgba(0,0,0,0.3);display:block;width: 28px; height: 27px;overflow:hidden;cursor:pointer;transition:background-color 0.16s ease-out}
+.my-location:focus{
+    outline: none;
+}
+/* The snackbar - position it at the bottom and in the middle of the screen */
+#snackbar {
+    visibility: hidden; /* Hidden by default. Visible on click */
+    min-width: 250px; /* Set a default minimum width */
+    margin-left: -125px; /* Divide value of min-width by 2 */
+    background-color: #333; /* Black background color */
+    color: #fff; /* White text color */
+    text-align: center; /* Centered text */
+    border-radius: 2px; /* Rounded borders */
+    padding: 16px; /* Padding */
+    position: fixed; /* Sit on top of the screen */
+    z-index: 100000; /* Add a z-index if needed */
+    left: 50%; /* Center the snackbar */
+    bottom: 30px; /* 30px from the bottom */
+}
+
+/* Show the snackbar when clicking on a button (class added with JavaScript) */
+#snackbar.show {
+    visibility: visible; /* Show the snackbar */
+
+/* Add animation: Take 0.5 seconds to fade in and out the snackbar. 
+However, delay the fade out process for 2.5 seconds */
+    -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+/* Animations to fade the snackbar in and out */
+@-webkit-keyframes fadein {
+    from {bottom: 0; opacity: 0;} 
+    to {bottom: 30px; opacity: 1;}
+}
+
+@keyframes fadein {
+    from {bottom: 0; opacity: 0;}
+    to {bottom: 30px; opacity: 1;}
+}
+
+@-webkit-keyframes fadeout {
+    from {bottom: 30px; opacity: 1;} 
+    to {bottom: 0; opacity: 0;}
+}
+
+@keyframes fadeout {
+    from {bottom: 30px; opacity: 1;}
+    to {bottom: 0; opacity: 0;}
+}
+#directionsPanel{
+    border:1px solid #ddd;
+    border-top: none;
+    border-top-color: transparent;
+    border-radius: 0 0 4px 4px;
+}
+#bustopsDirectionsPanel table tbody tr:first-child{
+    border-top-style:hidden;
+}
+#bustopsDirectionsPanel table thead tr:first-child>td{
+    padding:0px;
+}
+#googleDirectionsPanel table{
+    margin-top: 0px;
+    border:none;
+}
+#getDirectionsSidenavBodyInfo{
+    margin-top: 20px;
+}
+#tripSummary{
+    border-radius:4px;
+    border:1px solid #ddd;
+    border-top:none;
+}
+/*#bustopsDirectionsPanel, #googleDirectionsPanel{
+    padding-top: 10px;
+}*/
+/*.directionsGroup+.directionsGroup{
+    padding-top: 15px;
+}*/
+.my-location[disabled]{cursor:default}
+.my-location-icon-common{display:block;height:18px;left:5px;margin:0;padding:0;position:absolute;top:5px;width:18px}
+.my-location .my-location-cookie{background-image:url(../../img/my-location.png);background-size:180px 18px}
+.my-location .my-location-cookieless{background-image:url(../../img/my-location-cookieless.png);background-size:180px 18px}
+.my-location .my-location-normal{background-position:0 0}
+.my-location:hover .my-location-normal{background-position:-36px 0}
+.my-location:active .my-location-normal{background-position:-54px 0}
+.my-location .my-location-disabled{background-position:-18px 0}
+.my-location .my-location-blue{background-position:-144px 0}
+.my-location:hover .my-location-blue,.my-location:active .my-location-blue{background-position:-162px 0}
