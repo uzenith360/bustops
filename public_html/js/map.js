@@ -1226,7 +1226,7 @@ window.onload = function () {
                     origin: startLoc,
                     destination: origin,
                     travelMode: 'WALKING'
-                }, function (startToBustopWalkingResponse, status) {status='qlnwj';
+                }, function (startToBustopWalkingResponse, status) {
                     var directions = '<div class="table-responsive"><table style="margin-bottom:0px;" class="table table-striped table-hover"><thead><tr><td></td><td style="width:250px;"></td><td></td><td></td></tr></thead><tbody>', timeLineMeters = 0, date = new Date(), startDate = new Date();
 
                     if (status === 'OK') {
@@ -1306,7 +1306,7 @@ window.onload = function () {
                             travelMode: 'DRIVING'
                         }, function (response, getDrivingDirectionsStatus) {
                             var routeLegs = response.routes[0].legs, startToBustopLine = [startLoc], bustopToDestLine = [], timeLineCntdIdx = 0, routeR = route.r, totalFares = 0;
-                            //getDrivingDirectionsStatus = 'jekdbshjb';
+                            
                             if (getDrivingDirectionsStatus === 'OK') {
                                 toast('Drawing route', 0);
 
