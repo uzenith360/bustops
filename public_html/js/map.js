@@ -46,6 +46,7 @@ window.onload = function () {
         route: {},
         startToBustopRoutePolyLine: null,
         bustopToEndRoutePolyLine: null,
+        bustopToBustopPolyLines: [],
         googleDirectionsPanel: null,
         bustopsDirectionsPanel: null,
         tripSummary: null,
@@ -585,7 +586,7 @@ window.onload = function () {
                     }, 0);
 
                     tripCntlIcon.setAttribute('src', 'img/heading_blue.png');
-                 
+
                     vars.tripMode = true;
                 } else {
                     meCntrl.click();
@@ -606,7 +607,7 @@ window.onload = function () {
                 }
             } else {
                 tripCntlIcon.setAttribute('src', 'img/heading.png');
-               tripCntlIcon.setAttribute('style', '-o-transform: rotate(0deg);-moz-transform: rotate(0deg);-ms-transform: rotate(0deg);-webkit-transform: rotate(0deg);transform: rotate(0deg);');
+                tripCntlIcon.setAttribute('style', '-o-transform: rotate(0deg);-moz-transform: rotate(0deg);-ms-transform: rotate(0deg);-webkit-transform: rotate(0deg);transform: rotate(0deg);');
                 vars.tripMode = false;
             }
         });
@@ -736,7 +737,7 @@ window.onload = function () {
         vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(direction);
         vars.map.controls[vars.googleMaps.ControlPosition.RIGHT_BOTTOM].push(meCntrl);
         vars.map.controls[vars.googleMaps.ControlPosition.RIGHT_BOTTOM].push(tripCntl);
- 
+
         var autocomplete = new vars.googleMaps.places.Autocomplete(input, {bounds: config.bounds});
         autocomplete.bindTo('bounds', vars.map);
 
@@ -1186,7 +1187,7 @@ window.onload = function () {
                 panel: vars.googleDirectionsPanel,
                 preserveViewport: true,
                 suppressMarkers: true,
-                //suppressPolylines:true
+                suppressPolylines: true
             });
         }
 
@@ -1287,57 +1288,16 @@ window.onload = function () {
                             destination: destination,
                             waypoints: midPoints,
                             travelMode: 'DRIVING'
-                        }, function (response, status) {
-                            if (status === 'OK') {
+                        }, function (response, getDrivingDirectionsStatus) {
+                            var routeLegs = response.routes[0].legs, startToBustopLine = [startLoc], bustopToDestLine = [], timeLineCntdIdx = 0, routeR = route.r, totalFares = 0;
+                            //getDrivingDirectionsStatus = 'jekdbshjb';
+                            if (getDrivingDirectionsStatus === 'OK') {
                                 toast('Drawing route', 0);
-
-                                var routeLegs = response.routes[0].legs, startToBustopLine = [startLoc], bustopToDestLine = [routeLegs[routeLegs.length - 1].end_location], timeLineCntdIdx = 0, routeR = route.r, totalFares = 0;
 
                                 routeLegs.forEach(function (leg, idx) {
                                     document.getElementById('tL' + idx).textContent = timeFormat((date.setMinutes(date.getMinutes() + (timeLineMeters += leg.distance.value, Math.ceil(leg.duration.value / 60))), date));
                                     ++timeLineCntdIdx;
                                     document.getElementById('bTi-' + idx).innerHTML = '' + leg.duration.text + '<small style="display:block">(' + leg.distance.text + ')</small>';
-                                });
-
-                                if (bustopToEndDirectionServiceOK) {
-                                    document.getElementById('tL' + timeLineCntdIdx).textContent = timeFormat(date);
-                                    document.getElementById('tL' + ++timeLineCntdIdx).textContent = timeFormat(date);
-                                    timeLineCntd.forEach(function (info) {
-                                        document.getElementById('tL' + ++timeLineCntdIdx).textContent = timeFormat((date.setMinutes(date.getMinutes() + (timeLineMeters += info[0], Math.ceil(info[1] / 60))), date));
-                                    });
-                                }
-
-                                document.getElementById('tFares').innerHTML = '&#8358;' + totalFares;
-                                document.getElementById('tBustops').textContent = routeR.length;
-                                document.getElementById('tArrivalTime').textContent = timeFormat(date);
-                                document.getElementById('tTime').textContent = minutesToTimeText(((date.getTime() - startDate.getTime()) / 60000).toFixed(2));
-                                document.getElementById('tDistance').textContent = metersToDistanceText(timeLineMeters);
-                                vars.tripSummary.style.display = 'block';
-
-                                startData.snappedPoints.forEach(function (point) {
-                                    startToBustopLine.push({lat: point.location.latitude, lng: point.location.longitude});
-                                });
-                                startToBustopLine.push(routeLegs[0].start_location);
-
-                                vars.startToBustopRoutePolyLine = new vars.googleMaps.Polyline({
-                                    path: startToBustopLine,
-                                    strokeColor: '#428bca',
-                                    strokeWeight: 5,
-                                    strokeOpacity: .5,
-                                    map: vars.map
-                                });
-
-                                endData.snappedPoints.forEach(function (point) {
-                                    bustopToDestLine.push({lat: point.location.latitude, lng: point.location.longitude});
-                                });
-                                bustopToDestLine.push(endLoc);
-
-                                vars.bustopToEndRoutePolyLine = new vars.googleMaps.Polyline({
-                                    path: bustopToDestLine,
-                                    strokeColor: '#5cb85c',
-                                    strokeWeight: 5,
-                                    strokeOpacity: .5,
-                                    map: vars.map
                                 });
 
                                 vars.googleDirectionsPanel.innerHTML = '';
@@ -1349,8 +1309,6 @@ window.onload = function () {
                                 console.log('Could not display directions due to: ' + status);
                             }
 
-
-
                             route.n.forEach(function (step, idx) {
                                 step.type = 'STEP';
                                 step.description = routeR[idx] ? '&#8358;' + (totalFares += routeR[idx].f, routeR[idx].f) : 'Total &#8358;' + totalFares;
@@ -1358,8 +1316,83 @@ window.onload = function () {
                                 //make the wayPoint marker visisble
                             });
 
+                            if (getDrivingDirectionsStatus === 'OK' && bustopToEndDirectionServiceOK) {
+                                document.getElementById('tL' + timeLineCntdIdx).textContent = timeFormat(date);
+                                document.getElementById('tL' + ++timeLineCntdIdx).textContent = timeFormat(date);
+                                timeLineCntd.forEach(function (info) {
+                                    document.getElementById('tL' + ++timeLineCntdIdx).textContent = timeFormat((date.setMinutes(date.getMinutes() + (timeLineMeters += info[0], Math.ceil(info[1] / 60))), date));
+                                });
+                            }
 
+                            document.getElementById('tFares').innerHTML = '&#8358;' + totalFares;
+                            document.getElementById('tBustops').textContent = routeR.length;
+                            if (getDrivingDirectionsStatus === 'OK') {
+                                document.getElementById('tArrivalTime').textContent = timeFormat(date), document.getElementById('tTime').textContent = minutesToTimeText(((date.getTime() - startDate.getTime()) / 60000).toFixed(2));
+                                document.getElementById('tDistance').textContent = metersToDistanceText(timeLineMeters);
+                            }
+                            vars.tripSummary.style.display = 'block';
 
+                            if (getDrivingDirectionsStatus === 'OK') {
+                                var i1 = 0, routeN = route.n, routeNLen_1 = routeN.length - 1;
+                                while (i1 < routeNLen_1) {
+                                    routeLegs[i1].steps.forEach(function (step) {
+                                        vars.bustopToBustopPolyLines.push(new vars.googleMaps.Polyline({
+                                            path: step.lat_lngs,
+                                            strokeColor: '#42a5f5',
+                                            strokeWeight: 5,
+                                            strokeOpacity: .5,
+                                            map: vars.map
+                                        }));
+                                    });
+
+                                    ++i1;
+                                }
+                            } else {
+                                var i1 = 0, routeN = route.n, routeNLen_1 = routeN.length - 1;
+                                while (i1 < routeNLen_1) {
+                                    vars.bustopToBustopPolyLines[i1] = new vars.googleMaps.Polyline({
+                                        path: [routeN[i1].latlng, routeN[i1 + 1].latlng],
+                                        strokeColor: '#42a5f5',
+                                        strokeWeight: 5,
+                                        strokeOpacity: .5,
+                                        map: vars.map
+                                    });
+
+                                    ++i1;
+                                }
+                            }
+
+                            startData.snappedPoints.forEach(function (point) {
+                                startToBustopLine.push({lat: point.location.latitude, lng: point.location.longitude});
+                            });
+                            if (getDrivingDirectionsStatus === 'OK') {
+                                startToBustopLine.push(routeLegs[0].start_location);
+                                bustopToDestLine.push(routeLegs[routeLegs.length - 1].end_location);
+                            } else {
+                                startToBustopLine.push(route.n[0].latlng);
+                                bustopToDestLine.push(route.n[routeNlen - 1].latlng);
+                            }
+
+                            vars.startToBustopRoutePolyLine = new vars.googleMaps.Polyline({
+                                path: startToBustopLine,
+                                strokeColor: '#aa66cc',
+                                strokeWeight: 5,
+                                strokeOpacity: .5,
+                                map: vars.map
+                            });
+
+                            endData.snappedPoints.forEach(function (point) {
+                                bustopToDestLine.push({lat: point.location.latitude, lng: point.location.longitude});
+                            });
+                            bustopToDestLine.push(endLoc);
+
+                            vars.bustopToEndRoutePolyLine = new vars.googleMaps.Polyline({
+                                path: bustopToDestLine,
+                                strokeColor: '#5cb85c',
+                                strokeWeight: 5,
+                                strokeOpacity: .5,
+                                map: vars.map
+                            });
                         });
                     });
                 });
@@ -1376,6 +1409,9 @@ window.onload = function () {
 
         vars.wayPointMarkers.forEach(function (wayPointMarker) {
             wayPointMarker.remove();
+        });
+        vars.bustopToBustopPolyLines.forEach(function (bustopToBustopPolyLine) {
+            bustopToBustopPolyLine.setMap(null);
         });
         vars.wayPointMarkers = [];
     }
