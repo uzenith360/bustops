@@ -1226,10 +1226,10 @@ window.onload = function () {
                     origin: startLoc,
                     destination: origin,
                     travelMode: 'WALKING'
-                }, function (startToBustopWalkingResponse, start) {
+                }, function (startToBustopWalkingResponse, status) {status='qlnwj';
                     var directions = '<div class="table-responsive"><table style="margin-bottom:0px;" class="table table-striped table-hover"><thead><tr><td></td><td style="width:250px;"></td><td></td><td></td></tr></thead><tbody>', timeLineMeters = 0, date = new Date(), startDate = new Date();
 
-                    if (start === 'OK') {
+                    if (status === 'OK') {
                         var startToBustopWalkingDirections = startToBustopWalkingResponse.routes[0].legs[0];
 
                         //start with google walking directions or tell d person to take bike to the bustop
