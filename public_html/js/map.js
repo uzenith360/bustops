@@ -511,31 +511,7 @@ window.onload = function () {
 
         direction.addEventListener('click', function () {
             if (!vars.startRouteMarker) {
-                vars.startRouteMarker = new vars.googleMaps.Marker({
-                    map: vars.map,
-                    title: 'Start of journey',
-                    anchorPoint: new vars.googleMaps.Point(0, -29),
-                    icon: 'http://maps.google.com/mapfiles/kml/shapes/man_maps.png',
-                    visible: false,
-                    draggable: true,
-                    zIndex: 500
-                });
-                vars.endRouteMarker = new vars.googleMaps.Marker({
-                    map: vars.map,
-                    title: 'Destination',
-                    anchorPoint: new vars.googleMaps.Point(0, -29),
-                    icon: 'http://maps.google.com/mapfiles/kml/shapes/flag_maps.png',
-                    visible: false,
-                    draggable: true,
-                    zIndex: 500
-                });
-
-                vars.googleMaps.event.addListener(vars.startRouteMarker, 'dragend', function () {
-                    searchRoute(vars.startRouteMarker.getPosition());
-                });
-                vars.googleMaps.event.addListener(vars.endRouteMarker, 'dragend', function () {
-                    searchRoute(null, vars.endRouteMarker.getPosition());
-                });
+                initDirectionsSearch();
             }
 
             document.getElementById("getDirectionsSidenav").style.width = "500px";
@@ -688,6 +664,39 @@ window.onload = function () {
         });
 
         //also request to get nearby locations from server and display
+    }
+    
+    function initDirectionsSearch(){
+        //JIC
+        if(vars.startRouteMarker){
+            return;
+        }
+        
+        vars.startRouteMarker = new vars.googleMaps.Marker({
+                    map: vars.map,
+                    title: 'Start of journey',
+                    anchorPoint: new vars.googleMaps.Point(0, -29),
+                    icon: 'http://maps.google.com/mapfiles/kml/shapes/man_maps.png',
+                    visible: false,
+                    draggable: true,
+                    zIndex: 500
+                });
+                vars.endRouteMarker = new vars.googleMaps.Marker({
+                    map: vars.map,
+                    title: 'Destination',
+                    anchorPoint: new vars.googleMaps.Point(0, -29),
+                    icon: 'http://maps.google.com/mapfiles/kml/shapes/flag_maps.png',
+                    visible: false,
+                    draggable: true,
+                    zIndex: 500
+                });
+
+                vars.googleMaps.event.addListener(vars.startRouteMarker, 'dragend', function () {
+                    searchRoute(vars.startRouteMarker.getPosition());
+                });
+                vars.googleMaps.event.addListener(vars.endRouteMarker, 'dragend', function () {
+                    searchRoute(null, vars.endRouteMarker.getPosition());
+                });
     }
 
     //Map Event handlers
@@ -1276,8 +1285,8 @@ window.onload = function () {
         vars.thrsVisibleMarkers = false;
     }
     function showAllMarkers() {
-        vars.myMarker && vars.myMarker.setVisible(true);
-        vars.placeSearchMarker && vars.placeSearchMarker.setVisible(true);
+        //vars.myMarker && vars.myMarker.setVisible(true);
+        //vars.placeSearchMarker && vars.placeSearchMarker.setVisible(true);
 
         for (var location in vars.locations) {
             vars.locations[location].marker.show();
@@ -1343,6 +1352,10 @@ window.onload = function () {
     }
 
     function lockSearchLocation(type, location, tripMode, cb) {
+        if (!vars.startRouteMarker) {
+                initDirectionsSearch();
+            }
+        
         if (type === 'tripStart') {
             searchRoute(location, null, tripMode, cb);
             vars.startRouteMarker.setPosition(location);
