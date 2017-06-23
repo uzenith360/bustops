@@ -1193,7 +1193,8 @@ window.onload = function () {
                 map: vars.map,
                 panel: vars.googleDirectionsPanel,
                 preserveViewport: true,
-                suppressMarkers: true
+                suppressMarkers: true,
+                //suppressPolylines:true
             });
         }
 
