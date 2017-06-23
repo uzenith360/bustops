@@ -486,7 +486,7 @@ window.onload = function () {
         vars.googleMaps.event.addListener(vars.map, 'tilt_changed', onMaptilt_changed);
         vars.googleMaps.event.addListener(vars.map, 'zoom_changed', onMapzoom_changed);
 
-        var input = document.createElement("input"), icoSpan = document.createElement("span"), ico = document.createElement("img"), meCntrl = document.createElement("div"), icoMe = document.createElement("div"), icoMeBtn = document.createElement("button"), tripCntl = document.createElement("div"), tripCntlIcon = document.createElement("span"), dirCntl = document.createElement("div"), dir = document.createElement("img"), direction = document.createElement("div"), directionBtn = document.createElement("button"), directionImg = document.createElement("img");
+        var input = document.createElement("input"), icoSpan = document.createElement("span"), ico = document.createElement("img"), meCntrl = document.createElement("div"), icoMe = document.createElement("div"), icoMeBtn = document.createElement("button"), tripCntl = document.createElement("div"), tripCntlIcon = document.createElement("img"), direction = document.createElement("div"), directionBtn = document.createElement("button"), directionImg = document.createElement("img");
         input.setAttribute('type', 'text');
         input.setAttribute('placeholder', 'Enter a location');
         input.setAttribute('class', 'controls');
@@ -509,19 +509,14 @@ window.onload = function () {
         icoMe.setAttribute('title', 'Go to my location');
         icoMeBtn.appendChild(icoMe);
         meCntrl.appendChild(icoMeBtn);
+        tripCntlIcon.setAttribute('alt', 'heading');
+        tripCntlIcon.setAttribute('src', 'img/heading.png');
+        tripCntlIcon.setAttribute('height', '18px');
+        tripCntlIcon.setAttribute('id', 'h');
         tripCntl.setAttribute('id', 'tC');
         tripCntl.setAttribute('title', 'Trip mode');
-        tripCntl.setAttribute('style', 'cursor:pointer;margin-right:10px;margin-bottom:10px;width: 28px; height: 27px;padding:6px 6px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);-webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;font-family: Roboto;font-size: 100%;font-weight: 300;');
-        tripCntlIcon.setAttribute('id', 'tCI');
-        tripCntlIcon.classList.add('glyphicon');
-        tripCntlIcon.classList.add('glyphicon-record');
+        tripCntl.setAttribute('style', 'cursor:pointer;margin-right:10px;margin-bottom:10px;width: 28px; height: 27px;padding:4px 4px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);-webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
         tripCntl.appendChild(tripCntlIcon);
-        dir.setAttribute('alt', 'heading');
-        dir.setAttribute('src', 'img/heading.png');
-        dir.setAttribute('id', 'h');
-        dirCntl.setAttribute('title', 'Your heading');
-        dirCntl.setAttribute('style', 'display:none;margin-right:10px;margin-bottom:10px;width: 28px; height: 27px;padding:4px 4px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);-webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
-        dirCntl.appendChild(dir);
         directionBtn.classList.add('btn');
         directionBtn.classList.add('btn-info');
         directionBtn.setAttribute('style', 'padding:4px');
@@ -589,9 +584,8 @@ window.onload = function () {
                         vars.map.setZoom(17);
                     }, 0);
 
-                    tripCntlIcon.setAttribute('style', 'color:#68A1E3;');
-                    dirCntl.style.display = 'block';
-
+                    tripCntlIcon.setAttribute('src', 'img/heading_blue.png');
+                 
                     vars.tripMode = true;
                 } else {
                     meCntrl.click();
@@ -611,9 +605,8 @@ window.onload = function () {
                     })();
                 }
             } else {
-                tripCntlIcon.style.color = '';
-                dirCntl.style.display = 'none';
-                dir.setAttribute('style', '-o-transform: rotate(0deg);-moz-transform: rotate(0deg);-ms-transform: rotate(0deg);-webkit-transform: rotate(0deg);transform: rotate(0deg);');
+                tripCntlIcon.setAttribute('src', 'img/heading.png');
+               tripCntlIcon.setAttribute('style', '-o-transform: rotate(0deg);-moz-transform: rotate(0deg);-ms-transform: rotate(0deg);-webkit-transform: rotate(0deg);transform: rotate(0deg);');
                 vars.tripMode = false;
             }
         });
@@ -743,8 +736,7 @@ window.onload = function () {
         vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(direction);
         vars.map.controls[vars.googleMaps.ControlPosition.RIGHT_BOTTOM].push(meCntrl);
         vars.map.controls[vars.googleMaps.ControlPosition.RIGHT_BOTTOM].push(tripCntl);
-        vars.map.controls[vars.googleMaps.ControlPosition.RIGHT_BOTTOM].push(dirCntl);
-
+ 
         var autocomplete = new vars.googleMaps.places.Autocomplete(input, {bounds: config.bounds});
         autocomplete.bindTo('bounds', vars.map);
 
@@ -1301,13 +1293,6 @@ window.onload = function () {
 
                                 var routeLegs = response.routes[0].legs, startToBustopLine = [startLoc], bustopToDestLine = [routeLegs[routeLegs.length - 1].end_location], timeLineCntdIdx = 0, routeR = route.r, totalFares = 0;
 
-                                route.n.forEach(function (step, idx) {
-                                    step.type = 'STEP';
-                                    step.description = routeR[idx] ? '&#8358;' + (totalFares += routeR[idx].f, routeR[idx].f) : 'Total &#8358;' + totalFares;
-                                    vars.wayPointMarkers.push(new Place(step, {map: vars.map, loc: step.latlng, title: 'step', label: String(idx + 1)}));
-                                    //make the wayPoint marker visisble
-                                });
-
                                 routeLegs.forEach(function (leg, idx) {
                                     document.getElementById('tL' + idx).textContent = timeFormat((date.setMinutes(date.getMinutes() + (timeLineMeters += leg.distance.value, Math.ceil(leg.duration.value / 60))), date));
                                     ++timeLineCntdIdx;
@@ -1363,6 +1348,18 @@ window.onload = function () {
                                 vars.googleDirectionsPanel.innerHTML = '<p style="padding: 10px 15px;">Problem getting directions</p>';
                                 console.log('Could not display directions due to: ' + status);
                             }
+
+
+
+                            route.n.forEach(function (step, idx) {
+                                step.type = 'STEP';
+                                step.description = routeR[idx] ? '&#8358;' + (totalFares += routeR[idx].f, routeR[idx].f) : 'Total &#8358;' + totalFares;
+                                vars.wayPointMarkers.push(new Place(step, {map: vars.map, loc: step.latlng, title: 'step', label: String(idx + 1)}));
+                                //make the wayPoint marker visisble
+                            });
+
+
+
                         });
                     });
                 });
@@ -1432,7 +1429,7 @@ window.onload = function () {
                 if (err && loc) {
                     ((startLoc && (vars.route['tripStart'] = loc) && vars.startRouteMarker) || ((vars.route['tripEnd'] = loc) && vars.endRouteMarker)).setPosition(loc);
                 }
-               
+
                 cb && cb(err);
 
                 vars.searchRouteBusy = false;
