@@ -490,7 +490,7 @@ window.onload = function () {
         vars.googleMaps.event.addListener(vars.map, 'tilt_changed', onMaptilt_changed);
         vars.googleMaps.event.addListener(vars.map, 'zoom_changed', onMapzoom_changed);
 
-        var input = document.createElement("input"), icoSpan = document.createElement("span"), ico = document.createElement("img"), meCntrl = document.createElement("div"), icoMe = document.createElement("div"), icoMeBtn = document.createElement("button"), tripCntl = document.createElement("div"), tripCntlIcon = document.createElement("img"), direction = document.createElement("div"), directionBtn = document.createElement("button"), directionImg = document.createElement("img");
+        var input = document.createElement("input"), icoSpan = document.createElement("span"), ico = document.createElement("img"), meCntrl = document.createElement("div"), icoMe = document.createElement("div"), icoMeBtn = document.createElement("button"), tripCntl = document.createElement("div"), tripCntlIcon = document.createElement("img"), direction = document.createElement("div"), directionBtn = document.createElement("button"), directionImg = document.createElement("img"), directionStop = document.createElement("div"), directionStopBtn = document.createElement("button"), directionStopImg = document.createElement("img");
         input.setAttribute('type', 'text');
         input.setAttribute('placeholder', 'Enter a location');
         input.setAttribute('class', 'controls');
@@ -531,6 +531,17 @@ window.onload = function () {
         direction.setAttribute('title', 'Get directions');
         direction.setAttribute('style', 'margin-left:5px;margin-top:10px;width:29px;height:29px;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);-webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
         direction.appendChild(directionBtn);
+        directionStopBtn.classList.add('btn');
+        directionStopBtn.classList.add('btn-info');
+        directionStopBtn.setAttribute('style', 'padding:4px');
+        directionStopImg.setAttribute('alt', 'directions');
+        directionStopImg.setAttribute('src', 'img/erase_directions.png');
+        directionStopImg.setAttribute('style', 'width:20px;');
+        directionStopBtn.appendChild(directionStopImg);
+        directionStop.setAttribute('title', 'Clear directions');
+        directionStop.setAttribute('id', 'Cd');
+        directionStop.setAttribute('style', 'display:none;margin-left:5px;margin-top:10px;width:29px;height:29px;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);-webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
+        directionStop.appendChild(directionStopBtn);
 
         meCntrl.addEventListener('click', function () {
             if (!vars.watchingMyLoc) {
@@ -671,6 +682,9 @@ window.onload = function () {
                 });
             });
         });
+        directionStop.addEventListener('click', function () {
+            deactivateDirectionSearch();
+        });
         document.getElementById('getDirectionsSidenavClose').addEventListener('click', function () {
             document.getElementById("getDirectionsSidenav").style.width = "0";
         });
@@ -738,6 +752,7 @@ window.onload = function () {
         vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(icoSpan);
         vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(input);
         vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(direction);
+        vars.map.controls[vars.googleMaps.ControlPosition.TOP_LEFT].push(directionStop);
         vars.map.controls[vars.googleMaps.ControlPosition.RIGHT_BOTTOM].push(meCntrl);
         vars.map.controls[vars.googleMaps.ControlPosition.RIGHT_BOTTOM].push(tripCntl);
 
@@ -1126,7 +1141,11 @@ window.onload = function () {
     }
 
     function getRoute(startLoc, endLoc, cb, tripMode) {
-        vars.loadLocationsDisabled = true;
+        if (!vars.loadLocationsDisabled) {
+            document.getElementById('Cd').style.display = 'block';
+            vars.loadLocationsDisabled = true;
+        }
+
         toast('Getting route', 1);
 
         //show getn route or sth (UI display)
@@ -1263,7 +1282,7 @@ window.onload = function () {
                         midPoints.push({location: route.n[i++].latlng});
                     }
                     directions += '<tr id="bTb' + i + '"><td><img src="img/directions_bus.png" alt="Bus directions"/></td><td>Stop at ' + route.n[i].names.join(', ') + '</td><td></td><td id="tL' + ++timeLineCntdIdCt + '"></td></tr>';
-                    vars.bustopToBustopTRIDs[bTbct] = ['bTb' + (i-1), 'bTb' + i];
+                    vars.bustopToBustopTRIDs[bTbct] = ['bTb' + (i - 1), 'bTb' + i];
 
                     vars.directionsService.route({
                         origin: lastBustopLoc,
@@ -1306,7 +1325,7 @@ window.onload = function () {
                             travelMode: 'DRIVING'
                         }, function (response, getDrivingDirectionsStatus) {
                             var routeLegs = response.routes[0].legs, startToBustopLine = [startLoc], bustopToDestLine = [], timeLineCntdIdx = 0, routeR = route.r, totalFares = 0;
-                            
+
                             if (getDrivingDirectionsStatus === 'OK') {
                                 toast('Drawing route', 0);
 
@@ -1347,7 +1366,7 @@ window.onload = function () {
                                 document.getElementById('tDistance').textContent = metersToDistanceText(timeLineMeters);
                             }
                             vars.tripSummary.style.display = 'block';
-                            
+
                             if (getDrivingDirectionsStatus === 'OK') {
                                 var i1 = 0, routeN = route.n, routeNLen_1 = routeN.length - 1, routeLine, path;
                                 while (i1 < routeNLen_1) {
@@ -1369,13 +1388,13 @@ window.onload = function () {
                                         this.TRIDs.forEach(function (id) {
                                             document.getElementById(id).classList.add('info');
                                         });
-                                    }.bind({routeLine:routeLine, TRIDs:vars.bustopToBustopTRIDs[i1]}));
+                                    }.bind({routeLine: routeLine, TRIDs: vars.bustopToBustopTRIDs[i1]}));
                                     vars.googleMaps.event.addListener(routeLine, 'mouseout', function () {
                                         this.routeLine.setOptions({strokeColor: '#42a5f5'});
                                         this.TRIDs.forEach(function (id) {
                                             document.getElementById(id).classList.remove('info');
                                         });
-                                    }.bind({routeLine:routeLine, TRIDs:vars.bustopToBustopTRIDs[i1]}));
+                                    }.bind({routeLine: routeLine, TRIDs: vars.bustopToBustopTRIDs[i1]}));
 
                                     vars.bustopToBustopPolyLines[i1] = routeLine;
 
@@ -1397,13 +1416,13 @@ window.onload = function () {
                                         this.TRIDs.forEach(function (id) {
                                             document.getElementById(id).classList.add('info');
                                         });
-                                    }.bind({routeLine:routeLine, TRIDs:vars.bustopToBustopTRIDs[i1]}));
+                                    }.bind({routeLine: routeLine, TRIDs: vars.bustopToBustopTRIDs[i1]}));
                                     vars.googleMaps.event.addListener(routeLine, 'mouseout', function () {
                                         this.routeLine.setOptions({strokeColor: '#42a5f5'});
                                         this.TRIDs.forEach(function (id) {
                                             document.getElementById(id).classList.remove('info');
                                         });
-                                    }.bind({routeLine:routeLine, TRIDs:vars.bustopToBustopTRIDs[i1]}));
+                                    }.bind({routeLine: routeLine, TRIDs: vars.bustopToBustopTRIDs[i1]}));
 
                                     vars.bustopToBustopPolyLines[i1] = routeLine;
 
@@ -1512,14 +1531,21 @@ window.onload = function () {
         for (var location in vars.locations) {
             vars.locations[location].marker.show();
         }
+        
+        vars.thrsVisibleMarkers = true;
     }
 
     function deactivateDirectionSearch() {
         document.getElementById('getDirectionsSidenavClose').click();
-        vars.startRouteMarker.setMap(null);
-        vars.endRouteMarker.setMap(null);
+        vars.startRouteMarker.setVisible(false);
+        vars.endRouteMarker.setVisible(false);
         clearPrevRouteDirections();
         showAllMarkers();
+        document.getElementById('Cd').style.display = 'none';
+        document.getElementById('tripDirectionsForm').elements['tripStart'].value = document.getElementById('tripDirectionsForm').elements['tripEnd'].value = '';
+        vars.route['tripStart'] = vars.route['tripEnd'] = null;
+        (vars.googleDirectionsPanel || document.getElementById('googleDirectionsPanel')).innerHTML = (vars.bustopsDirectionsPanel || document.getElementById('bustopsDirectionsPanel')).innerHTML = '<p style="padding: 10px 15px;">No directions</p>';
+        (vars.tripSummary || document.getElementById('tripSummary')).style.display = 'none';
         vars.loadLocationsDisabled = false;
     }
 
