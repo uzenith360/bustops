@@ -239,3 +239,76 @@ However, delay the fade out process for 2.5 seconds */
 .my-location .my-location-disabled{background-position:-18px 0}
 .my-location .my-location-blue{background-position:-144px 0}
 .my-location:hover .my-location-blue,.my-location:active .my-location-blue{background-position:-162px 0}
+
+#searchModal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    padding-top: 100px; /* Location of the box */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+#searchModal-content {
+    position: relative;
+    background-color: transparent;
+    margin: auto;
+    padding: 0;
+    width: 80%;
+    -webkit-animation-name: animatetop;
+    -webkit-animation-duration: 0.4s;
+    animation-name: animatetop;
+    animation-duration: 0.4s
+}
+#searchModal-content input{
+    box-shadow: none;
+    border-radius: 0px;
+    background-color: transparent;
+    color: #fff;
+}
+#searchModal-content input::-webkit-input-placeholder { /* WebKit, Blink, Edge */
+    color:    #fff;
+}
+#searchModal-content input:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+   color:    #fff;
+   opacity:  1;
+}
+#searchModal-content input::-moz-placeholder { /* Mozilla Firefox 19+ */
+   color:    #fff;
+   opacity:  1;
+}
+#searchModal-content input:-ms-input-placeholder { /* Internet Explorer 10-11 */
+   color:    #fff;
+}
+#searchModal-content input::-ms-input-placeholder { /* Microsoft Edge */
+   color:    #fff;
+}
+
+/* Add Animation */
+@-webkit-keyframes animatetop {
+    from {top:-300px; opacity:0} 
+    to {top:0; opacity:1}
+}
+
+@keyframes animatetop {
+    from {top:-300px; opacity:0}
+    to {top:0; opacity:1}
+}
+
+#searchModal-header {
+    padding: 2px 16px;
+    text-align: center;
+}
+
+#searchModal-body {padding: 2px 16px;}
+
+/*#searchModal-footer {
+    padding: 2px 16px;
+    color: white;
+}*/

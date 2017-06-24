@@ -630,34 +630,35 @@ window.onload = function () {
         direction.addEventListener('click', function () {
             if (!vars.startRouteMarker) {
                 initDirectionsSearch();
+
+                $('.tripDirectionsFormMyLocation img').mouseover(function () {
+                    $(this).prop('src', '../img/gps.png');
+                }).mouseout(function () {
+                    $(this).prop('src', '../img/gps_grey.png');
+                }).click(function () {
+                    toast('Getting your location', 1);
+
+                    var self = this;
+                    navigator.geolocation.getCurrentPosition(function (pos) {
+                        toast('Getting your location', 0);
+
+                        var inputName = 't' + $(self).prop('id').slice(29);
+                        document.getElementById('tripDirectionsForm').elements[inputName].value = 'My location';
+                        lockSearchLocation(inputName, new vars.googleMaps.LatLng(pos.coords.latitude, pos.coords.longitude), undefined, function (err) {
+                            if (err && err.message !== 'INCOMPLETE_ROUTE_INFO') {
+                                document.getElementById('tripDirectionsForm').elements[inputName].value = '';
+                                vars.route[inputName] = null;
+                            }
+                        });
+                    }, function (err) {
+                        toast('Problem getting your location', 2, 700);
+                    });
+                });
             }
 
             document.getElementById("getDirectionsSidenav").style.width = "500px";
             document.getElementById('tripDirectionsForm').elements['tripStart'].focus();
 
-            $('.tripDirectionsFormMyLocation img').mouseover(function () {
-                $(this).prop('src', '../img/gps.png');
-            }).mouseout(function () {
-                $(this).prop('src', '../img/gps_grey.png');
-            }).click(function () {
-                toast('Getting your location', 1);
-
-                var self = this;
-                navigator.geolocation.getCurrentPosition(function (pos) {
-                    toast('Getting your location', 0);
-
-                    var inputName = 't' + $(self).prop('id').slice(29);
-                    document.getElementById('tripDirectionsForm').elements[inputName].value = 'My location';
-                    lockSearchLocation(inputName, new vars.googleMaps.LatLng(pos.coords.latitude, pos.coords.longitude), undefined, function (err) {
-                        if (err && err.message !== 'INCOMPLETE_ROUTE_INFO') {
-                            document.getElementById('tripDirectionsForm').elements[inputName].value = '';
-                            vars.route[inputName] = null;
-                        }
-                    });
-                }, function (err) {
-                    toast('Problem getting your location', 2, 700);
-                });
-            });
         });
         directionStop.addEventListener('click', function () {
             deactivateDirectionSearch();
