@@ -30,7 +30,6 @@ window.onload = function () {
         myLoc: {}, //{lat: -34.397, lng: 150.644}
         myPos: {}, //full position information returned by geolocation api
         myHeading: {},
-        acquiredCurrentLoc: false,
         accuracy: null,
         accuracyInfowindowElem: null,
         tripMode: false,
@@ -129,7 +128,6 @@ window.onload = function () {
 
 
     function watchMyLocation(cb) {
-        toast('Getting my location', 1);
         vars.locationWatch = navigator.geolocation.watchPosition(function (pos) {
             myLocSuccess(pos);
             cb && cb();
@@ -139,20 +137,18 @@ window.onload = function () {
         }, {enableHighAccuracy: true/*, maximumAge: 30000, timeout: 27000*/});
     }
     function myLocSuccess(pos) {
-        !vars.acquiredCurrentLoc && (toast('Getting my location', 0), toast('Acquired location', 2));
-
-        if (pos.coords.accuracy < config.accuracyCutoffPoint || !vars.acquiredCurrentLoc) {
+        if (pos.coords.accuracy < config.accuracyCutoffPoint || !vars.tripMode) {
             var newLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude};
 
             //check d location change if its within reasonable limits
-            if ((Date.now() - vars.lastLocTimestamp) >= config.locMaxAgeTime || getDistanceBtwPoints(vars.myLoc, newLoc) < vars.maxLocPrecision) {
+            if ((Date.now() - vars.lastLocTimestamp) >= config.locMaxAgeTime || getDistanceBtwPoints(vars.myLoc, newLoc) < vars.maxLocPrecision || !vars.tripMode) {
                 if (locationIsDiff(pos)) {
                     //if the accuracy is too low, info the person that he's location accuracy is low and he should select he's current position
                     /*if (pos.coords.accuracy > config.minAccuracy) {
                      new Dialog('Low location accuracy', 'Your location accuracy is too low, please select or search your current location from the map, or switch to a device with a better location accuracy');
                      }
                      */
-                    vars.tripMode && vars.myLoc && updateHeading(vars.myLoc, newLoc);
+                    vars.myLoc && updateHeading(vars.myLoc, newLoc);
 
                     vars.myLoc = newLoc;
                     onMyLocationChange(pos);
@@ -175,39 +171,28 @@ window.onload = function () {
 
     }
     function myLocError(err) {
-        !vars.acquiredCurrentLoc && toast('Getting my location', 0);
+
         //maybe on error, if google maps has nt initialised , check server or local storage and get the last location d user was and display it in the map, or if u hv nt used d app bfr, then it'll use ur ip address to determine ur location and display that location, then also tell the user to turn on location or select hes location on d map
 
         console.error('Get location err: ' + JSON.stringify(err));
 
-        var heading, body;
+        //show toast, with error
+        var status;
 
         switch (err.code) {
             case err.PERMISSION_DENIED:
-                heading = 'Allow location';
-                body = 'Permission denied, please allow this site to use your location';
+                status = 'Allow location access';
                 break;
             case err.POSITION_UNAVAILABLE:
-                heading = 'No Location';
-                body = 'Location unavailable, please turn on location or use a device with location support';
+                status = 'Location unavailable';
                 break;
             case err.TIMEOUT:
             case err.UNKNOWN_ERROR:
-                heading = 'Turn on location';
-                body = 'Problem getting your current location, please check if your location is switched on';
+                status = 'Turn on location';
                 break;
         }
-        //dnt refresh map, inform users that thrs a problem getting he's current location, either he should switch on location e.t.c
-        new Dialog(heading, body);
 
-        if (vars.acquiredCurrentLoc) {
-            var iconMe = document.getElementById('iM');
-            iconMe.classList.remove('my-location-blue');
-            iconMe.classList.add('my-location-normal');
-            iconMe.setAttribute('data-original-title', 'Takes you to your location on the map');
-            iconMe.setAttribute('title', 'Takes you to your location on the map');
-            vars.acquiredCurrentLoc = false;
-        }
+        toast('Problem with your location: ' + status, 2, 700);
     }
 
     function onMyLocationAccuracyChange() {
@@ -219,29 +204,12 @@ window.onload = function () {
         //maybe if u are moving fast(Max/min speed), i can adjust(reduce) the maximum age of the watchPosition and if u slow down, i'll adjust(increase) the maximum age again
         //i dnt kw wht to do with altitude infomation, u dey fly ni, go use another app :-D
 
-        vars.tripMode && vars.map.panTo(vars.myLoc);
+        vars.map.panTo(vars.myLoc);
 
         updateMyMarker();
 
         //save info to server
         saveCurrentLocation();
-
-        if (!vars.acquiredCurrentLoc) {
-            vars.acquiredCurrentLoc = true;
-            (function _() {
-                if (!document.getElementById('iM')) {
-                    return setTimeout(_, 5);
-                }
-
-                //vars.myMarker.setVisible(true);
-
-                var iconMe = document.getElementById('iM');
-                iconMe.classList.remove('my-location-normal');
-                iconMe.classList.add('my-location-blue');
-                iconMe.setAttribute('data-original-title', 'Turns off Takes you to your location on the map');
-                iconMe.setAttribute('title', 'Takes you to your location on the map');
-            })();
-        }
     }
 
     function updateHeading(frmLoc, toLoc) {
@@ -272,7 +240,6 @@ window.onload = function () {
 
         vars.myMarker.setIcon('http://maps.google.com/mapfiles/kml/paddle/' + accuracy[0] + '-circle_maps.png');
         !isNaN(vars.accuracy) && (vars.accuracyInfowindowElem.innerHTML = '<span>Location accuracy: ' + (vars.accuracy < 150 ? vars.accuracy.toLocaleString() + 'm' : '<span style="color:#d9534f;">' + vars.accuracy.toLocaleString() + 'm</span>') + '</span><br><span style="color:' + accuracy[1] + ';">' + accuracy[2] + '</span>' + (vars.accuracy < 150 ? '' : '<hr style="margin-top:6.5px;margin-bottom:6.5px;"><span>Switch to a device with better accuracy</span>'));
-        //vars.myMarker.setVisible(true);
     }
 
     function updateMyMarker() {
@@ -282,7 +249,7 @@ window.onload = function () {
                 map: vars.map,
                 title: 'Your are here',
                 anchorPoint: vars.googleMaps.Point(0, -29),
-                visible: false
+                visible: true
             });
             var contentContainer = document.createElement('div'), contentHeading = document.createElement('strong'), contentBody = document.createElement('div');
 
@@ -303,7 +270,6 @@ window.onload = function () {
         }
 
         vars.myMarker.setPosition(vars.myLoc);
-        vars.myMarker.setVisible(true);
     }
 
     function updateLocationsMarkers(locs) {
@@ -466,51 +432,55 @@ window.onload = function () {
         meCntrl.addEventListener('mouseout', function (e) {
             e.target.setAttribute('src', 'img/gps_dark.png');
         });
-        
-        tripCntl.addEventListener('click', function () {navigator.geolocation.clearWatch(vars.locationWatch);
-            if (!vars.tripMode) {
-                if (vars.acquiredCurrentLoc) {
-                    //Move map to my location
-                    vars.map.panTo(vars.myLoc);
-                    setTimeout(function () {
-                        //running this immediately after the previous panTo, causes andriod browser to freeze
-                        vars.map.setZoom(17);
-                    }, 0);
 
-                    tripCntlIcon.setAttribute('src', 'img/heading_blue.png');
-                    tripCntl.setAttribute('data-original-title', 'Turns off trip mode');
-                    tripCntl.setAttribute('title', 'Turns off trip mode');
-
-                    vars.tripMode = true;
-                } else {
-                    watchMyLocation(function (err) {
-                        if (!err) {
-                            meCntrl.click();
-                        }
-                    });
-
-                    meCntrl.click();
-                    var chkAcquiredLocCt = 0;
-                    (function _() {
-                        if (++chkAcquiredLocCt === 6) {
-                            return;
-                        }
-
-                        if (!vars.acquiredCurrentLoc) {
-                            return setTimeout(function () {
-                                return _();
-                            }, 800);
-                        }
-
-                        tripCntl.click();
-                    })();
-                }
-            } else {
+        tripCntl.addEventListener('click', function () {
+            if (vars.tripMode) {
+                navigator.geolocation.clearWatch(vars.locationWatch);
                 tripCntl.setAttribute('data-original-title', 'Put map on trip mode');
-                tripCntl.setAttribute('title', 'Put map on trip mode');
                 tripCntlIcon.setAttribute('src', 'img/heading.png');
                 tripCntlIcon.setAttribute('style', '-o-transform: rotate(0deg);-moz-transform: rotate(0deg);-ms-transform: rotate(0deg);-webkit-transform: rotate(0deg);transform: rotate(0deg);');
+                vars.myMarker.setVisible(false);
+                vars.locationWatch = null;
                 vars.tripMode = false;
+            } else {
+                toast('Turning on trip mode', 1);
+                watchMyLocation(function (err) {
+                    toast('Turning on trip mode', 0);
+
+                    if (err) {
+                        var heading, body;
+
+                        switch (err.code) {
+                            case err.PERMISSION_DENIED:
+                                heading = 'Allow location';
+                                body = 'Permission denied, please allow this site to use your location';
+                                break;
+                            case err.POSITION_UNAVAILABLE:
+                                heading = 'No Location';
+                                body = 'Location unavailable, please turn on location or use a device with location support';
+                                break;
+                            case err.TIMEOUT:
+                            case err.UNKNOWN_ERROR:
+                                heading = 'Turn on location';
+                                body = 'Problem getting your current location, please check if your location is switched on';
+                                break;
+                        }
+                        //dnt refresh map, inform users that thrs a problem getting he's current location, either he should switch on location e.t.c
+                        new Dialog(heading, body);
+
+                        return;
+                    }
+
+                    //Move map to my location
+                    vars.map.panTo(vars.myLoc);
+                    vars.map.setZoom(17);
+                    vars.myMarker.setVisible(true);
+
+                    tripCntlIcon.setAttribute('src', 'img/heading_blue.png');
+                    tripCntl.setAttribute('data-original-title', 'Turn off trip mode');
+                   
+                    vars.tripMode = true;
+                });
             }
         });
 
