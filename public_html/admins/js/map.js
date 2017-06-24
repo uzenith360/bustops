@@ -36,7 +36,7 @@ window.onload = function () {
         accuracyInfowindowElem: null,
         tripMode: false,
         lastLocTimestamp: null,
-        watchingMyLoc: false,
+        //watchingMyLoc: false,
         locationWatch: null,
         locations: {},
         busRouteForm: document.getElementById('busRouteForm').elements,
@@ -321,7 +321,9 @@ window.onload = function () {
             var iconMe = document.getElementById('iM');
             iconMe.classList.remove('my-location-blue');
             iconMe.classList.add('my-location-normal');
-            iconMe.setAttribute('title', 'Go to my last reported location');
+            iconMe.setAttribute('data-original-title', 'Takes you to your location on the map');
+                iconMe.setAttribute('title', 'Takes you to your location on the map');
+            /*iconMe.setAttribute('title', 'Go to my last reported location');*/
             vars.acquiredCurrentLoc = false;
         }
     }
@@ -349,12 +351,13 @@ window.onload = function () {
                     return setTimeout(_, 5);
                 }
 
-                vars.myMarker.setVisible(true);
+                //vars.myMarker.setVisible(true);
 
                 var iconMe = document.getElementById('iM');
                 iconMe.classList.remove('my-location-normal');
                 iconMe.classList.add('my-location-blue');
-                iconMe.setAttribute('title', 'Go to my current location');
+                iconMe.setAttribute('data-original-title', 'Turns off Takes you to your location on the map');
+                iconMe.setAttribute('title', 'Takes you to your location on the map');
             })();
         }
     }
@@ -387,18 +390,15 @@ window.onload = function () {
 
         vars.myMarker.setIcon('http://maps.google.com/mapfiles/kml/paddle/' + accuracy[0] + '-circle_maps.png');
         !isNaN(vars.accuracy) && (vars.accuracyInfowindowElem.innerHTML = '<span>Location accuracy: ' + (vars.accuracy < 150 ? vars.accuracy.toLocaleString() + 'm' : '<span style="color:#d9534f;">' + vars.accuracy.toLocaleString() + 'm</span>') + '</span><br><span style="color:' + accuracy[1] + ';">' + accuracy[2] + '</span>' + (vars.accuracy < 150 ? '' : '<hr style="margin-top:6.5px;margin-bottom:6.5px;"><span>Switch to a device with better accuracy</span>'));
-        vars.myMarker.setVisible(true);
+        //vars.myMarker.setVisible(true);
     }
 
     function updateMyMarker() {
-        //lol did we really do this?
-        //to prevent the location marker from having d blinking effect, first save the reference to the old marker, put the new marker, then delete the old marker
         if (!vars.myMarker) {
             vars.myMarker = new vars.googleMaps.Marker({
                 position: vars.myLoc,
                 map: vars.map,
-                title: 'me',
-                icon: 'http://maps.google.com/mapfiles/kml/paddle/blu-circle_maps.png',
+                title: 'Your are here',
                 anchorPoint: vars.googleMaps.Point(0, -29),
                 visible: false
             });
@@ -418,8 +418,6 @@ window.onload = function () {
             vars.googleMaps.event.addListener(vars.myMarker, 'click', function () {
                 infowindow.open(vars.map, vars.myMarker);
             });
-
-            return;
         }
 
         vars.myMarker.setPosition(vars.myLoc);
@@ -492,7 +490,7 @@ window.onload = function () {
         vars.googleMaps.event.addListener(vars.map, 'tilt_changed', onMaptilt_changed);
         vars.googleMaps.event.addListener(vars.map, 'zoom_changed', onMapzoom_changed);
 
-        var input = document.createElement("input"), icoSpan = document.createElement("span"), ico = document.createElement("img"), meCntrl = document.createElement("div"), icoMe = document.createElement("div"), icoMeBtn = document.createElement("button"), tripCntl = document.createElement("div"), tripCntlIcon = document.createElement("img"), direction = document.createElement("div"), directionBtn = document.createElement("button"), directionImg = document.createElement("img"), directionStop = document.createElement("div"), directionStopBtn = document.createElement("button"), directionStopImg = document.createElement("img");
+        var input = document.createElement("input"), icoSpan = document.createElement("span"), ico = document.createElement("img"), meCntrl = document.createElement("div"), meCntrlIcon = document.createElement("img"), tripCntl = document.createElement("div"), tripCntlIcon = document.createElement("img"), direction = document.createElement("div"), directionBtn = document.createElement("button"), directionImg = document.createElement("img"), directionStop = document.createElement("div"), directionStopBtn = document.createElement("button"), directionStopImg = document.createElement("img");
         input.setAttribute('type', 'text');
         input.setAttribute('placeholder', 'Search a location');
         input.setAttribute('class', 'controls');
@@ -505,18 +503,15 @@ window.onload = function () {
         ico.setAttribute('src', '../img/map-search.png');
         ico.setAttribute('alt', 'search map');
         icoSpan.appendChild(ico);
-        meCntrl.setAttribute('style', 'margin-right:10px;');
-        icoMeBtn.classList.add('btn');
-        icoMeBtn.classList.add('my-location');
-        icoMe.setAttribute('id', 'iM');
-        icoMe.classList.add('my-location-icon-common');
-        icoMe.classList.add('my-location-normal');
-        icoMe.classList.add('my-location-cookie');
-        icoMe.setAttribute('title', 'Takes you to your location on the map');
-        icoMe.setAttribute('data-toggle', 'tooltip');
-        icoMe.setAttribute('data-placement', 'left');
-        icoMeBtn.appendChild(icoMe);
-        meCntrl.appendChild(icoMeBtn);
+        meCntrl.setAttribute('alt', 'location');
+        meCntrlIcon.setAttribute('src', '../img/gps_dark.png');
+        meCntrlIcon.setAttribute('height', '18px');
+        meCntrlIcon.setAttribute('id', 'iM');
+        meCntrlIcon.setAttribute('title', 'Takes you to your location on the map');
+        meCntrlIcon.setAttribute('data-toggle', 'tooltip');
+        meCntrlIcon.setAttribute('data-placement', 'left');
+        meCntrlIcon.setAttribute('style', 'cursor:pointer;margin-right:10px;width: 28px; height: 27px;padding:4px 4px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);-webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
+        meCntrl.appendChild(meCntrlIcon);
         tripCntlIcon.setAttribute('alt', 'heading');
         tripCntlIcon.setAttribute('src', '../img/heading.png');
         tripCntlIcon.setAttribute('height', '18px');
@@ -554,51 +549,42 @@ window.onload = function () {
         directionStop.appendChild(directionStopBtn);
 
         meCntrl.addEventListener('click', function () {
-            if (!vars.watchingMyLoc) {
-                vars.watchingMyLoc = true;
+            toast('Getting your location', 1);
+            navigator.geolocation.getCurrentPosition(function (pos) {
+                toast('Getting your location', 0);
 
-                watchMyLocation(function (err) {
-                    if (!err) {
-                        meCntrl.click();
-                    }
-                });
-                return;
-            }
-
-            if (vars.acquiredCurrentLoc) {
-                vars.map.panTo(vars.myLoc);
+                vars.map.panTo(vars.myLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude});
                 vars.map.setZoom(17);
-            }
+                updateMyMarker();
+                onMyLocationAccuracyChange(vars.accuracy = pos.coords.accuracy);
+                //save info to server
+                saveCurrentLocation();
+            }, function (err) {
+                var status;
+
+                switch (err.code) {
+                    case err.PERMISSION_DENIED:
+                        status = 'Allow location access';
+                        break;
+                    case err.POSITION_UNAVAILABLE:
+                        status = 'Location unavailable';
+                        break;
+                    case err.TIMEOUT:
+                    case err.UNKNOWN_ERROR:
+                        status = 'Turn on location';
+                        break;
+                }
+
+                toast('Problem getting your location: ' + status, 2, 700);
+            });
         });
-        $(meCntrl).on('dblclick', function (e) {
-            if (!vars.watchingMyLoc) {
-                return;
-            }
-
-            //for some reason setting the watchid to null makes it not possible to watch location again
-            vars.lastLocTimestamp = /*vars.locationWatch = */vars.accuracy = null;
-            vars.watchingMyLoc = vars.acquiredCurrentLoc = false;
-            vars.myLoc = vars.myPos = vars.myHeading = {};
-
-            vars.tripMode && tripCntl.click();
-
-            vars.myMarker.setVisible(false);
-
-            var iconMe = document.getElementById('iM');
-            iconMe.classList.remove('my-location-blue');
-            iconMe.classList.add('my-location-normal');
-            iconMe.setAttribute('title', 'Go to my last reported location');
-
-            navigator.geolocation.clearWatch(vars.locationWatch);
+        meCntrl.addEventListener('mouseover', function (e) {
+            e.target.setAttribute('src', '../img/gps_black.png');
         });
-
-        meCntrl.addEventListener('mousedown', function () {
-            vars._eventsStuff_startMouseDownTime = Date.now();
+        meCntrl.addEventListener('mouseout', function (e) {
+            e.target.setAttribute('src', '../img/gps_dark.png');
         });
-        meCntrl.addEventListener('mouseup', function () {
-            (Date.now() - vars._eventsStuff_startMouseDownTime) >= 500 && $(meCntrl).dblclick();
-        });
-
+        
         tripCntl.addEventListener('click', function () {
             if (!vars.tripMode) {
                 if (vars.acquiredCurrentLoc) {
@@ -610,6 +596,8 @@ window.onload = function () {
                     }, 0);
 
                     tripCntlIcon.setAttribute('src', '../img/heading_blue.png');
+                    tripCntl.setAttribute('data-original-title', 'Turns off trip mode');
+                    tripCntl.setAttribute('title', 'Turns off trip mode');
 
                     vars.tripMode = true;
                 } else {
@@ -630,6 +618,8 @@ window.onload = function () {
                     })();
                 }
             } else {
+                tripCntl.setAttribute('data-original-title', 'Put map on trip mode');
+                tripCntl.setAttribute('title', 'Put map on trip mode');
                 tripCntlIcon.setAttribute('src', '../img/heading.png');
                 tripCntlIcon.setAttribute('style', '-o-transform: rotate(0deg);-moz-transform: rotate(0deg);-ms-transform: rotate(0deg);-webkit-transform: rotate(0deg);transform: rotate(0deg);');
                 vars.tripMode = false;
