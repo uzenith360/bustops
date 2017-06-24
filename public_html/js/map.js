@@ -22,6 +22,7 @@ window.onload = function () {
         bounds: {south: 6.517983648107814, west: 3.3647325001556965, north: 6.530774870245085, east: 3.393678899844417}
     };
     var vars = {
+        mapLoaded: false, //when map has loaded as now visible(onTilesLoaded)
         loadStart: Date.now(),
         map: null,
         myMarker: null,
@@ -376,7 +377,7 @@ window.onload = function () {
 
         var input = document.createElement("input"), icoSpan = document.createElement("span"), ico = document.createElement("img"), meCntrl = document.createElement("div"), icoMe = document.createElement("div"), icoMeBtn = document.createElement("button"), tripCntl = document.createElement("div"), tripCntlIcon = document.createElement("img"), direction = document.createElement("div"), directionBtn = document.createElement("button"), directionImg = document.createElement("img"), directionStop = document.createElement("div"), directionStopBtn = document.createElement("button"), directionStopImg = document.createElement("img");
         input.setAttribute('type', 'text');
-        input.setAttribute('placeholder', 'Enter a location');
+        input.setAttribute('placeholder', 'Search a location');
         input.setAttribute('class', 'controls');
         input.setAttribute('style', 'margin-left:2px;');
         input.setAttribute('autocomplete', 'off');
@@ -394,7 +395,9 @@ window.onload = function () {
         icoMe.classList.add('my-location-icon-common');
         icoMe.classList.add('my-location-normal');
         icoMe.classList.add('my-location-cookie');
-        icoMe.setAttribute('title', 'Go to my location');
+        icoMe.setAttribute('title', 'Takes you to your location on the map');
+        icoMe.setAttribute('data-toggle', 'tooltip');
+        icoMe.setAttribute('data-placement', 'left');
         icoMeBtn.appendChild(icoMe);
         meCntrl.appendChild(icoMeBtn);
         tripCntlIcon.setAttribute('alt', 'heading');
@@ -402,7 +405,9 @@ window.onload = function () {
         tripCntlIcon.setAttribute('height', '18px');
         tripCntlIcon.setAttribute('id', 'h');
         tripCntl.setAttribute('id', 'tC');
-        tripCntl.setAttribute('title', 'Trip mode');
+        tripCntl.setAttribute('title', 'Put map on trip mode');
+        tripCntl.setAttribute('data-toggle', 'tooltip');
+        tripCntl.setAttribute('data-placement', 'left');
         tripCntl.setAttribute('style', 'cursor:pointer;margin-right:10px;margin-bottom:10px;width: 28px; height: 27px;padding:4px 4px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);-webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
         tripCntl.appendChild(tripCntlIcon);
         directionBtn.classList.add('btn');
@@ -412,7 +417,9 @@ window.onload = function () {
         directionImg.setAttribute('src', 'img/route.png');
         directionImg.setAttribute('style', 'width:20px;');
         directionBtn.appendChild(directionImg);
-        direction.setAttribute('title', 'Get directions');
+        direction.setAttribute('title', 'Click here to get directions to your destination');
+        direction.setAttribute('data-toggle', 'tooltip');
+        direction.setAttribute('data-placement', 'bottom');
         direction.setAttribute('style', 'margin-left:5px;margin-top:10px;width:29px;height:29px;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);-webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
         direction.appendChild(directionBtn);
         directionStopBtn.classList.add('btn');
@@ -422,7 +429,9 @@ window.onload = function () {
         directionStopImg.setAttribute('src', 'img/erase_directions.png');
         directionStopImg.setAttribute('style', 'width:20px;');
         directionStopBtn.appendChild(directionStopImg);
-        directionStop.setAttribute('title', 'Clear directions');
+        directionStop.setAttribute('title', 'Click here to clear directions');
+        directionStop.setAttribute('data-toggle', 'tooltip');
+        directionStop.setAttribute('data-placement', 'right');
         directionStop.setAttribute('id', 'Cd');
         directionStop.setAttribute('style', 'display:none;margin-left:5px;margin-top:10px;width:29px;height:29px;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);-webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
         directionStop.appendChild(directionStopBtn);
@@ -693,7 +702,6 @@ window.onload = function () {
             document.getElementById('tripDirectionsForm').elements['tripEnd'].focus();
         });
 
-
         //also request to get nearby locations from server and display
     }
 
@@ -801,6 +809,10 @@ window.onload = function () {
         console.log('rightclick');
     }
     function onMaptilesloaded() {
+        if (!vars.mapLoaded) {
+            $('[data-toggle="tooltip"]').tooltip({container: 'body', html: true});
+            vars.mapLoaded = true;
+        }
         console.log('tilesloaded');
     }
     function onMaptilt_changed() {

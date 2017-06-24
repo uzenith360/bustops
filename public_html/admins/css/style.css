@@ -239,3 +239,7 @@ However, delay the fade out process for 2.5 seconds */
 .my-location .my-location-disabled{background-position:-18px 0}
 .my-location .my-location-blue{background-position:-144px 0}
 .my-location:hover .my-location-blue,.my-location:active .my-location-blue{background-position:-162px 0}
+
+.tooltip {
+    z-index: 1501;
+}

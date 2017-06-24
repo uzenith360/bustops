@@ -312,3 +312,7 @@ However, delay the fade out process for 2.5 seconds */
     padding: 2px 16px;
     color: white;
 }*/
+
+.tooltip {
+    z-index: 1501;
+}
