@@ -651,7 +651,22 @@ window.onload = function () {
                             }
                         });
                     }, function (err) {
-                        toast('Problem getting your location', 2, 700);
+                        var status;
+
+                        switch (err.code) {
+                            case err.PERMISSION_DENIED:
+                                status = 'Allow location access';
+                                break;
+                            case err.POSITION_UNAVAILABLE:
+                                status = 'Location unavailable';
+                                break;
+                            case err.TIMEOUT:
+                            case err.UNKNOWN_ERROR:
+                                status = 'Turn on location';
+                                break;
+                        }
+
+                        toast('Problem getting your location: ' + status, 2, 700);
                     });
                 });
             }
