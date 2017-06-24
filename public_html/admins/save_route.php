@@ -7,9 +7,9 @@
   } */
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    require_once 'php/form_validate.php';
-    require_once 'php/form_validate.php';
-    require_once 'php/mongodb_delete.php';
+    require_once '../php/form_validate.php';
+    require_once '../php/form_validate.php';
+    require_once '../php/mongodb_delete.php';
 
     $response = ['err' => null, 'result' => null];
 
@@ -34,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ], $cleanedUserInputMap);
 
     if (empty($validationResult)) {
-        require_once 'php/mongodb_insert.php';
+        require_once '../php/mongodb_insert.php';
 
         $ntMissingInfo = true;
         $routeInfoStops = $cleanedUserInputMap['stops'];
@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 //save to mongo store
                 if (($id = mongoDB_insert($cleanedUserInputMap, 'routes'))) {
-                    require_once 'php/map_routes.php';
+                    require_once '../php/map_routes.php';
                     //actually create the routes
                     if (!($response['result'] = map_routes($id, $cleanedUserInputMap))) {
                         $response ['err'] = ['error' => 'DB', 'msg' => 'Problem saving data, please try again'];

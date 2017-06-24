@@ -7,8 +7,8 @@
   } */
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    require_once 'php/form_validate.php';
-    require_once 'php/form_validate_multiple.php';
+    require_once '../php/form_validate.php';
+    require_once '../php/form_validate_multiple.php';
 
     $response = ['err' => null, 'result' => null];
 
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ], $cleanedUserInputMap);
 
         if (empty($validationResult)) {
-            require_once 'php/mime_content_type.php';
+            require_once '../php/mime_content_type.php';
 
             $cleanedUserInputMap['latlng'] = ['lat' => doubleval($cleanedUserInputMap['lat']), 'lng' => doubleval($cleanedUserInputMap['lng'])];
             unset($cleanedUserInputMap['lat']);
@@ -77,10 +77,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             if (!$fileError) {
-                require_once 'php/save_data.php';
+                require_once '../php/save_data.php';
                 if (($response['result'] = saveData(array_merge(['pictures' => $pictures], $cleanedUserInputMap), ['names' => $cleanedUserInputMap['names'], 'addresses' => $cleanedUserInputMap['addresses']], 'locations'))) {
                     if ($cleanedUserInputMap['type'] === 'BUSTOP') {
-                        require_once 'php/mongodb_insert.php';
+                        require_once '../php/mongodb_insert.php';
                         //we dnt need names in the route collection
                         if (!mongoDB_insert(['_id' => new MongoDB\BSON\ObjectID($response['result'])/* , 'names' => $cleanedUserInputMap['names'] */, 'loc' => ['type' => 'Point', 'coordinates' => [$cleanedUserInputMap['latlng']['lng'], $cleanedUserInputMap['latlng']['lat']]]], 'bustops')) {
                             require_once 'mongodb_delete.php';
