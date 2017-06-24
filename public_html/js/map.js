@@ -58,7 +58,8 @@ window.onload = function () {
         loadLocationsDisabled: false,
         travelMode: 'ALL',
         selectedTravelMode: null,
-        searchRouteBusy: false
+        searchRouteBusy: false,
+        traveModeBusy:false
     };
 
     //init
@@ -92,6 +93,12 @@ window.onload = function () {
 
         //Attach the event handlers
         $('#getDirectionsSidenavHeadingTravelMode img').click(function () {
+            if(vars.traveModeBusy){
+                return;
+            }
+            
+            vars.traveModeBusy = true;
+            
             var travelMode = $(this).attr('data-mode'), $_this = $(this);
 
             $(this).addClass('travelModeActive');
@@ -105,6 +112,8 @@ window.onload = function () {
 
                     ((!err && (vars.travelMode = travelMode)) || err.message === 'INCOMPLETE_ROUTE_INFO') && (vars.selectedTravelMode = $_this);
                 }
+                
+                vars.traveModeBusy = false;
             });
         });
 
@@ -344,8 +353,7 @@ window.onload = function () {
         input.setAttribute('class', 'controls');
         input.setAttribute('style', 'margin-left:2px;');
         input.setAttribute('autocomplete', 'off');
-        icoSpan.setAttribute('style', 'width:29px;height:29px;padding:.3% 5px');
-        icoSpan.classList.add('controls');
+        icoSpan.setAttribute('style', 'cursor:pointer;margin-left: 17px;margin-top: 10px;width: 29px; height: 29px;padding:5px 5px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);-webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
         icoSpan.setAttribute('title', 'Search for a location');
         ico.setAttribute('height', '18px');
         ico.setAttribute('src', 'img/map-search.png');
@@ -377,7 +385,7 @@ window.onload = function () {
         directionImg.setAttribute('src', 'img/route.png');
         directionImg.setAttribute('style', 'width:20px;');
         directionBtn.appendChild(directionImg);
-        direction.setAttribute('title', 'Click here to get directions to your destination');
+        direction.setAttribute('title', 'Get directions to your destination');
         direction.setAttribute('data-toggle', 'tooltip');
         direction.setAttribute('data-placement', 'bottom');
         direction.setAttribute('style', 'margin-left:5px;margin-top:10px;width:29px;height:29px;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);-webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
@@ -389,9 +397,9 @@ window.onload = function () {
         directionStopImg.setAttribute('src', 'img/erase_directions.png');
         directionStopImg.setAttribute('style', 'width:20px;');
         directionStopBtn.appendChild(directionStopImg);
-        directionStop.setAttribute('title', 'Click here to clear directions');
+        directionStop.setAttribute('title', 'Clear directions');
         directionStop.setAttribute('data-toggle', 'tooltip');
-        directionStop.setAttribute('data-placement', 'right');
+        directionStop.setAttribute('data-placement', 'bottom');
         directionStop.setAttribute('id', 'Cd');
         directionStop.setAttribute('style', 'display:none;margin-left:5px;margin-top:10px;width:29px;height:29px;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);-webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
         directionStop.appendChild(directionStopBtn);
@@ -404,6 +412,7 @@ window.onload = function () {
                 vars.map.panTo(vars.myLoc = {lat: pos.coords.latitude, lng: pos.coords.longitude});
                 vars.map.setZoom(17);
                 updateMyMarker();
+                vars.myMarker.setVisible(true);
                 onMyLocationAccuracyChange(vars.accuracy = pos.coords.accuracy);
                 //save info to server
                 saveCurrentLocation();
@@ -478,7 +487,7 @@ window.onload = function () {
 
                     tripCntlIcon.setAttribute('src', 'img/heading_blue.png');
                     tripCntl.setAttribute('data-original-title', 'Turn off trip mode');
-                   
+
                     vars.tripMode = true;
                 });
             }
@@ -775,7 +784,16 @@ window.onload = function () {
     }
     function onMaptilesloaded() {
         if (!vars.mapLoaded) {
-            $('[data-toggle="tooltip"]').tooltip({container: 'body', html: true});
+            $('[data-toggle="tooltip"]').tooltip({container: 'body', html: true}).on('shown.bs.tooltip', function () {
+                var self=this, timeout;
+                timeout = setTimeout(function () {
+                    timeout = null;
+                    $(self).tooltip("hide");
+                }, 7000);
+                $(this).on('hide.bs.tooltip', function () {
+                    timeout && window.clearTimeout(timeout);
+               });
+            });
             vars.mapLoaded = true;
         }
         console.log('tilesloaded');
