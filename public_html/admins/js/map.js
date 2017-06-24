@@ -666,6 +666,12 @@ window.onload = function () {
         document.getElementById('getDirectionsSidenavClose').addEventListener('click', function () {
             document.getElementById("getDirectionsSidenav").style.width = "0";
         });
+        document.getElementById('getDirectionsSidenavClose').addEventListener('mouseover', function (e) {
+            e.target.setAttribute('src', '../img/times_white.png');
+        });
+        document.getElementById('getDirectionsSidenavClose').addEventListener('mouseout', function (e) {
+            e.target.setAttribute('src', '../img/times.png');
+        });
 
         var autoCompleteService = new vars.googleMaps.places.AutocompleteService();
         ['tripStart', 'tripEnd'].forEach(function (inputName) {
