@@ -62,7 +62,7 @@ window.onload = function () {
         travelMode: 'ALL',
         selectedTravelMode: null,
         searchRouteBusy: false,
-        traveModeBusy: true
+        traveModeBusy: false
     };
 
     //init
