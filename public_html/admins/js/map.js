@@ -467,9 +467,9 @@ window.onload = function () {
         input.setAttribute('type', 'text');
         input.setAttribute('placeholder', 'Search for a location');
         input.setAttribute('class', 'controls');
-        input.setAttribute('style', 'margin-left:2px;');
+        input.setAttribute('style', 'width: '+(window.innerWidth > 519 ? '400':window.innerWidth-119)+'px');
         input.setAttribute('autocomplete', 'off');
-        icoSpan.setAttribute('style', 'cursor:pointer;margin-left: 17px;margin-top: 10px;width: 29px; height: 29px;padding:5px 5px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 3px;-webkit-box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 3px;box-sizing: border-box;');
+        icoSpan.setAttribute('style', 'cursor:pointer;margin-left: 10px;margin-top: 10px;width: 29px; height: 29px;padding:5px 5px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 3px;-webkit-box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 3px;box-sizing: border-box;');
         icoSpan.setAttribute('title', 'Search for a location');
         ico.setAttribute('height', '18px');
         ico.setAttribute('src', '../img/map-search.png');
@@ -645,7 +645,7 @@ window.onload = function () {
                 });
             }
 
-            document.getElementById("getDirectionsSidenav").style.width = "500px";
+            document.getElementById("getDirectionsSidenav").style.width = window.innerWidth > 500 ? window.innerWidth + 'px' : "500px";
             document.getElementById('tripDirectionsForm').elements['tripStart'].focus();
 
         });
@@ -777,7 +777,8 @@ window.onload = function () {
             vars.thrsVisibleMarkers = true;
         });
 
-        $('[data-toggle="tooltip"]').tooltip({container: 'body', html: true});
+//Minus the route information form height?
+        document.getElementById('map').style.height = window.innerHeight + 'px';
 
         //also request to get nearby locations from server and display
     }
