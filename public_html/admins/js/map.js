@@ -645,7 +645,7 @@ window.onload = function () {
                 });
             }
 
-            document.getElementById("getDirectionsSidenav").style.width = window.innerWidth > 500 ? window.innerWidth + 'px' : "500px";
+            document.getElementById("getDirectionsSidenav").style.width = window.innerWidth > 500 ? "500px" : window.innerWidth + 'px';
             document.getElementById('tripDirectionsForm').elements['tripStart'].focus();
 
         });
