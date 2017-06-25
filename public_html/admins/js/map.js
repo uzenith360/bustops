@@ -69,7 +69,7 @@ window.onload = function () {
     //get google.maps
     (function _() {
         if ((Date.now() - vars.loadStart) > config.loadingTimeout) {
-            alert('The page is taking too long to load. Check your internet connection, then click ok to refresh');
+            alert('The page is taking too long to load. Check your internet connection, then click/tap ok to refresh');
             location.reload();
             return;
         }
@@ -469,7 +469,7 @@ window.onload = function () {
         input.setAttribute('class', 'controls');
         input.setAttribute('style', 'margin-left:2px;');
         input.setAttribute('autocomplete', 'off');
-        icoSpan.setAttribute('style', 'cursor:pointer;margin-left: 17px;margin-top: 10px;width: 29px; height: 29px;padding:5px 5px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);-webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
+        icoSpan.setAttribute('style', 'cursor:pointer;margin-left: 17px;margin-top: 10px;width: 29px; height: 29px;padding:5px 5px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 3px;-webkit-box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 3px;box-sizing: border-box;');
         icoSpan.setAttribute('title', 'Search for a location');
         ico.setAttribute('height', '18px');
         ico.setAttribute('src', '../img/map-search.png');
@@ -482,7 +482,7 @@ window.onload = function () {
         meCntrlIcon.setAttribute('title', 'Takes you to your location on the map');
         meCntrlIcon.setAttribute('data-toggle', 'tooltip');
         meCntrlIcon.setAttribute('data-placement', 'left');
-        meCntrlIcon.setAttribute('style', 'cursor:pointer;margin-right:10px;width: 28px; height: 27px;padding:4px 4px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);-webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
+        meCntrlIcon.setAttribute('style', 'cursor:pointer;margin-right:10px;width: 28px; height: 27px;padding:4px 4px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 3px;-webkit-box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 3px;box-sizing: border-box;');
         meCntrl.appendChild(meCntrlIcon);
         tripCntlIcon.setAttribute('alt', 'heading');
         tripCntlIcon.setAttribute('src', '../img/heading.png');
@@ -492,7 +492,7 @@ window.onload = function () {
         tripCntl.setAttribute('title', 'Put map on trip mode');
         tripCntl.setAttribute('data-toggle', 'tooltip');
         tripCntl.setAttribute('data-placement', 'left');
-        tripCntl.setAttribute('style', 'cursor:pointer;margin-right:10px;margin-bottom:10px;width: 28px; height: 27px;padding:4px 4px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);-webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
+        tripCntl.setAttribute('style', 'cursor:pointer;margin-right:10px;margin-bottom:10px;width: 28px; height: 27px;padding:4px 4px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 3px);-webkit-box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 3px;box-sizing: border-box;');
         tripCntl.appendChild(tripCntlIcon);
         directionImg.setAttribute('alt', 'directions');
         directionImg.setAttribute('src', '../img/route.png');
