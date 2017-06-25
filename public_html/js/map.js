@@ -501,7 +501,7 @@ window.onload = function () {
                         toast('Getting your location', 0);
 
                         var inputName = 't' + $(self).prop('id').slice(29);
-                        document.getElementById('tripDirectionsForm').elements[inputName].value = 'My location';
+                        document.getElementById('tripDirectionsForm').elements[inputName].value = 'Your location';
                         lockSearchLocation(inputName, new vars.googleMaps.LatLng(pos.coords.latitude, pos.coords.longitude), undefined, function (err) {
                             if (err && err.message !== 'INCOMPLETE_ROUTE_INFO') {
                                 document.getElementById('tripDirectionsForm').elements[inputName].value = '';
@@ -829,20 +829,8 @@ window.onload = function () {
             return {};
         }
     }
-    function getHints(type) {
-        //type 0 - 
-
-        typeof (Storage) !== "undefined" && localStorage.setItem("_lp", pos);
-    }
-    function setHints() {
-        try {
-            return typeof (Storage) !== "undefined" ? JSON.parse(localStorage.getItem("_lp")) || {} : {};
-        } catch (e) {
-            return {};
-        }
-    }
     function getLastLocationFromLocalServer(cb) {
-
+//get/save to db as who? we've nt talked abt identifying unique users
     }
     function getLastLocation(cb) {
         //Also make an ajax request and return the last location that server has and call cb with the lastlocation or {} on error

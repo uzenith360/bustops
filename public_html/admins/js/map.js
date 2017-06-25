@@ -617,7 +617,7 @@ window.onload = function () {
                         toast('Getting your location', 0);
 
                         var inputName = 't' + $(self).prop('id').slice(29);
-                        document.getElementById('tripDirectionsForm').elements[inputName].value = 'My location';
+                        document.getElementById('tripDirectionsForm').elements[inputName].value = 'Your location';
                         lockSearchLocation(inputName, new vars.googleMaps.LatLng(pos.coords.latitude, pos.coords.longitude), undefined, function (err) {
                             if (err && err.message !== 'INCOMPLETE_ROUTE_INFO') {
                                 document.getElementById('tripDirectionsForm').elements[inputName].value = '';
