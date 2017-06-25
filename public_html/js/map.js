@@ -837,6 +837,18 @@ window.onload = function () {
             return {};
         }
     }
+    function getHints(type){
+        //type 0 - 
+        
+        typeof (Storage) !== "undefined" && localStorage.setItem("_lp", pos);
+    }
+    function setHints(){
+        try {
+            return typeof (Storage) !== "undefined" ? JSON.parse(localStorage.getItem("_lp")) || {} : {};
+        } catch (e) {
+            return {};
+        }
+    }
     function getLastLocationFromLocalServer(cb) {
 
     }
@@ -1029,7 +1041,7 @@ window.onload = function () {
                     destination: origin,
                     travelMode: 'WALKING'
                 }, function (startToBustopWalkingResponse, status) {
-                    var directions = '<div class="table-responsive"><table style="margin-bottom:0px;" class="table table-striped table-hover"><thead><tr><td></td><td style="width:250px;"></td><td></td><td></td></tr></thead><tbody>', timeLineMeters = 0, date = new Date(), startDate = new Date();
+                    var directions = '<table style="margin-bottom:0px;" class="table table-striped table-hover"><thead><tr><td></td><td style="width:250px;"></td><td></td><td></td></tr></thead><tbody>', timeLineMeters = 0, date = new Date(), startDate = new Date();
 
                     if (status === 'OK') {
                         var startToBustopWalkingDirections = startToBustopWalkingResponse.routes[0].legs[0];
@@ -1096,7 +1108,7 @@ window.onload = function () {
                             vars.bustopToEndRouteTRIDs.push('bTe0');
                         }
 
-                        directions += '</tbody></table></div>';
+                        directions += '</tbody></table>';
                         vars.bustopsDirectionsPanel.innerHTML = directions;
 
                         destination = route.n[i].latlng;
