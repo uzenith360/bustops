@@ -59,7 +59,7 @@ window.onload = function () {
         travelMode: 'ALL',
         selectedTravelMode: null,
         searchRouteBusy: false,
-        traveModeBusy:false
+        traveModeBusy: false
     };
 
     //init
@@ -93,12 +93,12 @@ window.onload = function () {
 
         //Attach the event handlers
         $('#getDirectionsSidenavHeadingTravelMode img').click(function () {
-            if(vars.traveModeBusy){
+            if (vars.traveModeBusy) {
                 return;
             }
-            
+
             vars.traveModeBusy = true;
-            
+
             var travelMode = $(this).attr('data-mode'), $_this = $(this);
 
             $(this).addClass('travelModeActive');
@@ -112,7 +112,7 @@ window.onload = function () {
 
                     ((!err && (vars.travelMode = travelMode)) || err.message === 'INCOMPLETE_ROUTE_INFO') && (vars.selectedTravelMode = $_this);
                 }
-                
+
                 vars.traveModeBusy = false;
             });
         });
@@ -347,7 +347,7 @@ window.onload = function () {
         vars.googleMaps.event.addListener(vars.map, 'tilt_changed', onMaptilt_changed);
         vars.googleMaps.event.addListener(vars.map, 'zoom_changed', onMapzoom_changed);
 
-        var input = document.createElement("input"), icoSpan = document.createElement("span"), ico = document.createElement("img"), meCntrl = document.createElement("div"), meCntrlIcon = document.createElement("img"), tripCntl = document.createElement("div"), tripCntlIcon = document.createElement("img"), direction = document.createElement("div"), directionBtn = document.createElement("button"), directionImg = document.createElement("img"), directionStop = document.createElement("div"), directionStopBtn = document.createElement("button"), directionStopImg = document.createElement("img");
+        var input = document.createElement("input"), icoSpan = document.createElement("span"), ico = document.createElement("img"), meCntrl = document.createElement("div"), meCntrlIcon = document.createElement("img"), tripCntl = document.createElement("div"), tripCntlIcon = document.createElement("img"), direction = document.createElement("div"), directionImg = document.createElement("img"), directionStop = document.createElement("div"), directionStopImg = document.createElement("img");
         input.setAttribute('type', 'text');
         input.setAttribute('placeholder', 'Search a location');
         input.setAttribute('class', 'controls');
@@ -378,31 +378,23 @@ window.onload = function () {
         tripCntl.setAttribute('data-placement', 'left');
         tripCntl.setAttribute('style', 'cursor:pointer;margin-right:10px;margin-bottom:10px;width: 28px; height: 27px;padding:4px 4px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);-webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
         tripCntl.appendChild(tripCntlIcon);
-        directionBtn.classList.add('btn');
-        directionBtn.classList.add('btn-info');
-        directionBtn.setAttribute('style', 'padding:4px');
         directionImg.setAttribute('alt', 'directions');
         directionImg.setAttribute('src', 'img/route.png');
         directionImg.setAttribute('style', 'width:20px;');
-        directionBtn.appendChild(directionImg);
         direction.setAttribute('title', 'Get directions to your destination');
         direction.setAttribute('data-toggle', 'tooltip');
         direction.setAttribute('data-placement', 'bottom');
-        direction.setAttribute('style', 'margin-left:5px;margin-top:10px;width:29px;height:29px;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);-webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
-        direction.appendChild(directionBtn);
-        directionStopBtn.classList.add('btn');
-        directionStopBtn.classList.add('btn-info');
-        directionStopBtn.setAttribute('style', 'padding:4px');
+        direction.setAttribute('id', 'd');
+        direction.appendChild(directionImg);
         directionStopImg.setAttribute('alt', 'directions');
         directionStopImg.setAttribute('src', 'img/erase_directions.png');
         directionStopImg.setAttribute('style', 'width:20px;');
-        directionStopBtn.appendChild(directionStopImg);
         directionStop.setAttribute('title', 'Clear directions');
         directionStop.setAttribute('data-toggle', 'tooltip');
         directionStop.setAttribute('data-placement', 'bottom');
         directionStop.setAttribute('id', 'Cd');
-        directionStop.setAttribute('style', 'display:none;margin-left:5px;margin-top:10px;width:29px;height:29px;box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);-webkit-box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);box-sizing: border-box;');
-        directionStop.appendChild(directionStopBtn);
+        directionStop.setAttribute('style', 'display:none;');
+        directionStop.appendChild(directionStopImg);
 
         meCntrl.addEventListener('click', function () {
             toast('Getting your location', 1);
@@ -785,14 +777,14 @@ window.onload = function () {
     function onMaptilesloaded() {
         if (!vars.mapLoaded) {
             $('[data-toggle="tooltip"]').tooltip({container: 'body', html: true}).on('shown.bs.tooltip', function () {
-                var self=this, timeout;
+                var self = this, timeout;
                 timeout = setTimeout(function () {
                     timeout = null;
                     $(self).tooltip("hide");
                 }, 7000);
                 $(this).on('hide.bs.tooltip', function () {
                     timeout && window.clearTimeout(timeout);
-               });
+                });
             });
             vars.mapLoaded = true;
         }
@@ -837,12 +829,12 @@ window.onload = function () {
             return {};
         }
     }
-    function getHints(type){
+    function getHints(type) {
         //type 0 - 
-        
+
         typeof (Storage) !== "undefined" && localStorage.setItem("_lp", pos);
     }
-    function setHints(){
+    function setHints() {
         try {
             return typeof (Storage) !== "undefined" ? JSON.parse(localStorage.getItem("_lp")) || {} : {};
         } catch (e) {

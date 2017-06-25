@@ -28,6 +28,15 @@ body {
     outline: 5px auto -webkit-focus-ring-color;
     outline-offset: -2px;
 }
+#d, #Cd{
+    margin-left:5px;margin-top:10px;width:29px;height:29px;cursor:pointer;padding:4px;background-color: #5bc0de;border: 1px solid #46b8da;border-radius: 4px;box-shadow: rgba(0, 0, 0, 0.3) 0px 2px 6px;-webkit-box-shadow: rgba(0, 0, 0, 0.3) 0px 2px 6px;box-sizing: border-box;
+}
+#d:active, #Cd:active{
+   background-color: #31b0d5;
+    border-color: #269abc;
+    box-shadow: inset 0 3px 5px rgba(0,0,0,.125);
+    outline: 0;
+}
 #h{
     -webkit-transition: all 1s ease;-moz-transition: all 1s ease;-o-transition: all 1s ease;-ms-transition: all 1s ease;transition: all 1s ease;
 }
