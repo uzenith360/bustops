@@ -465,7 +465,7 @@ window.onload = function () {
 
         var input = document.createElement("input"), icoSpan = document.createElement("span"), ico = document.createElement("img"), meCntrl = document.createElement("div"), meCntrlIcon = document.createElement("img"), tripCntl = document.createElement("div"), tripCntlIcon = document.createElement("img"), direction = document.createElement("div"), directionImg = document.createElement("img"), directionStop = document.createElement("div"), directionStopImg = document.createElement("img");
         input.setAttribute('type', 'text');
-        input.setAttribute('placeholder', 'Search a location');
+        input.setAttribute('placeholder', 'Search for a location');
         input.setAttribute('class', 'controls');
         input.setAttribute('style', 'margin-left:2px;');
         input.setAttribute('autocomplete', 'off');
