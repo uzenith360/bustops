@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         require_once '../php/mongodb_insert.php';
                         //we dnt need names in the route collection
                         if (!mongoDB_insert(['_id' => new MongoDB\BSON\ObjectID($response['result'])/* , 'names' => $cleanedUserInputMap['names'] */, 'loc' => ['type' => 'Point', 'coordinates' => [$cleanedUserInputMap['latlng']['lng'], $cleanedUserInputMap['latlng']['lat']]]], 'bustops')) {
-                            require_once 'mongodb_delete.php';
+                            require_once '../php/mongodb_delete.php';
                             mongoDB_delete($response['result'], 'bustops');
 
                             $response['result'] = null;
