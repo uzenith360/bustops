@@ -21,7 +21,7 @@ if ($locationId) {
         require_once '../neo4j_client.php';
 
         try {
-            if (!$neo4jClient->run('DELETE ({i:' . $locationId . '})')->summarize()->updateStatistics()->containsUpdates()) {
+            if (!$neo4jClient->run('MATCH (n:{i:' . $locationId . '}) DETACH DELETE n')->summarize()->updateStatistics()->containsUpdates()) {
                 $neoNtErr = false;
             }
         } catch (GraphAware\Neo4j\Client\Exception\Neo4jException $e) {
