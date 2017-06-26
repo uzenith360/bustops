@@ -28,28 +28,29 @@ if ($routeId) {
             ini_set('max_execution_time', 180);
 
             $tx = $neo4jClient->transaction();
-
-            for ($i = 0, $stopsLength = count($stops), $routes = ''; $i < $stopsLength; ++$i) {
+//dnt delete or edit relationships by its id, use d nodes its connected to, relationship id's dnt have indexes so if u use d id u're in for a full database scan (and it'll be slower)
+            for ($i = 0, $stopsLength = count($stops), $routes = '', $matches = '', $reltags = ''; $i < $stopsLength; ++$i) {
                 $activeStopMatch = 'MATCH (s:BUSTOP{i: "' . $stops[$i] . '"})';
-                for ($i0 = $i + 1, $routes = '', $matches = '', $relCt = 0; $i0 < $stopsLength; ++$i0) {
+                for ($i0 = $i + 1, $routes = '', $matches = '', $reltags = '', $relCt = 0; $i0 < $stopsLength; ++$i0) {
                     $reltag = 'r' . $relCt;
                     $stopTag = 's' . $relCt;
                     $matches .= ',(' . $stopTag . ':BUSTOP{i: "' . $stops[$i0] . '"})';
-                    $routes .= 'MATCH (s)-[' . $reltag . ':' . $transportType . ']->(' . $stopTag . ') SET ' . $reltag . '.f=' . $transportFares[$i] . ',' . $reltag . '.m="' . $timecreated . '",' . $reltag . '.s="' . $startTime . '",' . $reltag . '.e="' . $endTime . '",' . $reltag . '.i="' . $id . '" ';
+                    $routes .= 'MATCH (s)-[' . $reltag . ':' . $type . ']->(' . $stopTag . ') SET ' . $reltag . '.f=' . $transportFares[$i] . ',' . $reltag . '.m="' . $timecreated . '",' . $reltag . '.s="' . $startTime . '",' . $reltag . '.e="' . $endTime . '",' . $reltag . '.i="' . $id . '" ';
+                    $reltags .= ($reltags ? ',' : '') . $reltag;
                     ++$relCt;
 
                     if (!($i0 % 5)) {
-                        $tx->run($activeStopMatch . $matches . $routes);
-                        $routes = $matches = '';
+                        $tx->run($activeStopMatch . $matches . $routes . 'DELETE ' . $reltags);
+                        $routes = $matches = $reltags = '';
                     }
                 }
-                $routes && $tx->run($activeStopMatch . $matches . $routes);
+                $routes && $tx->run($activeStopMatch . $matches . $routes . 'DELETE ' . $reltags);
             }
 
             $tx->commit();
 
             //delete 
-            //the outcome of the delete operation should affect the overall results of the script operation
+            //the outcome of the delete operation shouldnt affect the overall results of the script operation
             mongoDB_delete($routeId, 'routes');
 
             ini_set('max_execution_time', $max_execution_time);
