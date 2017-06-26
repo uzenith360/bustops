@@ -37,7 +37,7 @@ function map_routes($id, $routeInfo) {
         }
         $stops && $tx->run($stops);
 
-        for ($i = 0, $routes = ''; $i < $stopsLength; ++$i) {
+        for ($i = 0, $routes = '', $matches=''; $i < $stopsLength; ++$i) {
             $activeStopMatch = 'MATCH (s:BUSTOP{i: "' . $transportStops[$i] . '"})';
             for ($i0 = $i + 1, $routes = '', $matches = '', $relCt = 0; $i0 < $stopsLength; ++$i0) {
                 $reltag = 'r' . $relCt;
