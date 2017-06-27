@@ -118,7 +118,7 @@ window.onload = function () {
         });
         $('#busRouteForm').parsley().on('form:submit', function (e) {
             var form = document.getElementById('busRouteForm'), formElements = form.elements,
-                    startTime = formElements['startTime'].value, endTime = formElements['endTime'].value,
+                    startTime = formElements['startTime'].value, closeTime = formElements['closeTime'].value,
                     type = formElements['type'].value, admin_id = vars.adminId, value, hub = formElements['hubh'].value, stops = [], fares = [], destinations = [],
                     sendBtn = formElements['save'], heading = document.getElementById('busRouteFormHeading');
 
@@ -145,7 +145,7 @@ window.onload = function () {
                     $.ajax({
                         type: "POST",
                         url: '../save_route.php',
-                        data: {type: type, stops: stops, hub: hub, fares: fares, admin_id: admin_id, startTime: startTime, endTime: endTime, destinations: destinations},
+                        data: {type: type, stops: stops, hub: hub, fares: fares, admin_id: admin_id, startTime: startTime, closeTime: closeTime, destinations: destinations},
                         dataType: 'JSON',
                         success: function (response) {
                             if (!response.err) {
