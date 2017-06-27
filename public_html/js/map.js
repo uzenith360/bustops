@@ -201,7 +201,7 @@ window.onload = function () {
                 break;
         }
 
-        toast('Problem with your location: ' + status, 2, 700);
+        toast('Problem with your location: ' + status, 2, 10000);
     }
 
     function onMyLocationAccuracyChange() {
@@ -424,7 +424,7 @@ window.onload = function () {
                         break;
                 }
 
-                toast('Problem getting your location: ' + status, 2, 700);
+                toast('Problem getting your location: ' + status, 2, 10000);
             });
         });
         meCntrl.addEventListener('mouseover', function (e) {
@@ -524,7 +524,7 @@ window.onload = function () {
                                 break;
                         }
 
-                        toast('Problem getting your location: ' + status, 2, 700);
+                        toast('Problem getting your location: ' + status, 2, 10000);
                     });
                 });
             }
