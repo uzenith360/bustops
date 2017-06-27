@@ -109,6 +109,11 @@ window.onload = function () {
             div.innerHTML = '<div class="col-xs-10"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-arrow-down"></i></span><input type="text" class="form-control" name="destination[]" placeholder="Destination ' + ++vars.addDestinationCt + '"></div></div><div class="col-xs-2"><button type="button" id="cD-' + vars.addDestinationCt + '" class="btn btn-warning">Clear</button></div>';
             document.getElementById("destinations").appendChild(div);
         });
+        $('.tablinks').click(function(){
+            $('.tabcontent').css('display', 'none');
+            $('.tablinks').removeClass('active');
+            document.getElementById($(this).addClass('active').attr('data-tabcontent')).style.display = 'block';
+        });
         $('body').on('click', '[id |= "cSt"]', function () {
             var id = $(this).prop('id').split('-')[1] - 1;
             (vars.busRouteForm['fares[]'][id] || vars.busRouteForm['fares[]']).value = '', (vars.busRouteForm['stop[]'][id] || vars.busRouteForm['stop[]']).value = '', (vars.busRouteForm['stoph[]'][id] || vars.busRouteForm['stoph[]']).value = '';
@@ -779,7 +784,7 @@ window.onload = function () {
 
 //Minus the route information form height?
         document.getElementById('map').style.height = window.innerHeight + 'px';
-
+        
         //also request to get nearby locations from server and display
     }
 
