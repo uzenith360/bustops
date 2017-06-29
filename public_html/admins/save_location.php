@@ -16,8 +16,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'pictures[]' => 'filemaxmegabytes:2|filemimetypes:image/jpeg,image/png,image/jpg'
             ], ['pictures[]' => $_FILES['pictures']], ['pictures[]']);
 
-
-
     if (empty($validationResult)) {
         //FIRST UPLOAD FILE BEFORE SUBMITTING TO DATA MONGO
         $cleanedUserInputMap = array_map(function($value) {

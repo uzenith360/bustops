@@ -34,49 +34,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ], $cleanedUserInputMap);
 
     if (empty($validationResult)) {
-        require_once '../php/mongodb_insert.php';
+        //u need to check if the route exists
+        require_once '../php/route_exists.php';
+        if (!route_exists($cleanedUserInputMap['hub'], $cleanedUserInputMap['stops'][count($cleanedUserInputMap['stops']) - 1], $cleanedUserInputMap['type'])) {
+            require_once '../php/mongodb_insert.php';
 
-        $ntMissingInfo = true;
-        $routeInfoStops = $cleanedUserInputMap['stops'];
-        $routeInfoFares = $cleanedUserInputMap['fares'];
-        $routeInfoCt = count($routeInfoStops);
-        if (count($routeInfoStops) === count($routeInfoFares)) {
-            for ($i = 0, $newStops = [], $cleanStops = [], $cleanFares = []; $i < $routeInfoCt; ++$i) {
-                $cleanStop = htmlspecialchars(strip_tags(trim($routeInfoStops[$i])));
-                $cleanFare = htmlspecialchars(strip_tags(trim($routeInfoFares[$i])));
-                if (($cleanStop && !$cleanFare) || (!$cleanStop && $cleanFare)) {
-                    $ntMissingInfo = false;
-                    break;
-                } else if ($cleanStop && $cleanFare) {
-                    $cleanStops[$i] = $cleanStop;
-                    $cleanFares[$i] = $cleanFare;
-                }
-            }
-        } else {
-            $ntMissingInfo = false;
-        }
-
-        if ($ntMissingInfo) {
-            if (count($cleanStops)) {
-                $cleanedUserInputMap['stops'] = $cleanStops;
-                $cleanedUserInputMap['fares'] = $cleanFares;
-
-                //save to mongo store
-                if (($id = mongoDB_insert($cleanedUserInputMap, 'routes'))) {
-                    require_once '../php/map_routes.php';
-                    //actually create the routes
-                    if (!($response['result'] = map_routes($id, $cleanedUserInputMap))) {
-                        $response ['err'] = ['error' => 'DB', 'msg' => 'Problem saving data, please try again'];
-                        mongoDB_delete($id, 'routes');
+            $ntMissingInfo = true;
+            $routeInfoStops = $cleanedUserInputMap['stops'];
+            $routeInfoFares = $cleanedUserInputMap['fares'];
+            $routeInfoCt = count($routeInfoStops);
+            if ($routeInfoCt === count($routeInfoFares)) {
+                for ($i = 0, $newStops = [], $cleanStops = [], $cleanFares = []; $i < $routeInfoCt; ++$i) {
+                    $cleanStop = htmlspecialchars(strip_tags(trim($routeInfoStops[$i])));
+                    $cleanFare = htmlspecialchars(strip_tags(trim($routeInfoFares[$i])));
+                    if (($cleanStop && !$cleanFare) || (!$cleanStop && $cleanFare)) {
+                        $ntMissingInfo = false;
+                        break;
+                    } else if ($cleanStop && $cleanFare) {
+                        $cleanStops[$i] = $cleanStop;
+                        $cleanFares[$i] = $cleanFare;
                     }
-                } else {
-                    $response ['err'] = ['error' => 'DB', 'msg' => 'Problem saving data, please try again'];
                 }
             } else {
-                $response ['err'] = ['error' => 'NOSTOPS', 'msg' => 'No stops were specified'];
+                $ntMissingInfo = false;
+            }
+
+            if ($ntMissingInfo) {
+                if (count($cleanStops)) {
+                    $cleanedUserInputMap['stops'] = $cleanStops;
+                    $cleanedUserInputMap['fares'] = $cleanFares;
+
+                    //save to mongo store
+                    if (($id = mongoDB_insert($cleanedUserInputMap, 'routes'))) {
+                        require_once '../php/map_routes.php';
+                        //actually create the routes
+                        if (!($response['result'] = map_routes($id, $cleanedUserInputMap))) {
+                            $response ['err'] = ['error' => 'DB', 'msg' => 'Problem saving data, please try again'];
+                            mongoDB_delete($id, 'routes');
+                        }
+                    } else {
+                        $response ['err'] = ['error' => 'DB', 'msg' => 'Problem saving data, please try again'];
+                    }
+                } else {
+                    $response ['err'] = ['error' => 'NOSTOPS', 'msg' => 'No stops were specified'];
+                }
+            } else {
+                $response ['err'] = ['error' => 'MISSINGINFO', 'msg' => 'Missing route information'];
             }
         } else {
-            $response ['err'] = ['error' => 'MISSINGINFO', 'msg' => 'Missing route information'];
+            //then advise the admin to edit or delete the previous route before creating the route afresh
+            $response ['err'] = ['error' => 'ROUTEEXISTS', 'msg' => 'Route exists, contact the super admin to edit or delete the previously saved route'];
         }
     } else {
         $response ['err'] = ['error' => 'VALIDATION', 'msg' => $validationResult];

@@ -109,7 +109,7 @@ window.onload = function () {
             div.innerHTML = '<div class="col-xs-10"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-arrow-down"></i></span><input type="text" class="form-control" name="destination[]" placeholder="Destination ' + ++vars.addDestinationCt + '"></div></div><div class="col-xs-2"><button type="button" id="cD-' + vars.addDestinationCt + '" class="btn btn-warning">Clear</button></div>';
             document.getElementById("destinations").appendChild(div);
         });
-        $('.tablinks').click(function(){
+        $('.tablinks').click(function () {
             $('.tabcontent').css('display', 'none');
             $('.tablinks').removeClass('active');
             document.getElementById($(this).addClass('active').attr('data-tabcontent')).style.display = 'block';
@@ -177,6 +177,9 @@ window.onload = function () {
                                         break;
                                     case 'NOSTOPS':
                                         heading.innerHTML = 'No stops were specified';
+                                        break;
+                                    case 'ROUTEEXISTS':
+                                        heading.innerHTML = 'Route exists, contact the super admin to edit or delete the previously saved route';
                                         break;
                                     default:
                                         heading.innerHTML = 'Problem Saving, please try again';
@@ -472,7 +475,7 @@ window.onload = function () {
         input.setAttribute('type', 'text');
         input.setAttribute('placeholder', 'Search for a location');
         input.setAttribute('class', 'controls');
-        input.setAttribute('style', 'width: '+(window.innerWidth > 519 ? '400':window.innerWidth-119)+'px');
+        input.setAttribute('style', 'width: ' + (window.innerWidth > 519 ? '400' : window.innerWidth - 119) + 'px');
         input.setAttribute('autocomplete', 'off');
         icoSpan.setAttribute('style', 'cursor:pointer;margin-left: 10px;margin-top: 10px;width: 29px; height: 29px;padding:5px 5px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 3px;-webkit-box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 3px;box-sizing: border-box;');
         icoSpan.setAttribute('title', 'Search for a location');
@@ -784,7 +787,7 @@ window.onload = function () {
 
 //Minus the route information form height?
         document.getElementById('map').style.height = window.innerHeight + 'px';
-        
+
         //also request to get nearby locations from server and display
     }
 
