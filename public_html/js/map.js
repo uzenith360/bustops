@@ -6,7 +6,7 @@ var map = {};
 window.onload = function () {
     if (!navigator.geolocation) {//new Dialog('', '<input type="text">', '<button z-dialog-send>send</button>', {send:['click', function(){alert('Send');return true;}]})
         new Dialog('Location not supported by your browser', 'Bustops needs location to work properly, please upgrade your browser to the latest version, or use chrome');
-        return;
+        //return;
     }
 
     var config = {
@@ -137,6 +137,10 @@ window.onload = function () {
 
 
     function watchMyLocation(cb) {
+        if (!navigator.geolocation) {
+            return cb(new Error('Location unsupported by browser'));
+        }
+
         vars.locationWatch = navigator.geolocation.watchPosition(function (pos) {
             myLocSuccess(pos);
             cb && cb();
@@ -351,7 +355,7 @@ window.onload = function () {
         input.setAttribute('type', 'text');
         input.setAttribute('placeholder', 'Search for a location');
         input.setAttribute('class', 'controls');
-        input.setAttribute('style', 'width: '+(window.innerWidth > 519 ? '400':window.innerWidth-119)+'px');
+        input.setAttribute('style', 'width: ' + (window.innerWidth > 519 ? '400' : window.innerWidth - 119) + 'px');
         input.setAttribute('autocomplete', 'off');
         icoSpan.setAttribute('style', 'cursor:pointer;margin-left: 10px;margin-top: 10px;width: 29px; height: 29px;padding:5px 5px;background-color: #fff;border-radius: 2px;border: 1px solid transparent;box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 3px;-webkit-box-shadow: rgba(0, 0, 0, 0.3) 0px 1px 3px);box-sizing: border-box;');
         icoSpan.setAttribute('title', 'Search for a location');
@@ -397,6 +401,11 @@ window.onload = function () {
         directionStop.appendChild(directionStopImg);
 
         meCntrl.addEventListener('click', function () {
+            if (!navigator.geolocation) {
+                toast('Your browser doesn\'t support location, please upgrade', 2, 10000);
+                return;
+            }
+
             toast('Getting your location', 1);
             navigator.geolocation.getCurrentPosition(function (pos) {
                 toast('Getting your location', 0);
@@ -444,6 +453,11 @@ window.onload = function () {
                 vars.locationWatch = null;
                 vars.tripMode = false;
             } else {
+                if (!navigator.geolocation) {
+                    toast('Your browser doesn\'t support location, please upgrade', 2, 10000);
+                    return;
+                }
+
                 toast('Turning on trip mode', 1);
                 watchMyLocation(function (err) {
                     toast('Turning on trip mode', 0);
@@ -494,6 +508,11 @@ window.onload = function () {
                 }).mouseout(function () {
                     $(this).prop('src', 'img/gps_grey.png');
                 }).click(function () {
+                    if (!navigator.geolocation) {
+                        toast('Your browser doesn\'t support location, please upgrade', 2, 10000);
+                        return;
+                    }
+
                     toast('Getting your location', 1);
 
                     var self = this;
@@ -529,7 +548,7 @@ window.onload = function () {
                 });
             }
 
-            document.getElementById("getDirectionsSidenav").style.width = window.innerWidth > 500 ?"500px" :window.innerWidth+'px';
+            document.getElementById("getDirectionsSidenav").style.width = window.innerWidth > 500 ? "500px" : window.innerWidth + 'px';
             document.getElementById('tripDirectionsForm').elements['tripStart'].focus();
         });
         directionStop.addEventListener('click', function () {
@@ -667,8 +686,8 @@ window.onload = function () {
             direction.click();
             document.getElementById('tripDirectionsForm').elements['tripEnd'].focus();
         });
-        
-        document.getElementById('map').style.height=window.innerHeight+'px';
+
+        document.getElementById('map').style.height = window.innerHeight + 'px';
 
         //also request to get nearby locations from server and display
     }
