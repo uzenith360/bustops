@@ -99,7 +99,7 @@ window.onload = function () {
                 return;
             }
 
-            var pagination=$('#history').twbsPagination({
+            var pagination = $('#history').twbsPagination({
                 totalPages: Math.ceil(result / 10),
                 first: '<small title="First page"><< </small>',
                 last: '<small title="Last page"> >></small>',
@@ -114,12 +114,12 @@ window.onload = function () {
                         }
 
                         results.forEach(function (result) {
-                            
+
                         });
                     });
                 }
             });
-            console.info(pagination.twbsPagination('page',3));
+            console.info(pagination.twbsPagination('page', 3));
         });
 
         //Attach the event handlers

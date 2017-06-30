@@ -777,7 +777,7 @@ window.onload = function () {
     }
     function onMapidle() {
         console.log('idle');
-        loadLocations();
+       // loadLocations();
     }
     function onMapmaptypeid_changed() {
         console.log('maptypeid_changed');
@@ -887,7 +887,7 @@ window.onload = function () {
         return d; // returns the distance in meter
     }
 
-    function loadLocations() {
+    /*function loadLocations() {
         if (vars.loadLocationsDisabled) {
             return;
         }
@@ -934,7 +934,7 @@ window.onload = function () {
 
             }
         });
-    }
+    }*/
 
     function getRoute(startLoc, endLoc, cb, tripMode) {
         if (!vars.loadLocationsDisabled) {
@@ -1317,9 +1317,9 @@ window.onload = function () {
         vars.myMarker && vars.myMarker.setVisible(false);
         vars.placeSearchMarker && vars.placeSearchMarker.setVisible(false);
 
-        for (var location in vars.locations) {
+        /*for (var location in vars.locations) {
             vars.locations[location].marker.hide();
-        }
+        }*/
 
         vars.thrsVisibleMarkers = false;
     }
@@ -1327,9 +1327,9 @@ window.onload = function () {
         //vars.myMarker && vars.myMarker.setVisible(true);
         //vars.placeSearchMarker && vars.placeSearchMarker.setVisible(true);
 
-        for (var location in vars.locations) {
+        /*for (var location in vars.locations) {
             vars.locations[location].marker.show();
-        }
+        }*/
 
         vars.thrsVisibleMarkers = true;
     }
@@ -1346,7 +1346,7 @@ window.onload = function () {
         (vars.googleDirectionsPanel || document.getElementById('googleDirectionsPanel')).innerHTML = (vars.bustopsDirectionsPanel || document.getElementById('bustopsDirectionsPanel')).innerHTML = '<p style="padding: 10px 15px;">No directions</p>';
         (vars.tripSummary || document.getElementById('tripSummary')).style.display = 'none';
         vars.loadLocationsDisabled = false;
-        loadLocations();
+        //loadLocations();
     }
 
     function searchRoute(startLoc, endLoc, tripMode, cb) {
