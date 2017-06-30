@@ -6,7 +6,6 @@ var map = {};
 window.onload = function () {
     if (!navigator.geolocation) {
         new Dialog('Location not supported by your browser', 'Bustops needs location to work properly, please upgrade your browser to the latest version, or use chrome');
-        //return;
     }
 
     var config = {
@@ -76,7 +75,7 @@ window.onload = function () {
 
         setTimeout(function () {
             //make sure all the required libraries are loaded
-            if (typeof google !== 'object' || !google.maps || typeof $ !== 'function' || typeof Parsley !== 'object' || typeof $.ui !== 'object' || typeof $.ui.autocomplete !== 'function') {
+            if (typeof google !== 'object' || !google.maps || typeof $ !== 'function' || typeof Parsley !== 'object' || typeof $.ui !== 'object' || typeof $.ui.autocomplete !== 'function' || typeof $.fn.twbsPagination !== 'function') {
                 return _();
             }
 
@@ -92,6 +91,35 @@ window.onload = function () {
 
         Parsley.addMessages('en', {
             dimensions: 'The display picture dimensions should be a minimum of 100px by 100px'
+        });
+
+        ajax({url: 'get_saved_routes.php', method: 'GET', data: null, dataType: 'JSON'}, function (err, result) {
+            if (err) {
+                alert('Your saved routes failed to load, please refresh page to solve this issue');
+                return;
+            }
+
+            var pagination=$('#history').twbsPagination({
+                totalPages: Math.ceil(result / 10),
+                first: '<small title="First page"><< </small>',
+                last: '<small title="Last page"> >></small>',
+                prev: '<small title="Previous page">< </small>',
+                next: '<small title="Next page"> ></small>',
+                onPageClick: function (event, page) {
+                    pagination.twbsPagination('disable');
+                    ajax({url: 'get_saved_routes.php', method: 'GET', data: {p: page}, dataType: 'JSON'}, function (err, results) {
+                        pagination.twbsPagination('enable');
+                        if (err) {
+                            return;
+                        }
+
+                        results.forEach(function (result) {
+                            
+                        });
+                    });
+                }
+            });
+            console.info(pagination.twbsPagination('page',3));
         });
 
         //Attach the event handlers

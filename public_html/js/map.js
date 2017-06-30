@@ -6,8 +6,7 @@ var map = {};
 window.onload = function () {
     if (!navigator.geolocation) {//new Dialog('', '<input type="text">', '<button z-dialog-send>send</button>', {send:['click', function(){alert('Send');return true;}]})
         new Dialog('Location not supported by your browser', 'Bustops needs location to work properly, please upgrade your browser to the latest version, or use chrome');
-        //return;
-    }
+   }
 
     var config = {
         key: 'AIzaSyCE_FU6RoHW0EH_UC6agCjWvVjaHtD_SRc',
