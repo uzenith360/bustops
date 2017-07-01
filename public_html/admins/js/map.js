@@ -37,8 +37,11 @@ window.onload = function () {
         locationWatch: null,
         locations: {},
         busRouteForm: document.getElementById('busRouteForm').elements,
+        busRouteEditForm: document.getElementById('busRouteEditForm').elements,
         addStopCt: 0,
         addDestinationCt: 1,
+        addEditStopCt: 0,
+        addEditDestinationCt: 1,
         directionsService: null,
         directionsDisplay: null,
         route: {},
@@ -144,12 +147,26 @@ window.onload = function () {
             div.innerHTML = "<div " + " class=\"col-xs-8\"><input disabled  type=\"text\" class=\"form-control\" name=\"stop[]\" placeholder=\"Stop " + ++vars.addStopCt + "\"><input type=\"text\" style=\"display:none\" name=\"stoph[]\"></div><div class=\"col-xs-2\"><input class=\"form-control\" name=\"fares[]\" type=\"number\" placeholder=\"Fares (&#8358;)\"></div><div class=\"col-xs-2\"><button type=\"button\" class=\"btn btn-warning\" id=\"cSt-" + vars.addStopCt + "\">Clear</button></div>";
             stops.appendChild(div);
         });
+        document.getElementById('EaS').addEventListener('click', function () {
+            var div = document.createElement("div"), stops = document.getElementById("editStops");
+            div.setAttribute("class", "row");
+            vars.addStopCt ? div.setAttribute("style", "margin-top:5px;") : document.getElementById("ErIs").innerHTML = "<div class=\"col-xs-10\"><button class=\"btn btn-primary form-control\"  name=\"save\">Save</button></div><div class=\"col-xs-2\"><input type=\"reset\" class=\"btn btn-warning\" value=\"Clear\"></div>";
+            div.innerHTML = "<div " + " class=\"col-xs-8\"><input disabled  type=\"text\" class=\"form-control\" name=\"stop[]\" placeholder=\"Stop " + ++vars.addStopCt + "\"><input type=\"text\" style=\"display:none\" name=\"stoph[]\"></div><div class=\"col-xs-2\"><input class=\"form-control\" name=\"fares[]\" type=\"number\" placeholder=\"Fares (&#8358;)\"></div><div class=\"col-xs-2\"><button type=\"button\" class=\"btn btn-warning\" id=\"EcSt-" + vars.addEditStopCt + "\">Clear</button></div>";
+            stops.appendChild(div);
+        });
         document.getElementById('aD').addEventListener('click', function () {
             var div = document.createElement("div");
             div.setAttribute("class", "row");
             div.setAttribute("style", "margin-top:5px;");
             div.innerHTML = '<div class="col-xs-10"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-arrow-down"></i></span><input type="text" class="form-control" name="destination[]" placeholder="Destination ' + ++vars.addDestinationCt + '"></div></div><div class="col-xs-2"><button type="button" id="cD-' + vars.addDestinationCt + '" class="btn btn-warning">Clear</button></div>';
             document.getElementById("destinations").appendChild(div);
+        });
+        document.getElementById('EaD').addEventListener('click', function () {
+            var div = document.createElement("div");
+            div.setAttribute("class", "row");
+            div.setAttribute("style", "margin-top:5px;");
+            div.innerHTML = '<div class="col-xs-10"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-arrow-down"></i></span><input type="text" class="form-control" name="destination[]" placeholder="Destination ' + ++vars.addEditDestinationCt + '"></div></div><div class="col-xs-2"><button type="button" id="EcD-' + vars.addEditDestinationCt + '" class="btn btn-warning">Clear</button></div>';
+            document.getElementById("editDestinations").appendChild(div);
         });
         $('.tablinks').click(function () {
             $('.tabcontent').css('display', 'none');
@@ -159,31 +176,42 @@ window.onload = function () {
         $('body').on('click', '[id |= "cSt"]', function () {
             var id = $(this).prop('id').split('-')[1] - 1;
             (vars.busRouteForm['fares[]'][id] || vars.busRouteForm['fares[]']).value = '', (vars.busRouteForm['stop[]'][id] || vars.busRouteForm['stop[]']).value = '', (vars.busRouteForm['stoph[]'][id] || vars.busRouteForm['stoph[]']).value = '';
+        }).on('click', '[id |= "EcSt"]', function () {
+            var id = $(this).prop('id').split('-')[1] - 1;
+            (vars.busRouteEditForm['fares[]'][id] || vars.busRouteEditForm['fares[]']).value = '', (vars.busRouteEditForm['stop[]'][id] || vars.busRouteEditForm['stop[]']).value = '', (vars.busRouteEditForm['stoph[]'][id] || vars.busRouteEditForm['stoph[]']).value = '';
         }).on('click', '[id |= "cD"]', function () {
             var id = $(this).prop('id').split('-')[1] - 1;
             (vars.busRouteForm['destination[]'][id] || vars.busRouteForm['destination[]']).value = '';
+        }).on('click', '[id |= "EcD"]', function () {
+            var id = $(this).prop('id').split('-')[1] - 1;
+            (vars.busRouteEditForm['destination[]'][id] || vars.busRouteEditForm['destination[]']).value = '';
         }).on('click', '[id |= "hPCe"]', function () {
             var id = $(this).prop('id').split('-')[1];
             console.log(id);
         }).on('click', '[id |= "hPCd"]', function () {
             var id = $(this).prop('id').split('-')[1];
-            if (confirm('Sure you wanna delete this route?')) {
-                ajax({url: 'delete_route.php', method: 'POST', data: {i: id}, dataType: 'JSON'}, function (err, result) {
-                    if (err || result.err) {
-                        switch (result.err) {
-                            case 'NOTFOUND':
-                                toast('Route not found, maybe previously deleted', 2, 10000);
-                                break;
-                            default:
-                                toast('Problem deleting route, please try again', 2, 10000);
-                                break;
-                        }
-                        return;
-                    }
 
-                    document.getElementById('hPC-' + id).remove();
-                });
-            }
+            new Dialog('<h4 style="margin:0px;"><strong class="text-danger">Delete route!</strong></h4>', '<div>Are you sure you want to delete this route?</div>', '<button type="button" z-dialog-yes class="btn btn-danger">Yes</button><button type="button" z-dialog-no class="btn btn-default">No</button>', {yes: ['click', function (e) {
+                        ajax({url: 'delete_route.php', method: 'POST', data: {i: id}, dataType: 'JSON'}, function (err, result) {
+                            if (err || result.err) {
+                                switch (result.err) {
+                                    case 'NOTFOUND':
+                                        toast('Route not found, maybe previously deleted', 2, 10000);
+                                        break;
+                                    default:
+                                        toast('Problem deleting route, please try again', 2, 10000);
+                                        break;
+                                }
+                                return true;
+                            }
+
+                            document.getElementById('hPC-' + id).remove();
+                            return true;
+                        });
+                    }], no: ['click', function () {
+                        //close the dialog by returning true
+                        return true;
+                    }]});
         });
         $('#busRouteForm').parsley().on('form:submit', function (e) {
             var form = document.getElementById('busRouteForm'), formElements = form.elements,
@@ -214,6 +242,101 @@ window.onload = function () {
                     $.ajax({
                         type: "POST",
                         url: '../save_route.php',
+                        data: {type: type, stops: stops, hub: hub, fares: fares, admin_id: admin_id, startTime: startTime, closeTime: closeTime, destinations: destinations},
+                        dataType: 'JSON',
+                        success: function (response) {
+                            if (!response.err) {
+                                //Display submitted
+
+                                /*
+                                 * No need to change the button class back to primary since were closing the dialog anyway
+                                 */
+                                sendBtn.classList.remove('btn-warning');
+                                sendBtn.classList.add('btn-success');
+                                sendBtn.innerHTML = 'Success';
+                                heading.innerHTML = 'Saved';
+
+                                form.reset();
+                            } else {
+                                var field = formElements[response.err.msg.field];
+
+                                switch (response.err.error) {
+                                    case 'VALIDATION':
+                                        heading.innerHTML = 'Review some field(s)';
+                                        break;
+                                    case 'MISSINGINFO':
+                                        heading.innerHTML = 'Missing route information';
+                                        break;
+                                    case 'NOSTOPS':
+                                        heading.innerHTML = 'No stops were specified';
+                                        break;
+                                    case 'ROUTEEXISTS':
+                                        heading.innerHTML = 'Route exists, contact the super admin to edit or delete the previously saved route';
+                                        break;
+                                    default:
+                                        heading.innerHTML = 'Problem Saving, please try again';
+                                        break;
+                                }
+
+                                sendBtn.classList.remove('btn-warning');
+                                sendBtn.classList.add('btn-danger');
+                                sendBtn.innerHTML = 'Try again';
+                                field && $(field).parsley().addError && $(field).parsley().addError('error', {message: response.err.msg.message});
+                            }
+                        }, error: function (jqXHR, textStatus, errorThrown) {
+                            sendBtn.classList.remove('btn-warning');
+                            sendBtn.classList.add('btn-danger');
+                            sendBtn.innerHTML = 'Try again';
+                            heading.innerHTML = 'Try saving again';
+                        }, complete: function () {
+                            sendBtn.disabled = false;
+                        }
+                    });
+                } else {
+                    sendBtn.classList.remove('btn-danger');
+                    sendBtn.classList.remove('btn-success');
+                    sendBtn.classList.remove('btn-primary');
+                    sendBtn.classList.add('btn-warning');
+                    heading.innerHTML = 'Missing information for bustop';
+                }
+            } else {
+                sendBtn.classList.remove('btn-danger');
+                sendBtn.classList.remove('btn-success');
+                sendBtn.classList.remove('btn-primary');
+                sendBtn.classList.add('btn-warning');
+                heading.innerHTML = 'No bustops specified';
+            }
+            return false;
+        });
+        $('#busRouteEditForm').parsley().on('form:submit', function (e) {
+            var form = document.getElementById('busRouteEditForm'), formElements = form.elements,
+                    startTime = formElements['startTime'].value, closeTime = formElements['closeTime'].value,
+                    type = formElements['type'].value, admin_id = vars.adminId, value, hub = formElements['hubh'].value, stops = [], fares = [], destinations = [],
+                    sendBtn = formElements['save'], heading = document.getElementById('busRouteFormHeading');
+
+            for (var i = 0, list = formElements['stoph[]'], listF = formElements['fares[]'], listLength = list.length || 1; i < listLength; ++i) {
+                (value = (list[i] || list).value) && stops.push(value) && (value = (listF[i] || listF).value) && fares.push(value);
+            }
+            //for (var i = 0, list = formElements['fares[]']/*, listLength = list.length || 1*/; i < listLength; ++i) {
+            //  (value = (list[i] || list).value) && fares.push(value);
+            //}
+            for (var i = 0, list = formElements['destination[]'], listLength = list.length || 1; i < listLength; ++i) {
+                (value = (list[i] || list).value) && destinations.push(value);
+            }
+
+            if (stops.length) {
+                if (stops.length === fares.length) {
+                    //Make the button change color and display saving
+                    sendBtn.classList.remove('btn-primary');
+                    sendBtn.classList.remove('btn-danger');
+                    sendBtn.classList.add('btn-warning');
+                    sendBtn.disabled = true;
+                    sendBtn.innerHTML = 'Saving';
+                    heading.innerHTML = 'Saving...';
+
+                    $.ajax({
+                        type: "POST",
+                        url: '../edit_route.php',
                         data: {type: type, stops: stops, hub: hub, fares: fares, admin_id: admin_id, startTime: startTime, closeTime: closeTime, destinations: destinations},
                         dataType: 'JSON',
                         success: function (response) {

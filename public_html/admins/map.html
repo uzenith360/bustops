@@ -181,7 +181,7 @@
                     </div>
                     <div id="history" class="tabcontent">
                         <div id="history-content"></div>
-                        <div id="history-pagination"></div>
+                        <div id="history-pagination" style="padding-top:10px;padding-bottom:0px;"></div>
                     </div>
                     <div class="tabcontent" id="edit">
                         <form id="busRouteEditForm">
@@ -248,10 +248,10 @@
                                             <input data-parsley-required type="text" class="form-control" name="destination[]" placeholder="Destination 1">
                                         </div>
                                     </div>
-                                    <div class="col-xs-2"><button type="button" id="cD-1" class="btn btn-warning">Clear</button></div>
+                                    <div class="col-xs-2"><button type="button" id="EcD-1" class="btn btn-warning">Clear</button></div>
                                 </div>
-                                <div id="destinations"></div>
-                                <p id="aD" class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add destination</p>
+                                <div id="editDestinations"></div>
+                                <p id="EaD" class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add destination</p>
                             </div>
                             <div class="row">
                                 <div class="form-group col-xs-10">
@@ -261,13 +261,13 @@
                                         <input type="text" style="display:none" name='hubh'>
                                     </div>
                                 </div>
-                                <div class="col-xs-2"><button type="button" onclick="var elems = document.getElementById('busRouteForm').elements;elems['hub'].value = elems['hubh'].value = '';" class="btn btn-warning">Clear</button></div>
+                                <div class="col-xs-2"><button type="button" onclick="var elems = document.getElementById('busRouteEditForm').elements;elems['hub'].value = elems['hubh'].value = '';" class="btn btn-warning">Clear</button></div>
                             </div>
                             <div class="form-group">
-                                <div id="stops"></div>
-                                <p id="aS" class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add stop</p>
+                                <div id="editStops"></div>
+                                <p id="EaS" class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add stop</p>
                             </div>
-                            <div class="form-group row" id="rIs"></div>
+                            <div class="form-group row" id="ErIs"></div>
                         </form>
                     </div>
                 </div>
