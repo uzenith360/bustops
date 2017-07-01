@@ -1507,7 +1507,7 @@ window.onload = function () {
             success: function (response) {
                 cb(null, response);
             },
-            failure: function (jqXHR, textStatus, errorThrown) {
+            error: function (jqXHR, textStatus, errorThrown) {
                 cb(new Error(textStatus));
             }
         });
