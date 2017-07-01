@@ -801,7 +801,7 @@ window.onload = function () {
                 timeout = setTimeout(function () {
                     timeout = null;
                     $(self).tooltip("hide");
-                }, 7000);
+                }, 10000);
                 $(this).on('hide.bs.tooltip', function () {
                     timeout && window.clearTimeout(timeout);
                 });

@@ -13,6 +13,7 @@
         <link href="css/style.css" rel="stylesheet" type="text/css"/>
         <link href="../css/parsley.css" rel="stylesheet" type="text/css"/>
         <link href="../css/jquery-ui-autocomplete.css" rel="stylesheet" type="text/css"/>
+        <link href="../css/simplePagination.css" rel="stylesheet" type="text/css"/>
     </head>
     <body>
         <div id="getDirectionsSidenav">
@@ -89,6 +90,7 @@
                     <div class="tab">
                         <button class="tablinks active" data-tabcontent="new">New route</button>
                         <button class="tablinks" data-tabcontent="history">Saved routes</button>
+                        <button class="tablinks" data-tabcontent="edit">Edit route</button>
                     </div>
                     <div id="new" class="tabcontent" style="display:block;">
                         <form id="busRouteForm">
@@ -178,13 +180,95 @@
                         </form>
                     </div>
                     <div id="history" class="tabcontent">
-                        <table class="table table-hover table-striped" style="margin-bottom: 0px;">
-                            <tr><th>1</th><td>DANFO from odo-eran to LAWANSON</td><td><div class="pull-right"><button type="button" class="btn btn-primary" style="margin-right: 10px">
-                                        <span class="glyphicon glyphicon-pencil"></span>
-                                    </button><button type="button" class="btn btn-danger">
-                                        <span class="glyphicon glyphicon-remove"></span>
-                                    </button></div></td></tr>
-                        </table>
+                        <div id="history-content"></div>
+                        <div id="history-pagination"></div>
+                    </div>
+                    <div class="tabcontent" id="edit">
+                        <form id="busRouteEditForm">
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-xs-4">
+                                        <div class="input-group">
+                                            <span class="input-group-addon"><i class="glyphicon glyphicon-dashboard"></i></span>
+                                            <select data-parsley-required class="form-control" name="type">
+                                                <option disabled selected>Transport type</option>
+                                                <option value="DANFO">DANFO</option>
+                                                <option value="KEKE">KEKE</option>
+                                                <option value="COASTER">COASTER</option>
+                                                <option value="MOLUE">MOLUE</option>
+                                                <option value="SMALL_BUS">SMALL BUS</option>
+                                                <option value="BRT">BRT</option>
+                                                <option value="WALK">WALK</option>
+                                                <!--- This are proximity forms of transport and may only be used sparingly on close drops that lead to diff places and dnt have an bus/keke connecting them--->
+                                                <option value="OKADA">OKADA</option>
+                                                <option value="TAXI">TAXI</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-4">
+                                        <div class="input-group">
+                                            <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
+                                            <select class="form-control" name="startTime">
+                                                <option value="6:30AM" selected="selected">6:30AM</option>
+                                                <option value="7:00AM">7:00AM</option>
+                                                <option value="8:00AM">8:00AM</option>
+                                                <option value="9:00AM">9:00AM</option>
+                                                <option value="12:00AM">12:00AM</option>
+                                                <option value="4:00PM">4:00PM</option>
+                                                <option value="6:00PM">6:00PM</option>
+                                                <option value="8:00PM">8:00PM</option>
+                                                <option value="10:00PM">10:00PM</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-4">
+                                        <div class="input-group">
+                                            <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
+                                            <select class="form-control" name="closeTime">
+                                                <option value="6:30AM">6:30AM</option>
+                                                <option value="7:00AM">7:00AM</option>
+                                                <option value="8:00AM">8:00AM</option>
+                                                <option value="9:00AM">9:00AM</option>
+                                                <option value="12:00AM">12:00AM</option>
+                                                <option value="4:00PM">4:00PM</option>
+                                                <option value="6:00PM">6:00PM</option>
+                                                <option value="8:00PM">8:00PM</option>
+                                                <option value="10:00PM">10:00PM</option>
+                                                <option value="12:00PM" selected="selected">12:00PM</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="row">
+                                    <div class="col-xs-10">
+                                        <div class="input-group">
+                                            <span class="input-group-addon"><i class="glyphicon glyphicon-arrow-down"></i></span>
+                                            <input data-parsley-required type="text" class="form-control" name="destination[]" placeholder="Destination 1">
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-2"><button type="button" id="cD-1" class="btn btn-warning">Clear</button></div>
+                                </div>
+                                <div id="destinations"></div>
+                                <p id="aD" class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add destination</p>
+                            </div>
+                            <div class="row">
+                                <div class="form-group col-xs-10">
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span>
+                                        <input disabled  type="text" class="form-control" name="hub" placeholder="Hub">
+                                        <input type="text" style="display:none" name='hubh'>
+                                    </div>
+                                </div>
+                                <div class="col-xs-2"><button type="button" onclick="var elems = document.getElementById('busRouteForm').elements;elems['hub'].value = elems['hubh'].value = '';" class="btn btn-warning">Clear</button></div>
+                            </div>
+                            <div class="form-group">
+                                <div id="stops"></div>
+                                <p id="aS" class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add stop</p>
+                            </div>
+                            <div class="form-group row" id="rIs"></div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -192,7 +276,7 @@
         <div id="snackbar"></div>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-        <script src="../js/jquery.twbsPagination.min.js" type="text/javascript"></script>
+        <script src="../js/jquery.simplePagination.min.js" type="text/javascript"></script>
         <!--<script src="js/jquery.min.js"></script>
         <script src="js/bootstrap.min.js"></script>-->
         <!--use cdn e.g cloudflare to store page resources-->

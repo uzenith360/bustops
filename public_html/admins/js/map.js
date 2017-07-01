@@ -61,7 +61,10 @@ window.onload = function () {
         travelMode: 'ALL',
         selectedTravelMode: null,
         searchRouteBusy: false,
-        traveModeBusy: false
+        traveModeBusy: false,
+        historyPagination: null,
+        historyPaginationContent: null,
+        savedRoutesPage: null
     };
 
     //init
@@ -75,7 +78,7 @@ window.onload = function () {
 
         setTimeout(function () {
             //make sure all the required libraries are loaded
-            if (typeof google !== 'object' || !google.maps || typeof $ !== 'function' || typeof Parsley !== 'object' || typeof $.ui !== 'object' || typeof $.ui.autocomplete !== 'function' || typeof $.fn.twbsPagination !== 'function') {
+            if (typeof google !== 'object' || !google.maps || typeof $ !== 'function' || typeof Parsley !== 'object' || typeof $.ui !== 'object' || typeof $.ui.autocomplete !== 'function' || typeof $.fn.pagination !== 'function') {
                 return _();
             }
 
@@ -99,27 +102,38 @@ window.onload = function () {
                 return;
             }
 
-            var pagination = $('#history').twbsPagination({
-                totalPages: Math.ceil(result / 10),
-                first: '<small title="First page"><< </small>',
-                last: '<small title="Last page"> >></small>',
-                prev: '<small title="Previous page">< </small>',
-                next: '<small title="Next page"> ></small>',
-                onPageClick: function (event, page) {
-                    pagination.twbsPagination('disable');
+            vars.historyPagination = $('#history-pagination');
+            vars.historyPaginationContent = $('#history-content');
+
+            vars.historyPagination.pagination({
+                items: result,
+                itemsOnPage: 10,
+                cssStyle: 'light-theme',
+                prevText: '&lt;',
+                nextText: '&gt;',
+                onPageClick: function (page) {
+                    if (!page || page === vars.savedRoutesPage) {
+                        return;
+                    }
+
+                    vars.historyPagination.pagination('disable');
                     ajax({url: 'get_saved_routes.php', method: 'GET', data: {p: page}, dataType: 'JSON'}, function (err, results) {
-                        pagination.twbsPagination('enable');
+                        vars.historyPagination.pagination('enable');
                         if (err) {
+                            vars.historyPagination.pagination('selectPage', vars.savedRoutesPage);
                             return;
                         }
+                        vars.savedRoutesPage = page;
 
+                        var idx = 0, historyPaginationContent = '<table class="table table-hover table-striped" style="margin-bottom: 0px;">';
                         results.forEach(function (result) {
-
+                            historyPaginationContent += '<tr id="hPC-' + result._id + '"><th>' + ++idx + '</th><td>' + result.type + ' from ' + result.hub.join(', ') + ' to ' + result.destinations.join(', ') + '</td><td><div class="pull-right"><button id="hPCe-' + result._id + '" type="button" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-pencil"></span></button></div></td><td><div class="pull-right"><button id="hPCd-' + result._id + '" type="button" class="btn btn-danger btn-sm"><span class="glyphicon glyphicon-remove"></span></button></div></td></tr>';
                         });
+                        vars.historyPaginationContent.html(historyPaginationContent + '</table>');
                     });
                 }
             });
-            console.info(pagination.twbsPagination('page', 3));
+            vars.historyPagination.pagination('selectPage', 1);
         });
 
         //Attach the event handlers
@@ -148,6 +162,28 @@ window.onload = function () {
         }).on('click', '[id |= "cD"]', function () {
             var id = $(this).prop('id').split('-')[1] - 1;
             (vars.busRouteForm['destination[]'][id] || vars.busRouteForm['destination[]']).value = '';
+        }).on('click', '[id |= "hPCe"]', function () {
+            var id = $(this).prop('id').split('-')[1];
+            console.log(id);
+        }).on('click', '[id |= "hPCd"]', function () {
+            var id = $(this).prop('id').split('-')[1];
+            if (confirm('Sure you wanna delete this route?')) {
+                ajax({url: 'delete_route.php', method: 'POST', data: {i: id}, dataType: 'JSON'}, function (err, result) {
+                    if (err || result.err) {
+                        switch (result.err) {
+                            case 'NOTFOUND':
+                                toast('Route not found, maybe previously deleted', 2, 10000);
+                                break;
+                            default:
+                                toast('Problem deleting route, please try again', 2, 10000);
+                                break;
+                        }
+                        return;
+                    }
+
+                    document.getElementById('hPC-' + id).remove();
+                });
+            }
         });
         $('#busRouteForm').parsley().on('form:submit', function (e) {
             var form = document.getElementById('busRouteForm'), formElements = form.elements,
@@ -357,7 +393,7 @@ window.onload = function () {
                 break;
         }
 
-        toast('Problem with your location: ' + status, 2, 700);
+        toast('Problem with your location: ' + status, 2, 10000);
     }
 
     function onMyLocationAccuracyChange() {
@@ -1049,7 +1085,7 @@ window.onload = function () {
                 timeout = setTimeout(function () {
                     timeout = null;
                     $(self).tooltip("hide");
-                }, 7000);
+                }, 10000);
                 $(this).on('hide.bs.tooltip', function () {
                     timeout && window.clearTimeout(timeout);
                 });
@@ -1793,7 +1829,7 @@ window.onload = function () {
             success: function (response) {
                 cb(null, response);
             },
-            failure: function (jqXHR, textStatus, errorThrown) {
+            error: function (jqXHR, textStatus, errorThrown) {
                 cb(new Error(textStatus));
             }
         });
