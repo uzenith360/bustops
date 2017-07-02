@@ -130,7 +130,7 @@ window.onload = function () {
 
                         var idx = 0, historyPaginationContent = '<table class="table table-hover table-striped" style="margin-bottom: 0px;">';
                         results.forEach(function (result) {
-                            historyPaginationContent += '<tr id="hPC-' + result._id + '"><th>' + ++idx + '</th><td>' + result.type + ' from ' + result.hub.join(', ') + ' to ' + result.destinations.join(', ') + '</td><td><div class="pull-right"><button id="hPCe-' + result._id + '" type="button" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-pencil"></span></button></div></td><td><div class="pull-right"><button id="hPCd-' + result._id + '" type="button" class="btn btn-danger btn-sm"><span class="glyphicon glyphicon-remove"></span></button></div></td></tr>';
+                            historyPaginationContent += '<tr id="hPC-' + result._id + '"><th>' + ++idx + '</th><td>' + result.type + ' from ' + result.hub.join(', ') + ' to ' + result.destinations.join(', ') + '</td><td><div class="pull-right"><button id="hPCd-' + result._id + '" type="button" class="btn btn-danger btn-sm"><span class="glyphicon glyphicon-remove"></span></button></div></td><td><div class="pull-right"><button id="hPCe-' + result._id + '" type="button" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-pencil"></span></button></div></td></tr>';
                         });
                         vars.historyPaginationContent.html(historyPaginationContent + '</table>');
                     });
@@ -148,11 +148,9 @@ window.onload = function () {
             stops.appendChild(div);
         });
         document.getElementById('EaS').addEventListener('click', function () {
-            var div = document.createElement("div"), stops = document.getElementById("editStops");
-            div.setAttribute("class", "row");
-            vars.addStopCt ? div.setAttribute("style", "margin-top:5px;") : document.getElementById("ErIs").innerHTML = "<div class=\"col-xs-10\"><button class=\"btn btn-primary form-control\"  name=\"save\">Save</button></div><div class=\"col-xs-2\"><input type=\"reset\" class=\"btn btn-warning\" value=\"Clear\"></div>";
-            div.innerHTML = "<div " + " class=\"col-xs-8\"><input disabled  type=\"text\" class=\"form-control\" name=\"stop[]\" placeholder=\"Stop " + ++vars.addStopCt + "\"><input type=\"text\" style=\"display:none\" name=\"stoph[]\"></div><div class=\"col-xs-2\"><input class=\"form-control\" name=\"fares[]\" type=\"number\" placeholder=\"Fares (&#8358;)\"></div><div class=\"col-xs-2\"><button type=\"button\" class=\"btn btn-warning\" id=\"EcSt-" + vars.addEditStopCt + "\">Clear</button></div>";
-            stops.appendChild(div);
+            var ct = +document.getElementById('EaSn').value, pos = document.getElementById('EaSp').selectedIndex;
+            //if nt append to the end then need to rearrange
+            addStop();
         });
         document.getElementById('aD').addEventListener('click', function () {
             var div = document.createElement("div");
@@ -162,11 +160,7 @@ window.onload = function () {
             document.getElementById("destinations").appendChild(div);
         });
         document.getElementById('EaD').addEventListener('click', function () {
-            var div = document.createElement("div");
-            div.setAttribute("class", "row");
-            div.setAttribute("style", "margin-top:5px;");
-            div.innerHTML = '<div class="col-xs-10"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-arrow-down"></i></span><input type="text" class="form-control" name="destination[]" placeholder="Destination ' + ++vars.addEditDestinationCt + '"></div></div><div class="col-xs-2"><button type="button" id="EcD-' + vars.addEditDestinationCt + '" class="btn btn-warning">Clear</button></div>';
-            document.getElementById("editDestinations").appendChild(div);
+            addDestination();
         });
         $('.tablinks').click(function () {
             $('.tabcontent').css('display', 'none');
@@ -177,8 +171,9 @@ window.onload = function () {
             var id = $(this).prop('id').split('-')[1] - 1;
             (vars.busRouteForm['fares[]'][id] || vars.busRouteForm['fares[]']).value = '', (vars.busRouteForm['stop[]'][id] || vars.busRouteForm['stop[]']).value = '', (vars.busRouteForm['stoph[]'][id] || vars.busRouteForm['stoph[]']).value = '';
         }).on('click', '[id |= "EcSt"]', function () {
-            var id = $(this).prop('id').split('-')[1] - 1;
-            (vars.busRouteEditForm['fares[]'][id] || vars.busRouteEditForm['fares[]']).value = '', (vars.busRouteEditForm['stop[]'][id] || vars.busRouteEditForm['stop[]']).value = '', (vars.busRouteEditForm['stoph[]'][id] || vars.busRouteEditForm['stoph[]']).value = '';
+            var id = $(this).prop('id').split('-')[1];
+            document.getElementById('EaSp').options.remove(id);
+            document.getElementById('EcStr-' + id).remove();
         }).on('click', '[id |= "cD"]', function () {
             var id = $(this).prop('id').split('-')[1] - 1;
             (vars.busRouteForm['destination[]'][id] || vars.busRouteForm['destination[]']).value = '';
@@ -187,7 +182,61 @@ window.onload = function () {
             (vars.busRouteEditForm['destination[]'][id] || vars.busRouteEditForm['destination[]']).value = '';
         }).on('click', '[id |= "hPCe"]', function () {
             var id = $(this).prop('id').split('-')[1];
-            console.log(id);
+            toast('Displaying saved route', 1);
+            ajax({url: 'get_saved_route.php', method: 'POST', data: {i: id}, dataType: 'JSON'}, function (err, result) {
+                if (err) {
+                    toast('Problem displaying saved route, please try again', 2, 10000);
+                    return;
+                }
+                var form = document.getElementById('busRouteEditForm'), formElements = form.elements;
+
+                form.reset();
+
+                for (var i = 0, options = formElements['type'].options, ct = options.length; i < ct; ++i) {
+                    if (options[i].value === result.type) {
+                        formElements['type'].selectedIndex = i;
+                        break;
+                    }
+                }
+                for (var i = 0, options = formElements['startTime'].options, ct = options.length; i < ct; ++i) {
+                    if (options[i].value === result.startTime) {
+                        formElements['startTime'].selectedIndex = i;
+                        break;
+                    }
+                }
+                for (var i = 0, options = formElements['closeTime'].options, ct = options.length; i < ct; ++i) {
+                    if (options[i].value === result.closeTime) {
+                        formElements['closeTime'].selectedIndex = i;
+                        break;
+                    }
+                }
+                formElements['hub'].value = result.nhub.join(',');
+                formElements['hubh'].value = result.hub;
+                var addStopsOptions = document.getElementById('EaSp').options, stopName, optionElement;
+                for (var i = 1, ct = addStopsOptions.length; i <= ct; ++i) {
+                    addStopsOptions[i].remove();
+                }
+                optionElement = document.createElement("OPTION");
+                optionElement.text = 'At the beginning';
+                addStopsOptions.add(optionElement, 1);
+                result.stops.forEach(function (stop, idx) {//<option>at the beginning</option>
+                    stopName = result.nstops[idx].join(',');
+                    optionElement = document.createElement("OPTION");
+                    optionElement.text = 'After ' + stopName;
+                    addStopsOptions.add(optionElement, idx + 1);
+                    addStop([stopName, stop, result.fares[idx]]);
+                });
+                optionElement.selected = true;
+                formElements['destination[]'].value = result.destinations[0];
+                for (var i = 1, ct = result.destinations.length; i < ct; ++i) {
+                    addDestination(result.destinations[i]);
+                }
+
+                form.style.display = 'block';
+                $('[data-tabcontent="edit"]').trigger('click');
+                toast('Displaying saved route', 0);
+                console.log(result);
+            });
         }).on('click', '[id |= "hPCd"]', function () {
             var id = $(this).prop('id').split('-')[1];
 
@@ -212,6 +261,18 @@ window.onload = function () {
                         //close the dialog by returning true
                         return true;
                     }]});
+        });
+        document.getElementById('busRouteForm').addEventListener('reset', function () {
+            vars.addStopCt = 0;
+            vars.addDestinationCt = 1;
+            document.getElementById('stops').innerHTML = '';
+            document.getElementById('destinations').innerHTML = '';
+        });
+        document.getElementById('busRouteEditForm').addEventListener('reset', function () {
+            vars.addEditStopCt = 0;
+            vars.addEditDestinationCt = 1;
+            document.getElementById('editStops').innerHTML = '';
+            document.getElementById('editDestinations').innerHTML = '';
         });
         $('#busRouteForm').parsley().on('form:submit', function (e) {
             var form = document.getElementById('busRouteForm'), formElements = form.elements,
@@ -1956,5 +2017,20 @@ window.onload = function () {
                 cb(new Error(textStatus));
             }
         });
+    }
+    function addStop(value) {
+        var div = document.createElement("div"), stops = document.getElementById("editStops");
+        div.setAttribute("id", 'EcStr-' + ++vars.addEditStopCt);
+        div.setAttribute("class", "row");
+        vars.addEditStopCt ? div.setAttribute("style", "margin-top:5px;") : document.getElementById("ErIs").innerHTML = "<div class=\"col-xs-10\"><button class=\"btn btn-primary form-control\"  name=\"save\">Save</button></div><div class=\"col-xs-2\"><input type=\"reset\" class=\"btn btn-warning\" value=\"Clear\"></div>";
+        div.innerHTML = "<div class=\"col-xs-8\"><input disabled  type=\"text\" class=\"form-control\" name=\"stop[]\" " + (value ? 'value="' + value[0] + '" ' : '') + " placeholder=\"Stop " + vars.addEditStopCt + "\"><input type=\"text\" style=\"display:none\" " + (value ? 'value="' + value[1] + '" ' : '') + " name=\"stoph[]\"></div><div class=\"col-xs-2\"><input class=\"form-control\" name=\"fares[]\" type=\"number\" " + (value ? 'value="' + value[2] + '" ' : '') + " placeholder=\"Fares (&#8358;)\"></div><div class=\"col-xs-2\"><button type=\"button\" class=\"btn btn-danger\" id=\"EcSt-" + vars.addEditStopCt + "\">REMOVE</button></div>";
+        stops.appendChild(div);
+    }
+    function addDestination(value) {
+        var div = document.createElement("div");
+        div.setAttribute("class", "row");
+        div.setAttribute("style", "margin-top:5px;");
+        div.innerHTML = '<div class="col-xs-10"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-arrow-down"></i></span><input type="text" class="form-control" name="destination[]" ' + (value ? 'value="' + value + '" ' : '') + 'placeholder="Destination ' + ++vars.addEditDestinationCt + '"></div></div><div class="col-xs-2"><button type="button" id="EcD-' + vars.addEditDestinationCt + '" class="btn btn-warning">Clear</button></div>';
+        document.getElementById("editDestinations").appendChild(div);
     }
 };

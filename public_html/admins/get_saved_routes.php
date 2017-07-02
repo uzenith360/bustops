@@ -1,5 +1,10 @@
 <?php
 require_once '../php/mongodb.php';
+/* session_start();
+
+  if (!isset($_SESSION['id'])) {
+  exit();
+  } */
 //get adminid from session
 $adminId = '2';
 $page = filter_input(INPUT_GET, 'p', FILTER_SANITIZE_NUMBER_INT);

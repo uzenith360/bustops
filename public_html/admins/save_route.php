@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cleanedUserInputMap['stops'] = is_array($_POST['stops']) ? $_POST['stops'] : [];
     $cleanedUserInputMap['fares'] = is_array($_POST['fares']) ? $_POST['fares'] : [];
     $cleanedUserInputMap['destinations'] = array_filter(array_map(function($destination) {
-                return htmlspecialchars(strip_tags(trim($destination)));
+                return ucwords(htmlspecialchars(strip_tags(trim($destination))));
             }, is_array($_POST['destinations']) ? $_POST['destinations'] : []));
 
     $validationResult = $form_validate([

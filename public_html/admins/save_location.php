@@ -22,10 +22,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             return htmlspecialchars(strip_tags(trim(isset($_POST[$value]) ? $_POST[$value] : '')));
         }, ['type' => 'type', 'description' => 'description', 'admin_id' => 'admin_id', 'lat' => 'lat', 'lng' => 'lng']);
         $cleanedUserInputMap['names'] = array_filter(array_map(function($name) {
-                    return htmlspecialchars(strip_tags(trim($name)));
+                    return ucwords(htmlspecialchars(strip_tags(trim($name))));
                 }, is_array($_POST['names']) ? $_POST['names'] : []));
         $cleanedUserInputMap['addresses'] = array_filter(array_map(function($name) {
-                    return htmlspecialchars(strip_tags(trim($name)));
+                    return ucwords(htmlspecialchars(strip_tags(trim($name))));
                 }, is_array($_POST['addresses']) ? $_POST['addresses'] : []));
 
         $validationResult = $form_validate([
@@ -45,12 +45,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             unset($cleanedUserInputMap['lat']);
             unset($cleanedUserInputMap['lng']);
             $cleanedUserInputMap['type'] = strtoupper($cleanedUserInputMap['type']);
-            $cleanedUserInputMap['names'] = array_map(function($name) {
+            /*$cleanedUserInputMap['names'] = array_map(function($name) {
                 return ucwords($name);
             }, $cleanedUserInputMap['names']);
             $cleanedUserInputMap['addresses'] = array_map(function($address) {
                 return ucwords($address);
-            }, $cleanedUserInputMap['addresses']);
+            }, $cleanedUserInputMap['addresses']);*/
             isset($cleanedUserInputMap['description']) && $cleanedUserInputMap['description'] = ucwords($cleanedUserInputMap['description']);
 
             $fileError = false;
