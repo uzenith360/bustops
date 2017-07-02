@@ -148,9 +148,12 @@ window.onload = function () {
             stops.appendChild(div);
         });
         document.getElementById('EaS').addEventListener('click', function () {
-            var ct = +document.getElementById('EaSn').value, pos = document.getElementById('EaSp').selectedIndex;
-            //if nt append to the end then need to rearrange
-            addStop();
+            //detach all rows after the stop and reattach them after appending the new stop rows
+            var i = 0, ct = +document.getElementById('EaSn').value, pos = document.getElementById('EaSp').selectedIndex, detachedElements = $('EcStr-' + pos).after().detach();
+            while (i < ct) {
+                addStop();
+            }
+            document.getElementById("editStops").append(detachedElements);
         });
         document.getElementById('aD').addEventListener('click', function () {
             var div = document.createElement("div");
