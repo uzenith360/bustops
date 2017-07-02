@@ -149,7 +149,7 @@ window.onload = function () {
         });
         document.getElementById('EaS').addEventListener('click', function () {
             //detach all rows after the stop and reattach them after appending the new stop rows
-            var i = 0, ct = +document.getElementById('EaSn').value, pos = document.getElementById('EaSp').selectedIndex, detachedElements = $('#EcStr-' + pos).nextAll().detach();
+            var i = 0, ct = +document.getElementById('EaSn').value, pos = document.getElementById('EaSp').selectedIndex, detachedElements = (pos > 0 ? $('#EcStr-' + pos).nextAll() : $('[id |= "EcStr"]')).detach();
             while (i < ct) {
                 addStop();
                 ++i;
