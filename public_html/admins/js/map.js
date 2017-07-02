@@ -149,11 +149,12 @@ window.onload = function () {
         });
         document.getElementById('EaS').addEventListener('click', function () {
             //detach all rows after the stop and reattach them after appending the new stop rows
-            var i = 0, ct = +document.getElementById('EaSn').value, pos = document.getElementById('EaSp').selectedIndex, detachedElements = $('EcStr-' + pos).after().detach();
+            var i = 0, ct = +document.getElementById('EaSn').value, pos = document.getElementById('EaSp').selectedIndex, detachedElements = $('#EcStr-' + pos).nextAll().detach();
             while (i < ct) {
                 addStop();
+                ++i;
             }
-            document.getElementById("editStops").append(detachedElements);
+            $('#editStops').append(detachedElements);
         });
         document.getElementById('aD').addEventListener('click', function () {
             var div = document.createElement("div");
