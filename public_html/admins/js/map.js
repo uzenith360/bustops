@@ -175,8 +175,8 @@ window.onload = function () {
             var id = $(this).prop('id').split('-')[1] - 1;
             (vars.busRouteForm['fares[]'][id] || vars.busRouteForm['fares[]']).value = '', (vars.busRouteForm['stop[]'][id] || vars.busRouteForm['stop[]']).value = '', (vars.busRouteForm['stoph[]'][id] || vars.busRouteForm['stoph[]']).value = '';
         }).on('click', '[id |= "EcSt"]', function () {
-            var id = $(this).prop('id').split('-')[1];
-            document.getElementById('EaSp').options.remove(id);
+            var id = $(this).prop('id').split('-')[1], option = document.getElementById('oI-'+id);
+            option && option.remove();
             document.getElementById('EcStr-' + id).remove();
         }).on('click', '[id |= "cD"]', function () {
             var id = $(this).prop('id').split('-')[1] - 1;
@@ -222,12 +222,14 @@ window.onload = function () {
                 }
                 optionElement = document.createElement("OPTION");
                 optionElement.text = 'At the beginning';
-                addStopsOptions.add(optionElement, 1);
+                optionElement.id = 'oI-'+0;
+                addStopsOptions.add(optionElement);
                 result.stops.forEach(function (stop, idx) {//<option>at the beginning</option>
                     stopName = result.nstops[idx].join(',');
                     optionElement = document.createElement("OPTION");
                     optionElement.text = 'After ' + stopName;
-                    addStopsOptions.add(optionElement, idx + 1);
+                    optionElement.id = 'oI-'+(idx + 1);
+                    addStopsOptions.add(optionElement);
                     addStop([stopName, stop, result.fares[idx]]);
                 });
                 optionElement.selected = true;
