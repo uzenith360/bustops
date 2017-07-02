@@ -3,8 +3,9 @@
 
 //wht can be edit in a route
 // - the type of route i'e danfo route
-// - the price for a particular hop or hops in a route
+// - destinations
+// - stops and fares
 // - route hub
-// - a particular stop/stops or the ordering of d stops
-// - route start and close times
+// - route start
+// - close times
 

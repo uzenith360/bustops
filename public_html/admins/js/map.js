@@ -67,7 +67,9 @@ window.onload = function () {
         traveModeBusy: false,
         historyPagination: null,
         historyPaginationContent: null,
-        savedRoutesPage: null
+        savedRoutesPage: null,
+        savedRoute: null,
+        activeTabContent: 'new'
     };
 
     //init
@@ -167,6 +169,8 @@ window.onload = function () {
             addDestination();
         });
         $('.tablinks').click(function () {
+            vars.activeTabContent = $(this).attr('data-tabcontent');
+
             $('.tabcontent').css('display', 'none');
             $('.tablinks').removeClass('active');
             document.getElementById($(this).addClass('active').attr('data-tabcontent')).style.display = 'block';
@@ -175,7 +179,7 @@ window.onload = function () {
             var id = $(this).prop('id').split('-')[1] - 1;
             (vars.busRouteForm['fares[]'][id] || vars.busRouteForm['fares[]']).value = '', (vars.busRouteForm['stop[]'][id] || vars.busRouteForm['stop[]']).value = '', (vars.busRouteForm['stoph[]'][id] || vars.busRouteForm['stoph[]']).value = '';
         }).on('click', '[id |= "EcSt"]', function () {
-            var id = $(this).prop('id').split('-')[1], option = document.getElementById('oI-'+id);
+            var id = $(this).prop('id').split('-')[1], option = document.getElementById('oI-' + id);
             option && option.remove();
             document.getElementById('EcStr-' + id).remove();
         }).on('click', '[id |= "cD"]', function () {
@@ -195,6 +199,7 @@ window.onload = function () {
                 var form = document.getElementById('busRouteEditForm'), formElements = form.elements;
 
                 form.reset();
+                $('#busRouteEditForm').parsley().reset();
 
                 for (var i = 0, options = formElements['type'].options, ct = options.length; i < ct; ++i) {
                     if (options[i].value === result.type) {
@@ -217,18 +222,12 @@ window.onload = function () {
                 formElements['hub'].value = result.nhub.join(',');
                 formElements['hubh'].value = result.hub;
                 var addStopsOptions = document.getElementById('EaSp').options, stopName, optionElement;
-                for (var i = 1, ct = addStopsOptions.length; i <= ct; ++i) {
-                    addStopsOptions[i].remove();
-                }
-                optionElement = document.createElement("OPTION");
-                optionElement.text = 'At the beginning';
-                optionElement.id = 'oI-'+0;
-                addStopsOptions.add(optionElement);
-                result.stops.forEach(function (stop, idx) {//<option>at the beginning</option>
+                document.getElementById('oI-1').remove();
+                result.stops.forEach(function (stop, idx) {
                     stopName = result.nstops[idx].join(',');
                     optionElement = document.createElement("OPTION");
                     optionElement.text = 'After ' + stopName;
-                    optionElement.id = 'oI-'+(idx + 1);
+                    optionElement.id = 'oI-' + (idx + 1);
                     addStopsOptions.add(optionElement);
                     addStop([stopName, stop, result.fares[idx]]);
                 });
@@ -241,7 +240,7 @@ window.onload = function () {
                 form.style.display = 'block';
                 $('[data-tabcontent="edit"]').trigger('click');
                 toast('Displaying saved route', 0);
-                console.log(result);
+                vars.savedRoute = result;
             });
         }).on('click', '[id |= "hPCd"]', function () {
             var id = $(this).prop('id').split('-')[1];
@@ -279,6 +278,12 @@ window.onload = function () {
             vars.addEditDestinationCt = 1;
             document.getElementById('editStops').innerHTML = '';
             document.getElementById('editDestinations').innerHTML = '';
+            var addStopsOptions = document.getElementById('EaSp').options, optionElement;
+            $('[id |= "oI"').slice(1).remove();
+            optionElement = document.createElement("OPTION");
+            optionElement.text = 'At the end';
+            optionElement.id = 'oI-' + 1;
+            addStopsOptions.add(optionElement);
         });
         $('#busRouteForm').parsley().on('form:submit', function (e) {
             var form = document.getElementById('busRouteForm'), formElements = form.elements,
@@ -301,6 +306,7 @@ window.onload = function () {
                     //Make the button change color and display saving
                     sendBtn.classList.remove('btn-primary');
                     sendBtn.classList.remove('btn-danger');
+                    sendBtn.classList.remove('btn-success');
                     sendBtn.classList.add('btn-warning');
                     sendBtn.disabled = true;
                     sendBtn.innerHTML = 'Saving';
@@ -379,7 +385,7 @@ window.onload = function () {
             var form = document.getElementById('busRouteEditForm'), formElements = form.elements,
                     startTime = formElements['startTime'].value, closeTime = formElements['closeTime'].value,
                     type = formElements['type'].value, admin_id = vars.adminId, value, hub = formElements['hubh'].value, stops = [], fares = [], destinations = [],
-                    sendBtn = formElements['save'], heading = document.getElementById('busRouteFormHeading');
+                    sendBtn = formElements['save'], heading = document.getElementById('busRouteFormHeading'), data = {}, savedRoute = vars.savedRoute;
 
             for (var i = 0, list = formElements['stoph[]'], listF = formElements['fares[]'], listLength = list.length || 1; i < listLength; ++i) {
                 (value = (list[i] || list).value) && stops.push(value) && (value = (listF[i] || listF).value) && fares.push(value);
@@ -393,67 +399,104 @@ window.onload = function () {
 
             if (stops.length) {
                 if (stops.length === fares.length) {
-                    //Make the button change color and display saving
-                    sendBtn.classList.remove('btn-primary');
-                    sendBtn.classList.remove('btn-danger');
-                    sendBtn.classList.add('btn-warning');
-                    sendBtn.disabled = true;
-                    sendBtn.innerHTML = 'Saving';
-                    heading.innerHTML = 'Saving...';
+                    //test for changes and compile changes
+                    type !== savedRoute.type && (data.type = type);
+                    hub !== savedRoute.hub && (data.hub = hub);
+                    startTime !== savedRoute.startTime && (data.startTime = startTime);
+                    closeTime !== savedRoute.closeTime && (data.closeTime = closeTime);
+                    if (stops.length === savedRoute.stops.length) {
+                        for (var i = 0, ct = stops.length; i < ct; ++i) {
+                            if (stops[i] !== savedRoute.stops[i] || fares[i] !== savedRoute.fares[i]) {
+                                data.stops = stops;
+                                data.fares = fares;
+                                break;
+                            }
+                        }
+                    } else {
+                        data.stops = stops;
+                        data.fares = fares;
+                    }
+                    if (destinations.length === savedRoute.destinations.length) {
+                        for (var i = 0, ct = destinations.length; i < ct; ++i) {
+                            if (destinations[i] !== savedRoute.destinations[i]) {
+                                data.destinations = destinations;
+                                break;
+                            }
+                        }
+                    } else {
+                        data.destinations = destinations;
+                    }
 
-                    $.ajax({
-                        type: "POST",
-                        url: '../edit_route.php',
-                        data: {type: type, stops: stops, hub: hub, fares: fares, admin_id: admin_id, startTime: startTime, closeTime: closeTime, destinations: destinations},
-                        dataType: 'JSON',
-                        success: function (response) {
-                            if (!response.err) {
-                                //Display submitted
+                    if (Object.keys(data).length) {
+                        //Make the button change color and display saving
+                        sendBtn.classList.remove('btn-primary');
+                        sendBtn.classList.remove('btn-danger');
+                        sendBtn.classList.remove('btn-success');
+                        sendBtn.classList.add('btn-warning');
+                        sendBtn.disabled = true;
+                        sendBtn.innerHTML = 'Saving';
+                        heading.innerHTML = 'Saving...';
 
-                                /*
-                                 * No need to change the button class back to primary since were closing the dialog anyway
-                                 */
-                                sendBtn.classList.remove('btn-warning');
-                                sendBtn.classList.add('btn-success');
-                                sendBtn.innerHTML = 'Success';
-                                heading.innerHTML = 'Saved';
+                        $.ajax({
+                            type: "POST",
+                            url: '../edit_route.php',
+                            data: data,
+                            dataType: 'JSON',
+                            success: function (response) {
+                                if (!response.err) {
+                                    //Display submitted
 
-                                form.reset();
-                            } else {
-                                var field = formElements[response.err.msg.field];
+                                    /*
+                                     * No need to change the button class back to primary since were closing the dialog anyway
+                                     */
+                                    sendBtn.classList.remove('btn-warning');
+                                    sendBtn.classList.add('btn-success');
+                                    sendBtn.innerHTML = 'Success';
+                                    heading.innerHTML = 'Saved';
 
-                                switch (response.err.error) {
-                                    case 'VALIDATION':
-                                        heading.innerHTML = 'Review some field(s)';
-                                        break;
-                                    case 'MISSINGINFO':
-                                        heading.innerHTML = 'Missing route information';
-                                        break;
-                                    case 'NOSTOPS':
-                                        heading.innerHTML = 'No stops were specified';
-                                        break;
-                                    case 'ROUTEEXISTS':
-                                        heading.innerHTML = 'Route exists, contact the super admin to edit or delete the previously saved route';
-                                        break;
-                                    default:
-                                        heading.innerHTML = 'Problem Saving, please try again';
-                                        break;
+                                    form.reset();
+                                } else {
+                                    var field = formElements[response.err.msg.field];
+
+                                    switch (response.err.error) {
+                                        case 'VALIDATION':
+                                            heading.innerHTML = 'Review some field(s)';
+                                            break;
+                                        case 'MISSINGINFO':
+                                            heading.innerHTML = 'Missing route information';
+                                            break;
+                                        case 'NOSTOPS':
+                                            heading.innerHTML = 'No stops were specified';
+                                            break;
+                                        case 'ROUTEEXISTS':
+                                            heading.innerHTML = 'Route exists, contact the super admin to edit or delete the previously saved route';
+                                            break;
+                                        default:
+                                            heading.innerHTML = 'Problem Saving, please try again';
+                                            break;
+                                    }
+
+                                    sendBtn.classList.remove('btn-warning');
+                                    sendBtn.classList.add('btn-danger');
+                                    sendBtn.innerHTML = 'Try again';
+                                    field && $(field).parsley().addError && $(field).parsley().addError('error', {message: response.err.msg.message});
                                 }
-
+                            }, error: function (jqXHR, textStatus, errorThrown) {
                                 sendBtn.classList.remove('btn-warning');
                                 sendBtn.classList.add('btn-danger');
                                 sendBtn.innerHTML = 'Try again';
-                                field && $(field).parsley().addError && $(field).parsley().addError('error', {message: response.err.msg.message});
+                                heading.innerHTML = 'Try saving again';
+                            }, complete: function () {
+                                sendBtn.disabled = false;
                             }
-                        }, error: function (jqXHR, textStatus, errorThrown) {
-                            sendBtn.classList.remove('btn-warning');
-                            sendBtn.classList.add('btn-danger');
-                            sendBtn.innerHTML = 'Try again';
-                            heading.innerHTML = 'Try saving again';
-                        }, complete: function () {
-                            sendBtn.disabled = false;
-                        }
-                    });
+                        });
+                    } else {
+                        sendBtn.classList.remove('btn-danger');
+                        sendBtn.classList.remove('btn-success');
+                        sendBtn.classList.remove('btn-primary');
+                        sendBtn.classList.add('btn-warning');
+                        heading.innerHTML = 'No changes';
+                    }
                 } else {
                     sendBtn.classList.remove('btn-danger');
                     sendBtn.classList.remove('btn-success');
@@ -1148,6 +1191,7 @@ window.onload = function () {
                 //Make the button change color and display saving
                 sendBtn.classList.remove('btn-primary');
                 sendBtn.classList.remove('btn-danger');
+                sendBtn.classList.remove('btn-success');
                 sendBtn.classList.add('btn-warning');
                 sendBtn.disabled = true;
                 sendBtn.innerHTML = 'Saving';
@@ -1412,6 +1456,18 @@ window.onload = function () {
     }
 
     function getMarkerData(info) {
+        var form;
+        switch (vars.activeTabContent) {
+            case 'new':
+                form = vars.busRouteForm;
+                break;
+            case 'edit':
+                form = vars.busRouteEditForm;
+                break;
+            default:
+                return;
+        }
+
         //Location ID
         //Maybe write it to the last empty bus routes form
 
@@ -1421,13 +1477,13 @@ window.onload = function () {
 
         var edited = false;
 
-        if (vars.busRouteForm['hubh'].value) {
-            if (vars.busRouteForm['stoph[]']) {
-                for (var i = 0, list = vars.busRouteForm['stop[]'], listh = vars.busRouteForm['stoph[]'], listLength = list.length || 1, listhi, listi; i < listLength; ++i) {
+        if (form['hubh'].value) {
+            if (form['stoph[]']) {
+                for (var i = 0, list = form['stop[]'], listh = form['stoph[]'], listLength = list.length || 1, listhi, listi; i < listLength; ++i) {
                     listhi = listh[i] || listh, listi = list[i] || list;
 
                     if (!listhi.value) {
-                        if ((i ? listh[i - 1].value : vars.busRouteForm['hubh'].value) === info.id) {
+                        if ((i ? listh[i - 1].value : form['hubh'].value) === info.id) {
                             break;
                         }
 
@@ -1439,8 +1495,8 @@ window.onload = function () {
                 }
             }
         } else {
-            vars.busRouteForm['hubh'].value = info.id;
-            vars.busRouteForm['hub'].value = info.names.join(' ,');
+            form['hubh'].value = info.id;
+            form['hub'].value = info.names.join(' ,');
             edited = true;
         }
 
@@ -2026,7 +2082,7 @@ window.onload = function () {
     }
     function addStop(value) {
         var div = document.createElement("div"), stops = document.getElementById("editStops");
-        vars.addEditStopCt && div.setAttribute("style", "margin-top:5px;");
+        div.setAttribute("style", "margin-top:5px;");
         div.setAttribute("id", 'EcStr-' + ++vars.addEditStopCt);
         div.setAttribute("class", "row");
         div.innerHTML = "<div class=\"col-xs-8\"><input disabled  type=\"text\" class=\"form-control\" name=\"stop[]\" " + (value ? 'value="' + value[0] + '" ' : '') + " placeholder=\"Stop " + vars.addEditStopCt + "\"><input type=\"text\" style=\"display:none\" " + (value ? 'value="' + value[1] + '" ' : '') + " name=\"stoph[]\"></div><div class=\"col-xs-2\"><input class=\"form-control\" name=\"fares[]\" type=\"number\" " + (value ? 'value="' + value[2] + '" ' : '') + " placeholder=\"Fares (&#8358;)\"></div><div class=\"col-xs-2\"><button type=\"button\" class=\"btn btn-danger\" id=\"EcSt-" + vars.addEditStopCt + "\">REMOVE</button></div>";
