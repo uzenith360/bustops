@@ -2026,9 +2026,9 @@ window.onload = function () {
     }
     function addStop(value) {
         var div = document.createElement("div"), stops = document.getElementById("editStops");
+        vars.addEditStopCt && div.setAttribute("style", "margin-top:5px;");
         div.setAttribute("id", 'EcStr-' + ++vars.addEditStopCt);
         div.setAttribute("class", "row");
-        vars.addEditStopCt ? div.setAttribute("style", "margin-top:5px;") : document.getElementById("ErIs").innerHTML = "<div class=\"col-xs-10\"><button class=\"btn btn-primary form-control\"  name=\"save\">Save</button></div><div class=\"col-xs-2\"><input type=\"reset\" class=\"btn btn-warning\" value=\"Clear\"></div>";
         div.innerHTML = "<div class=\"col-xs-8\"><input disabled  type=\"text\" class=\"form-control\" name=\"stop[]\" " + (value ? 'value="' + value[0] + '" ' : '') + " placeholder=\"Stop " + vars.addEditStopCt + "\"><input type=\"text\" style=\"display:none\" " + (value ? 'value="' + value[1] + '" ' : '') + " name=\"stoph[]\"></div><div class=\"col-xs-2\"><input class=\"form-control\" name=\"fares[]\" type=\"number\" " + (value ? 'value="' + value[2] + '" ' : '') + " placeholder=\"Fares (&#8358;)\"></div><div class=\"col-xs-2\"><button type=\"button\" class=\"btn btn-danger\" id=\"EcSt-" + vars.addEditStopCt + "\">REMOVE</button></div>";
         stops.appendChild(div);
     }
