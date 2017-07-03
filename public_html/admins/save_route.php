@@ -68,7 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if (($id = mongoDB_insert($cleanedUserInputMap, 'routes'))) {
                         require_once '../php/map_routes.php';
                         //actually create the routes
-                        if (!($response['result'] = map_routes($id, $cleanedUserInputMap))) {
+                        $res = map_routes($id, $cleanedUserInputMap);
+                        if (($response['result'] = $res[0])) {
+                            $res[1]->commit();
+                        }else{
                             $response ['err'] = ['error' => 'DB', 'msg' => 'Problem saving data, please try again'];
                             mongoDB_delete($id, 'routes');
                         }

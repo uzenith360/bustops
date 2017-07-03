@@ -69,6 +69,7 @@ window.onload = function () {
         historyPaginationContent: null,
         savedRoutesPage: null,
         savedRoute: null,
+        savedRouteId: null,
         activeTabContent: 'new'
     };
 
@@ -121,21 +122,7 @@ window.onload = function () {
                         return;
                     }
 
-                    vars.historyPagination.pagination('disable');
-                    ajax({url: 'get_saved_routes.php', method: 'GET', data: {p: page}, dataType: 'JSON'}, function (err, results) {
-                        vars.historyPagination.pagination('enable');
-                        if (err) {
-                            vars.historyPagination.pagination('selectPage', vars.savedRoutesPage);
-                            return;
-                        }
-                        vars.savedRoutesPage = page;
-
-                        var idx = 0, historyPaginationContent = '<table class="table table-hover table-striped" style="margin-bottom: 0px;">';
-                        results.forEach(function (result) {
-                            historyPaginationContent += '<tr id="hPC-' + result._id + '"><th>' + ++idx + '</th><td>' + result.type + ' from ' + result.hub.join(', ') + ' to ' + result.destinations.join(', ') + '</td><td><div class="pull-right"><button id="hPCd-' + result._id + '" type="button" class="btn btn-danger btn-sm"><span class="glyphicon glyphicon-remove"></span></button></div></td><td><div class="pull-right"><button id="hPCe-' + result._id + '" type="button" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-pencil"></span></button></div></td></tr>';
-                        });
-                        vars.historyPaginationContent.html(historyPaginationContent + '</table>');
-                    });
+                    displayHistoryPage(page);
                 }
             });
             vars.historyPagination.pagination('selectPage', 1);
@@ -241,14 +228,15 @@ window.onload = function () {
                 $('[data-tabcontent="edit"]').trigger('click');
                 toast('Displaying saved route', 0);
                 vars.savedRoute = result;
+                vars.savedRouteId = id;
             });
         }).on('click', '[id |= "hPCd"]', function () {
             var id = $(this).prop('id').split('-')[1];
 
             new Dialog('<h4 style="margin:0px;"><strong class="text-danger">Delete route!</strong></h4>', '<div>Are you sure you want to delete this route?</div>', '<button type="button" z-dialog-yes class="btn btn-danger">Yes</button><button type="button" z-dialog-no class="btn btn-default">No</button>', {yes: ['click', function (e) {
                         ajax({url: 'delete_route.php', method: 'POST', data: {i: id}, dataType: 'JSON'}, function (err, result) {
-                            if (err || result.err) {
-                                switch (result.err) {
+                            if (err || !result || result.err) {
+                                switch (result && result.err) {
                                     case 'NOTFOUND':
                                         toast('Route not found, maybe previously deleted', 2, 10000);
                                         break;
@@ -256,11 +244,12 @@ window.onload = function () {
                                         toast('Problem deleting route, please try again', 2, 10000);
                                         break;
                                 }
-                                return true;
+                                return;
                             }
 
                             document.getElementById('hPC-' + id).remove();
-                            return true;
+                            e['z-dialog'].close();
+                            return;
                         });
                     }], no: ['click', function () {
                         //close the dialog by returning true
@@ -314,7 +303,7 @@ window.onload = function () {
 
                     $.ajax({
                         type: "POST",
-                        url: '../save_route.php',
+                        url: 'save_route.php',
                         data: {type: type, stops: stops, hub: hub, fares: fares, admin_id: admin_id, startTime: startTime, closeTime: closeTime, destinations: destinations},
                         dataType: 'JSON',
                         success: function (response) {
@@ -330,6 +319,7 @@ window.onload = function () {
                                 heading.innerHTML = 'Saved';
 
                                 form.reset();
+                                displayHistoryPage(vars.savedRoutesPage);
                             } else {
                                 var field = formElements[response.err.msg.field];
 
@@ -428,6 +418,8 @@ window.onload = function () {
                     }
 
                     if (Object.keys(data).length) {
+                        data.stops && !data.type && (data.type = type) && !data.hub && (data.hub = hub);
+
                         //Make the button change color and display saving
                         sendBtn.classList.remove('btn-primary');
                         sendBtn.classList.remove('btn-danger');
@@ -439,8 +431,8 @@ window.onload = function () {
 
                         $.ajax({
                             type: "POST",
-                            url: '../edit_route.php',
-                            data: data,
+                            url: 'edit_route.php',
+                            data: {i: vars.savedRouteId, c: data},
                             dataType: 'JSON',
                             success: function (response) {
                                 if (!response.err) {
@@ -454,32 +446,26 @@ window.onload = function () {
                                     sendBtn.innerHTML = 'Success';
                                     heading.innerHTML = 'Saved';
 
-                                    form.reset();
+                                    //toast('Saved', 2, 10000);
+                                    displayHistoryPage(vars.savedRoutesPage/*, function () {
+                                     //$('[data-tabcontent="history"]').trigger('click');
+                                     //form.style.display = 'none';
+                                     }*/);
+                                    //form.reset();
                                 } else {
-                                    var field = formElements[response.err.msg.field];
-
                                     switch (response.err.error) {
-                                        case 'VALIDATION':
-                                            heading.innerHTML = 'Review some field(s)';
+                                        case 'NOTFOUND':
+                                            heading.innerHTML = 'Route not found';
                                             break;
-                                        case 'MISSINGINFO':
-                                            heading.innerHTML = 'Missing route information';
-                                            break;
-                                        case 'NOSTOPS':
-                                            heading.innerHTML = 'No stops were specified';
-                                            break;
-                                        case 'ROUTEEXISTS':
-                                            heading.innerHTML = 'Route exists, contact the super admin to edit or delete the previously saved route';
-                                            break;
+                                        case 'DB':
                                         default:
-                                            heading.innerHTML = 'Problem Saving, please try again';
+                                            heading.innerHTML = 'Problem editing route, please try again';
                                             break;
                                     }
 
                                     sendBtn.classList.remove('btn-warning');
                                     sendBtn.classList.add('btn-danger');
                                     sendBtn.innerHTML = 'Try again';
-                                    field && $(field).parsley().addError && $(field).parsley().addError('error', {message: response.err.msg.message});
                                 }
                             }, error: function (jqXHR, textStatus, errorThrown) {
                                 sendBtn.classList.remove('btn-warning');
@@ -1156,7 +1142,7 @@ window.onload = function () {
          */
         var lat = e.latLng.lat(), lng = e.latLng.lng();
         //wen thinking of fields to send to server for a location look at d json google returns for a location, we'll nt only save d coordinates of a place, we'll also save other details to make searching and bounds searching easily, either strict bounds or biased bounds searching
-        new Dialog('<div z-dialog-heading class="dh">Save location</div>', '<form z-dialog-save_location_form><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span><select data-parsley-required class="form-control" name="type"><option disabled selected>Location type</option><option value="BUSTOP">Bustop</option><option value="MARKET"><img alt="icon">Market</option><option value="SHOP">Shop</option><option value="BANK">Bank</option><option value="ATM">ATM</option><option value="GOVT">Government</option><option value="HOTEL">Hotel</option></select></div></div><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><input data-parsley-required name="names[]" type="text" class="form-control" placeholder="Location name"></div><div z-dialog-locations></div><p z-dialog-add_location class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add location name</p></div><div class="form-group"><input class="form-control" multiple name="pictures[]" type="file" accept="image/jpeg,image/jpg,image/png" data-parsley-filemaxmegabytes="2" data-parsley-trigger="change" data-parsley-dimensions="true" data-parsley-dimensions-options="{\'min_width\': \'100\',\'min_height\': \'100\'}" data-parsley-filemimetypes="image/jpeg,image/jpg,image/png"></div><div class="form-group"><textarea data-parsley-required class="form-control" rows="2" name="addresses[]" placeholder="Address"></textarea><div z-dialog-addresses></div><p z-dialog-add_address class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add address</p></div><div class="form-group"><textarea class="form-control" rows="5" name="description" placeholder="Description"></textarea></div></form>', '<button type="button" z-dialog-cancel class="btn btn-default">Cancel</button><button type="button" z-dialog-send class="btn btn-primary">Save</button>', {send: ['click', function (e) {
+        new Dialog('<div z-dialog-heading class="dh">Save location</div>', '<form z-dialog-save_location_form><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span><select data-parsley-required class="form-control" name="type"><option disabled selected>Location type</option><option value="BUSTOP">Bustop</option><option value="MARKET"><img alt="icon">Market</option><option value="SHOP">Shop</option><option value="BANK">Bank</option><option value="ATM">ATM</option><option value="GOVT">Government</option><option value="HOTEL">Hotel</option></select></div></div><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><input data-parsley-required name="names[]" type="text" class="form-control" placeholder="Location name"></div><div z-dialog-locations></div><p z-dialog-add_location class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add location name</p></div><div class="form-group"><input class="form-control" multiple name="pictures[]" type="file" accept="image/jpeg,image/jpg,image/png" data-parsley-filemaxmegabytes="2" data-parsley-trigger="change" data-parsley-dimensions="true" data-parsley-dimensions-options="{\'min_width\': \'100\',\'min_height\': \'100\'}" data-parsley-filemimetypes="image/jpeg,image/jpg,image/png"></div><div class="form-group"><textarea class="form-control" rows="2" name="addresses[]" placeholder="Address"></textarea><div z-dialog-addresses></div><p z-dialog-add_address class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add address</p></div><div class="form-group"><textarea class="form-control" rows="5" name="description" placeholder="Description"></textarea></div></form>', '<button type="button" z-dialog-cancel class="btn btn-default">Cancel</button><button type="button" z-dialog-send class="btn btn-primary">Save</button>', {send: ['click', function (e) {
                     //trigger form submission to invoke parsley validation
                     $('#' + e['z-dialog'].id + 'z-dialog-save_location_form').trigger('submit');
                 }], cancel: ['click', function () {
@@ -1200,7 +1186,7 @@ window.onload = function () {
                 //u can save everything with php, from php to mongo. i dnt think that needs nodejs
                 $.ajax({
                     type: "POST",
-                    url: "../save_location.php",
+                    url: "save_location.php",
                     data: formData,
                     dataType: 'JSON',
                     /*** Options to tell JQuery not to process data or worry about content-type ****/
@@ -2094,5 +2080,24 @@ window.onload = function () {
         div.setAttribute("style", "margin-top:5px;");
         div.innerHTML = '<div class="col-xs-10"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-arrow-down"></i></span><input type="text" class="form-control" name="destination[]" ' + (value ? 'value="' + value + '" ' : '') + 'placeholder="Destination ' + ++vars.addEditDestinationCt + '"></div></div><div class="col-xs-2"><button type="button" id="EcD-' + vars.addEditDestinationCt + '" class="btn btn-warning">Clear</button></div>';
         document.getElementById("editDestinations").appendChild(div);
+    }
+
+    function displayHistoryPage(page, cb) {
+        vars.historyPagination.pagination('disable');
+        ajax({url: 'get_saved_routes.php', method: 'GET', data: {p: page}, dataType: 'JSON'}, function (err, results) {
+            cb && cb();
+            vars.historyPagination.pagination('enable');
+            if (err) {
+                vars.historyPagination.pagination('selectPage', vars.savedRoutesPage);
+                return;
+            }
+            vars.savedRoutesPage = page;
+
+            var idx = 0, historyPaginationContent = '<table class="table table-hover table-striped" style="margin-bottom: 0px;">';
+            results.forEach(function (result) {
+                historyPaginationContent += '<tr id="hPC-' + result._id + '"><th>' + ++idx + '</th><td>' + result.type + ' from ' + result.hub.join(', ') + ' to ' + result.destinations.join(', ') + '</td><td><div class="pull-right"><button id="hPCd-' + result._id + '" type="button" class="btn btn-danger btn-sm"><span class="glyphicon glyphicon-remove"></span></button></div></td><td><div class="pull-right"><button id="hPCe-' + result._id + '" type="button" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-pencil"></span></button></div></td></tr>';
+            });
+            vars.historyPaginationContent.html(historyPaginationContent + '</table>');
+        });
     }
 };

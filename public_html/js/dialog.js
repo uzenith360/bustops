@@ -40,7 +40,7 @@ function Dialog(header, body, footer, eventHandlers, backdropStatic, onCreate, s
     if (eventHandlers && Object.keys(eventHandlers).length) {
         for (var suffixId in eventHandlers) {
             document.getElementById(id + 'z-dialog-' + suffixId).addEventListener(eventHandlers[suffixId][0], function (e) {
-                e['z-dialog'] = {id: id, close: self.close};
+                e['z-dialog'] = {id: id, close: self.close.bind(self)};
                 if (eventHandlers[this][1](e)) {
                     self.close();
                 }
@@ -54,12 +54,12 @@ function Dialog(header, body, footer, eventHandlers, backdropStatic, onCreate, s
 Dialog.prototype._id = 0;
 Dialog.prototype._idPrefix = '_dIaLog';
 Dialog.prototype.close = function () {
-    delete this;
-
     this.onclose && this.onclose();
 
     if (!this._closed) {
         this._closed = true;
         this._dialog.modal('hide');
     }
+    
+    delete this;
 };

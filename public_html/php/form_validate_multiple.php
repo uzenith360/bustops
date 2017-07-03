@@ -2,7 +2,7 @@
 /*
  * A wrapper function to wrap multiple input types like file upload inputs with multiple attribute
  */
-require 'php/form_validate.php';
+require 'form_validate.php';
 
 $form_validate_multiple = function ($validationSpecs, $formInputs, $fieldNames)use($form_validate) {
     $formInputsMultiple = [];

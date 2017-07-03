@@ -12,11 +12,11 @@ function map_routes($id, $routeInfo) {
     $transportType = $routeInfo['type'];
     $transportStops = $routeInfo['stops'];
     $transportFares = $routeInfo['fares'];
-    $startTime = $routeInfo['startTime'];
-    $endTime = $routeInfo['endTime'];
+    $startTime = isset($routeInfo['startTime']) ? $routeInfo['startTime'] : null;
+    $closeTime = isset($routeInfo['closeTime']) ? $routeInfo['closeTime'] : null;
 
     array_unshift($transportStops, $routeInfo['hub']);
-    
+
     $max_execution_time = ini_get('max_execution_time');
     try {
         ini_set('max_execution_time', 180);
@@ -37,13 +37,13 @@ function map_routes($id, $routeInfo) {
         }
         $stops && $tx->run($stops);
 
-        for ($i = 0, $routes = '', $matches=''; $i < $stopsLength; ++$i) {
+        for ($i = 0, $routes = '', $matches = ''; $i < $stopsLength; ++$i) {
             $activeStopMatch = 'MATCH (s:BUSTOP{i: "' . $transportStops[$i] . '"})';
             for ($i0 = $i + 1, $routes = '', $matches = '', $relCt = 0; $i0 < $stopsLength; ++$i0) {
                 $reltag = 'r' . $relCt;
                 $stopTag = 's' . $relCt;
                 $matches .= ',(' . $stopTag . ':BUSTOP{i: "' . $transportStops[$i0] . '"})';
-                $routes .= 'MERGE (s)-[' . $reltag . ':' . $transportType . ']->(' . $stopTag . ') SET ' . $reltag . '.f=' . $transportFares[$i] . ',' . $reltag . '.m="' . $timecreated . '",' . $reltag . '.s="' . $startTime . '",' . $reltag . '.e="' . $endTime . '",' . $reltag . '.i="' . $id . '" ';
+                $routes .= 'MERGE (s)-[' . $reltag . ':' . $transportType . ']->(' . $stopTag . ') SET ' . $reltag . '.f=' . $transportFares[$i] . ',' . $reltag . '.m="' . $timecreated . '"' . ($startTime ? ',' . $reltag . '.s="' . $startTime . '"' : '') . ($closeTime ? ',' . $reltag . '.e="' . $closeTime . '"' : '') . ',' . $reltag . '.i="' . $id . '" ';
                 ++$relCt;
 
                 if (!($i0 % 5)) {
@@ -54,12 +54,12 @@ function map_routes($id, $routeInfo) {
             $routes && $tx->run($activeStopMatch . $matches . $routes);
         }
 
-        $tx->commit();
-        
+        //$tx->commit();
+
         ini_set('max_execution_time', $max_execution_time);
-        return true;
+        return [true, $tx];
     } catch (GraphAware\Neo4j\Client\Exception\Neo4jException $e) {
         ini_set('max_execution_time', $max_execution_time);
-        return false;
+        return [false, null];
     }
 }

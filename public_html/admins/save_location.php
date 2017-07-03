@@ -23,16 +23,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }, ['type' => 'type', 'description' => 'description', 'admin_id' => 'admin_id', 'lat' => 'lat', 'lng' => 'lng']);
         $cleanedUserInputMap['names'] = array_filter(array_map(function($name) {
                     return ucwords(htmlspecialchars(strip_tags(trim($name))));
-                }, is_array($_POST['names']) ? $_POST['names'] : []));
+                }, isset($_POST['names']) && is_array($_POST['names']) ? $_POST['names'] : []));
         $cleanedUserInputMap['addresses'] = array_filter(array_map(function($name) {
                     return ucwords(htmlspecialchars(strip_tags(trim($name))));
-                }, is_array($_POST['addresses']) ? $_POST['addresses'] : []));
+                }, isset($_POST['addresses']) && is_array($_POST['addresses']) ? $_POST['addresses'] : []));
 
         $validationResult = $form_validate([
             'admin_id' => 'required',
             'names' => 'required|array|arrayminlength:1', //array now
             'type' => 'required',
-            'addresses' => 'required|array|arrayminlength:1', //array now
+            //'addresses' => 'required|array|arrayminlength:1', //array now
             'lat' => 'required|double',
             'lng' => 'required|double'
                 //'description' => ''

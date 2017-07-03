@@ -11,7 +11,7 @@ require_once 'mongodb_delete.php';
 function saveData($data, $index, $collection) {
     global $mongoDB;
     global $elasticsearchClient;
-    
+
     //MongoDB
     try {
         $bulk = new MongoDB\Driver\BulkWrite();
@@ -19,14 +19,13 @@ function saveData($data, $index, $collection) {
         $result = $mongoDB->executeBulkWrite('bustops.' . $collection, $bulk);
         $id = $bsonOID->oid;
         if (isset($index)) {//Elastic search
-            $params = [];
-            $params['body'] = array_merge(['id' => $id], $index);
-            //Database
-            $params['index'] = 'bustops';
-            //collection, table
-            $params['type'] = $collection;
-
-            $elasticresult = $elasticsearchClient->index($params);
+            $elasticresult = $elasticsearchClient->index([
+                'body' => array_merge(['id' => $id], $index),
+                //Database
+                'index' => 'bustops',
+                //collection, table
+                'type' => $collection
+            ]);
 
             if (isset($elasticresult['error'])) {
                 //Roll back mongo insert
