@@ -75,7 +75,9 @@ window.onload = function () {
         savedLocationsPage: null,
         savedLocation: null,
         savedLocationId: null,
-        activeTabContent: 'new'
+        activeTabContent: 'new',
+        editLocationSearchMarker: null,
+        editLocationSearchMarkerlocation: null
     };
 
     //init
@@ -175,6 +177,12 @@ window.onload = function () {
                 ++i;
             }
             $('#editStops').append(detachedElements);
+        });
+        document.getElementById('editLocationsAddAddress').addEventListener('click', function () {
+            $('#editLocationsAddresses').append('<textarea style="margin-top:5px;" class="form-control" rows="2" name="addresses[]" placeholder="Address"></textarea>');
+        });
+        document.getElementById('editLocationsAddLocation').addEventListener('click', function () {
+            $('#editLocationsLocations').append('<div style="margin-top:5px;" class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><input name="names[]" type="text" class="form-control" placeholder="Location name" autofocus></div>');
         });
         document.getElementById('aD').addEventListener('click', function () {
             var div = document.createElement("div");
@@ -307,7 +315,21 @@ window.onload = function () {
 
                     vars.map.panTo(result.latlng);
                     result.id = id;
-                    (vars.locations[id] = {data: result, marker: new Place(result, {map: vars.map, loc: result.latlng, title: 'Saved location'}, getMarkerData)}).marker.showInfo();
+                    (vars.editLocationSearchMarker = (vars.locations[id] = {data: result, marker: new Place(result, {map: vars.map, loc: result.latlng, title: 'Saved location', draggable: true}, getMarkerData, {dragend: function () {
+                                var data = vars.editLocationSearchMarker.getMarker().getPosition().toJSON();
+                                data.i = id;
+                                data.b = result.type === 'BUSTOP';
+                                ajax({url: 'save_location_coords.php', method: 'GET', data: data, dataType: 'TEXT'}, function (err, result) {
+                                    if (err || !result) {
+                                        toast('Problem updating location, please try again', 2, 10000);
+                                        vars.editLocationSearchMarker.getMarker().setPosition(vars.editLocationSearchMarkerlocation);
+                                        return;
+                                    }
+
+                                    vars.editLocationSearchMarkerlocation = {lat: data.lat, lng: data.lng};
+                                });
+                            }})}).marker).showInfo();
+                    vars.editLocationSearchMarkerlocation = vars.editLocationSearchMarker.getMarker().getPosition();
                     $('html, body').animate({scrollTop: '0px'}, 300);
                 });
             }
@@ -1238,7 +1260,7 @@ window.onload = function () {
          */
         var lat = e.latLng.lat(), lng = e.latLng.lng();
         //wen thinking of fields to send to server for a location look at d json google returns for a location, we'll nt only save d coordinates of a place, we'll also save other details to make searching and bounds searching easily, either strict bounds or biased bounds searching
-        new Dialog('<div z-dialog-heading class="dh">Save location</div>', '<form z-dialog-save_location_form><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span><select data-parsley-required class="form-control" name="type"><option disabled selected>Location type</option><option value="BUSTOP">Bustop</option><option value="MARKET"><img alt="icon">Market</option><option value="SHOP">Shop</option><option value="BANK">Bank</option><option value="ATM">ATM</option><option value="GOVT">Government</option><option value="HOTEL">Hotel</option></select></div></div><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><input data-parsley-required name="names[]" type="text" class="form-control" placeholder="Location name"></div><div z-dialog-locations></div><p z-dialog-add_location class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add location name</p></div><div class="form-group"><input class="form-control" multiple name="pictures[]" type="file" accept="image/jpeg,image/jpg,image/png" data-parsley-filemaxmegabytes="2" data-parsley-trigger="change" data-parsley-dimensions="true" data-parsley-dimensions-options="{\'min_width\': \'100\',\'min_height\': \'100\'}" data-parsley-filemimetypes="image/jpeg,image/jpg,image/png"></div><div class="form-group"><textarea class="form-control" rows="2" name="addresses[]" placeholder="Address"></textarea><div z-dialog-addresses></div><p z-dialog-add_address class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add address</p></div><div class="form-group"><textarea class="form-control" rows="5" name="description" placeholder="Description"></textarea></div></form>', '<button type="button" z-dialog-cancel class="btn btn-default">Cancel</button><button type="button" z-dialog-send class="btn btn-primary">Save</button>', {send: ['click', function (e) {
+        new Dialog('<div z-dialog-heading class="dh">Save location</div>', '<form z-dialog-save_location_form><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span><select data-parsley-required class="form-control" name="type"><option disabled selected>Location type</option><option value="BUSTOP">Bustop</option><option value="MARKET">Market</option><option value="SHOP">Shop</option><option value="BANK">Bank</option><option value="ATM">ATM</option><option value="GOVT">Government</option><option value="HOTEL">Hotel</option></select></div></div><div class="form-group"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><input data-parsley-required name="names[]" type="text" class="form-control" placeholder="Location name"></div><div z-dialog-locations></div><p z-dialog-add_location class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add location name</p></div><div class="form-group"><input class="form-control" multiple name="pictures[]" type="file" accept="image/jpeg,image/jpg,image/png" data-parsley-filemaxmegabytes="2" data-parsley-trigger="change" data-parsley-dimensions="true" data-parsley-dimensions-options="{\'min_width\': \'100\',\'min_height\': \'100\'}" data-parsley-filemimetypes="image/jpeg,image/jpg,image/png"></div><div class="form-group"><textarea class="form-control" rows="2" name="addresses[]" placeholder="Address"></textarea><div z-dialog-addresses></div><p z-dialog-add_address class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add address</p></div><div class="form-group"><textarea class="form-control" rows="5" name="description" placeholder="Description"></textarea></div></form>', '<button type="button" z-dialog-cancel class="btn btn-default">Cancel</button><button type="button" z-dialog-send class="btn btn-primary">Save</button>', {send: ['click', function (e) {
                     //trigger form submission to invoke parsley validation
                     $('#' + e['z-dialog'].id + 'z-dialog-save_location_form').trigger('submit');
                 }], cancel: ['click', function () {

@@ -9,6 +9,7 @@
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_once '../php/form_validate.php';
     require_once '../php/form_validate_multiple.php';
+    ini_set('precision', '17');
 
     $response = ['err' => null, 'result' => null];
 

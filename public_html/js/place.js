@@ -187,7 +187,8 @@ function Place(info, options, onGetData, eventHandlers) {
         label: options.label,
         anchorPoint: new googleMaps.Point(anchorPointX, anchorPointY),
         icon: icon,
-        visible: true
+        visible: true,
+        draggable: options.draggable
     });
     googleMaps.event.addListener(marker, 'click', function () {
         infowindow.open(options.map, marker);
@@ -238,4 +239,7 @@ Place.prototype.remove = function () {
 
 //remove the info window
     this._infowindow.close();
+};
+Place.prototype.getMarker = function () {
+    return this._marker;
 };

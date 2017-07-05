@@ -276,7 +276,41 @@
                         <div id="locations-content"></div>
                         <div id="locations-pagination" style="padding-top:10px;padding-bottom:0px;"></div>
                     </div>
-                    <div id="editLocations" class="tabcontent"></div>
+                    <div id="editLocations" class="tabcontent">
+                        <form id="editLocationsForm">
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="glyphicon glyphicon-map-marker"></i></span>
+                                    <select data-parsley-required class="form-control" name="type">
+                                        <option value="BUSTOP">Bustop</option><option value="MARKET">Market</option><option value="SHOP">Shop</option><option value="BANK">Bank</option><option value="ATM">ATM</option><option value="GOVT">Government</option><option value="HOTEL">Hotel</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span>
+                                    <input data-parsley-required name="names[]" type="text" class="form-control" placeholder="Location name">
+                                </div>
+                                <div id="editLocationsLocations"></div>
+                                <p id="editLocationsAddLocation" class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add location name</p>
+                            </div>
+                            <div class="form-group">
+                                <input class="form-control" multiple name="pictures[]" type="file" accept="image/jpeg,image/jpg,image/png" data-parsley-filemaxmegabytes="2" data-parsley-trigger="change" data-parsley-dimensions="true" data-parsley-dimensions-options="{\'min_width\': \'100\',\'min_height\': \'100\'}" data-parsley-filemimetypes="image/jpeg,image/jpg,image/png">
+                            </div>
+                            <div class="form-group">
+                                <textarea class="form-control" rows="2" name="addresses[]" placeholder="Address"></textarea>
+                                <div id="editLocationsAddresses"></div>
+                                <p id="editLocationsAddAddress" class="addLocationInfo"><span class="glyphicon glyphicon-plus"></span> Add address</p>
+                            </div>
+                            <div class="form-group">
+                                <textarea class="form-control" rows="5" name="description" placeholder="Description"></textarea>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-xs-10"><button class="btn btn-primary form-control"  name="save">Save</button></div>
+                                <div class="col-xs-2"><input type="reset" class="btn btn-warning pull-right" value="Clear"></div>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
