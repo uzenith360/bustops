@@ -34,19 +34,26 @@ if ($locationId) {
 
     if ($ntErr) {
         if (mongoDB_delete($locationId, 'locations')) {
-            require_once 'elasticsearch_client.php';
-            
-            $elasticresult = $elasticsearchClient->delete([
-                'index' => 'bustops',
-                'type' => 'locations',
-                'id' => $locationId
-            ]);
-            if (isset($elasticresult['error'])) {
+            require_once '../php/elasticsearch_client.php';
+
+            try {
+                $elasticresult = $elasticsearchClient->delete([
+                    'index' => 'bustops',
+                    'type' => 'locations',
+                    'id' => $locationId
+                ]);
+
+                if (isset($elasticresult['error'])) {
+                    throw new Elasticsearch\Common\Exceptions($elasticresult['error']);
+                }
+            } catch (Elasticsearch\Common\Exceptions\Missing404Exception $e) {
                 //Roll back mongo insert
                 $response['err'] = ['error' => 'DB', 'message' => 'Problem deleting location, please try again'];
                 $ntErr = false;
+            } catch (Elasticsearch\Common\Exceptions $e) {
+                $response['err'] = ['error' => 'DB', 'message' => 'Problem deleting location, please try again'];
+                $ntErr = false;
             }
-
             if ($isBustop && $ntErr) {
                 if (mongoDB_delete($locationId, 'bustops')) {
                     $tx->commit();

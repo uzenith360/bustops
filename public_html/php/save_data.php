@@ -20,11 +20,12 @@ function saveData($data, $index, $collection) {
         $id = $bsonOID->oid;
         if (isset($index)) {//Elastic search
             $elasticresult = $elasticsearchClient->index([
-                'body' => array_merge(['id' => $id], $index),
+                'body' => $index,
                 //Database
                 'index' => 'bustops',
                 //collection, table
-                'type' => $collection
+                'type' => $collection,
+                'id' => $id
             ]);
 
             if (isset($elasticresult['error'])) {

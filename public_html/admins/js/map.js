@@ -266,8 +266,8 @@ window.onload = function () {
 
             new Dialog('<h4 style="margin:0px;"><strong class="text-danger">Delete route!</strong></h4>', '<div>Are you sure you want to delete this route?</div>', '<button type="button" z-dialog-yes class="btn btn-danger">Yes</button><button type="button" z-dialog-no class="btn btn-default">No</button>', {yes: ['click', function (e) {
                         ajax({url: 'delete_route.php', method: 'POST', data: {i: id}, dataType: 'JSON'}, function (err, result) {
-                            if (err || !result || result.err) {
-                                switch (result && result.err) {
+                            if (err || result.err) {
+                                switch (err || result.err.error) {
                                     case 'NOTFOUND':
                                         toast('Route not found, maybe previously deleted', 2, 10000);
                                         break;
@@ -279,6 +279,9 @@ window.onload = function () {
                             }
 
                             document.getElementById('hPC-' + id).remove();
+                            $('[id |= "hPC"]>th').each(function (idx) {
+                                $(this).text(idx + 1);
+                            });
                             e['z-dialog'].close();
                             return;
                         });
@@ -292,6 +295,7 @@ window.onload = function () {
             if (vars.locations.hasOwnProperty(id)) {
                 vars.map.panTo(vars.locations[id].data.latlng);
                 vars.locations[id].marker.showInfo();
+                $('html, body').animate({scrollTop: '0px'}, 300);
             } else {
                 toast('Getting location', 1);
                 ajax({url: 'get_saved_location.php', method: 'POST', data: {i: id}, dataType: 'JSON'}, function (err, result) {
@@ -304,6 +308,7 @@ window.onload = function () {
                     vars.map.panTo(result.latlng);
                     result.id = id;
                     (vars.locations[id] = {data: result, marker: new Place(result, {map: vars.map, loc: result.latlng, title: 'Saved location'}, getMarkerData)}).marker.showInfo();
+                    $('html, body').animate({scrollTop: '0px'}, 300);
                 });
             }
         }).on('click', '[id |= "lPCe"]', function () {
@@ -321,20 +326,24 @@ window.onload = function () {
         }).on('click', '[id |= "lPCd"]', function () {
             var id = $(this).prop('id').split('-')[1];
             new Dialog('<h4 style="margin:0px;"><strong class="text-danger">Delete location!</strong></h4>', '<div>Are you sure you want to delete this location?</div>', '<button type="button" z-dialog-yes class="btn btn-danger">Yes</button><button type="button" z-dialog-no class="btn btn-default">No</button>', {yes: ['click', function (e) {
-                        ajax({url: 'delete_route.php', method: 'POST', data: {i: id, b:true}, dataType: 'JSON'}, function (err, result) {
-                            if (err || !result || result.err) {
-                                switch (result && result.err) {
-                                    case 'NOTFOUND':
-                                        toast('Location not found, maybe previously deleted', 2, 10000);
-                                        break;
+                        toast('Deleting location', 1);
+                        ajax({url: 'delete_location.php', method: 'POST', data: {i: id, b: true}, dataType: 'JSON'}, function (err, result) {
+                            if (err || result.err) {
+                                switch (err || result.err.error) {
+                                    case 'DB':
                                     default:
                                         toast('Problem deleting location, please try again', 2, 10000);
                                         break;
                                 }
                                 return;
                             }
+                            toast('Deleting location', 0);
 
+                            vars.locations[id] && vars.locations[id].marker.remove();
                             document.getElementById('lPC-' + id).remove();
+                            $('[id |= "lPC"]>th').each(function (idx) {
+                                $(this).text(idx + 1);
+                            });
                             e['z-dialog'].close();
                             return;
                         });
@@ -1298,6 +1307,7 @@ window.onload = function () {
                             //on success
                             (vars.locations[response.result] = {data: data, marker: new Place(data, {map: vars.map, loc: {lat: lat, lng: lng}, title: 'New location'}, getMarkerData)}).marker.showInfo();
 
+                            displayLocationsPage(vars.savedLocationsPage);
                             zDialog.close();
 
                             vars.thrsVisibleMarkers = true;
