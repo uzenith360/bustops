@@ -3,14 +3,14 @@
 //secure this file with the utmost security
 //if its a bustop, detach/delete it in neo4j too
 //detach delete the node and delete from locations collection
-exit('');
+//exit('');
 /* session_start();
 
   if (!isset($_SESSION['id'])) {
   exit();
   } */
 $locationId = filter_input(INPUT_POST, 'i', FILTER_SANITIZE_STRING);
-$isBustop = boolval($_POST['b']);
+$isBustop = +$_POST['b'];
 //delete from elastic search too
 if ($locationId) {
     require_once '../php/mongodb_delete.php';

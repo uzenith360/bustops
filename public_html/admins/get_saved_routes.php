@@ -10,7 +10,7 @@ $adminId = '2';
 $page = filter_input(INPUT_GET, 'p', FILTER_SANITIZE_NUMBER_INT);
 
 if($page){
-    $r = $mongoDB->executeQuery('bustops.routes', new MongoDB\Driver\Query(['admin_id' => $adminId], ['projection'=>['type'=>1,'hub'=>1,'destinations'=>1], 'limit' => 10,'skip' => ($page-1)*10]))->toArray();
+    $r = $mongoDB->executeQuery('bustops.routes', new MongoDB\Driver\Query(['admin_id' => $adminId], ['projection'=>['type'=>1,'hub'=>1,'destinations'=>1], 'limit' => 10,'skip' => ($page-1)*10,'sort'=>['_id'=>-1]]))->toArray();
     foreach($r as &$i){
         $i->hub = $mongoDB->executeQuery('bustops.locations', new MongoDB\Driver\Query(['_id' => new MongoDB\BSON\ObjectID($i->hub)], ['projection'=>['_id'=>0,'names'=>1], 'limit' => 1]))->toArray()[0]->names;
         $i->_id = $i->_id->__toString();        

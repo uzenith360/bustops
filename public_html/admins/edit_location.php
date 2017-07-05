@@ -2,7 +2,7 @@
 
 $locationId = filter_input(INPUT_POST, 'i', FILTER_SANITIZE_STRING);
 $changes = is_array($_POST['c']) ? $_POST['c'] : null;
-$isBustop = boolval($_POST['b']);
+$isBustop = +$_POST['b'];
 
 if ($locationId && $changes) {
     require_once '../php/mongodb_update.php';

@@ -70,6 +70,11 @@ window.onload = function () {
         savedRoutesPage: null,
         savedRoute: null,
         savedRouteId: null,
+        locationsPagination: null,
+        locationsPaginationContent: null,
+        savedLocationsPage: null,
+        savedLocation: null,
+        savedLocationId: null,
         activeTabContent: 'new'
     };
 
@@ -126,6 +131,32 @@ window.onload = function () {
                 }
             });
             vars.historyPagination.pagination('selectPage', 1);
+        });
+
+        ajax({url: 'get_saved_locations.php', method: 'GET', data: null, dataType: 'JSON'}, function (err, result) {
+            if (err) {
+                alert('Your saved routes failed to load, please refresh page to solve this issue');
+                return;
+            }
+
+            vars.locationsPagination = $('#locations-pagination');
+            vars.locationsPaginationContent = $('#locations-content');
+
+            vars.locationsPagination.pagination({
+                items: result,
+                itemsOnPage: 10,
+                cssStyle: 'light-theme',
+                prevText: '&lt;',
+                nextText: '&gt;',
+                onPageClick: function (page) {
+                    if (!page || page === vars.savedLocationsPage) {
+                        return;
+                    }
+
+                    displayLocationsPage(page);
+                }
+            });
+            vars.locationsPagination.pagination('selectPage', 1);
         });
 
         //Attach the event handlers
@@ -248,6 +279,62 @@ window.onload = function () {
                             }
 
                             document.getElementById('hPC-' + id).remove();
+                            e['z-dialog'].close();
+                            return;
+                        });
+                    }], no: ['click', function () {
+                        //close the dialog by returning true
+                        return true;
+                    }]});
+        }).on('click', '[id |= "lPCs"]', function () {
+            var id = $(this).prop('id').split('-')[1];
+
+            if (vars.locations.hasOwnProperty(id)) {
+                vars.map.panTo(vars.locations[id].data.latlng);
+                vars.locations[id].marker.showInfo();
+            } else {
+                toast('Getting location', 1);
+                ajax({url: 'get_saved_location.php', method: 'POST', data: {i: id}, dataType: 'JSON'}, function (err, result) {
+                    if (err) {
+                        toast('Problem getting location, please try again', 2, 10000);
+                        return;
+                    }
+                    toast('Getting location', 0);
+
+                    vars.map.panTo(result.latlng);
+                    result.id = id;
+                    (vars.locations[id] = {data: result, marker: new Place(result, {map: vars.map, loc: result.latlng, title: 'Saved location'}, getMarkerData)}).marker.showInfo();
+                });
+            }
+        }).on('click', '[id |= "lPCe"]', function () {
+            var id = $(this).prop('id').split('-')[1];
+            toast('Getting location', 1);
+            ajax({url: 'get_saved_location.php', method: 'POST', data: {i: id}, dataType: 'JSON'}, function (err, result) {
+                if (err) {
+                    toast('Problem getting location, please try again', 2, 10000);
+                    return;
+                }
+
+
+            });
+
+        }).on('click', '[id |= "lPCd"]', function () {
+            var id = $(this).prop('id').split('-')[1];
+            new Dialog('<h4 style="margin:0px;"><strong class="text-danger">Delete location!</strong></h4>', '<div>Are you sure you want to delete this location?</div>', '<button type="button" z-dialog-yes class="btn btn-danger">Yes</button><button type="button" z-dialog-no class="btn btn-default">No</button>', {yes: ['click', function (e) {
+                        ajax({url: 'delete_route.php', method: 'POST', data: {i: id, b:true}, dataType: 'JSON'}, function (err, result) {
+                            if (err || !result || result.err) {
+                                switch (result && result.err) {
+                                    case 'NOTFOUND':
+                                        toast('Location not found, maybe previously deleted', 2, 10000);
+                                        break;
+                                    default:
+                                        toast('Problem deleting location, please try again', 2, 10000);
+                                        break;
+                                }
+                                return;
+                            }
+
+                            document.getElementById('lPC-' + id).remove();
                             e['z-dialog'].close();
                             return;
                         });
@@ -2095,9 +2182,28 @@ window.onload = function () {
 
             var idx = 0, historyPaginationContent = '<table class="table table-hover table-striped" style="margin-bottom: 0px;">';
             results.forEach(function (result) {
-                historyPaginationContent += '<tr id="hPC-' + result._id + '"><th>' + ++idx + '</th><td>' + result.type + ' from ' + result.hub.join(', ') + ' to ' + result.destinations.join(', ') + '</td><td><div class="pull-right"><button id="hPCd-' + result._id + '" type="button" class="btn btn-danger btn-sm"><span class="glyphicon glyphicon-remove"></span></button></div></td><td><div class="pull-right"><button id="hPCe-' + result._id + '" type="button" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-pencil"></span></button></div></td></tr>';
+                historyPaginationContent += '<tr id="hPC-' + result._id + '"><th>' + ++idx + '</th><td>' + result.type + ' from ' + result.hub.join(', ') + ' to ' + result.destinations.join(', ') + '</td><td><div class="pull-right"><button id="hPCd-' + result._id + '" type="button" title="delete" class="btn btn-danger btn-sm"><span class="glyphicon glyphicon-remove"></span></button></div></td><td><div class="pull-right"><button id="hPCe-' + result._id + '" type="button" title="edit" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-pencil"></span></button></div></td></tr>';
             });
             vars.historyPaginationContent.html(historyPaginationContent + '</table>');
+        });
+    }
+
+    function displayLocationsPage(page, cb) {
+        vars.locationsPagination.pagination('disable');
+        ajax({url: 'get_saved_locations.php', method: 'GET', data: {p: page}, dataType: 'JSON'}, function (err, results) {
+            cb && cb();
+            vars.locationsPagination.pagination('enable');
+            if (err) {
+                vars.locationsPagination.pagination('selectPage', vars.savedLocationsPage);
+                return;
+            }
+            vars.savedLocationsPage = page;
+
+            var idx = 0, locationsPaginationContent = '<table class="table table-hover table-striped" style="margin-bottom: 0px;">';
+            results.forEach(function (result) {
+                locationsPaginationContent += '<tr id="lPC-' + result._id.$oid + '"><th>' + ++idx + '</th><td>' + result.type + ' at ' + result.names.join(', ') + '</td><td><div class="pull-right"><button id="lPCd-' + result._id.$oid + '" type="button" title="delete" class="btn btn-danger btn-sm"><span class="glyphicon glyphicon-remove"></span></button></div></td><td><div class="pull-right"><button id="lPCe-' + result._id.$oid + '" type="button" title="edit" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-pencil"></span></button></div></td><td><div class="pull-right"><button id="lPCs-' + result._id.$oid + '" type="button" title="view on map" class="btn btn-info btn-sm"><span class="glyphicon glyphicon-search"></span></button></div></td></tr>';
+            });
+            vars.locationsPaginationContent.html(locationsPaginationContent + '</table>');
         });
     }
 };
