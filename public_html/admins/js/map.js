@@ -179,10 +179,10 @@ window.onload = function () {
             $('#editStops').append(detachedElements);
         });
         document.getElementById('editLocationsAddAddress').addEventListener('click', function () {
-            $('#editLocationsAddresses').append('<textarea style="margin-top:5px;" class="form-control" rows="2" name="addresses[]" placeholder="Address"></textarea>');
+            addAddress();
         });
         document.getElementById('editLocationsAddLocation').addEventListener('click', function () {
-            $('#editLocationsLocations').append('<div style="margin-top:5px;" class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><input name="names[]" type="text" class="form-control" placeholder="Location name" autofocus></div>');
+            addLocation();
         });
         document.getElementById('aD').addEventListener('click', function () {
             var div = document.createElement("div");
@@ -335,14 +335,42 @@ window.onload = function () {
             }
         }).on('click', '[id |= "lPCe"]', function () {
             var id = $(this).prop('id').split('-')[1];
-            toast('Getting location', 1);
+            toast('Getting saved location', 1);
             ajax({url: 'get_saved_location.php', method: 'POST', data: {i: id}, dataType: 'JSON'}, function (err, result) {
                 if (err) {
-                    toast('Problem getting location, please try again', 2, 10000);
+                    toast('Problem getting saved location, please try again', 2, 10000);
                     return;
                 }
 
+                var form = document.getElementById('editLocationsForm'), formElements = form.elements;
 
+                form.reset();
+                $('#editLocationsForm').parsley().reset();
+
+                for (var i = 0, options = formElements['type'].options, ct = options.length; i < ct; ++i) {
+                    if (options[i].value === result.type) {
+                        formElements['type'].selectedIndex = i;
+                        break;
+                    }
+                }
+
+                formElements['names[]'].value = result.names[0];
+                for (var i = 1, ct = result.names.length; i < ct; ++i) {
+                    addLocation(result.names[i]);
+                }
+
+                formElements['addresses[]'].value = result.addresses[0];
+                for (var i = 1, ct = result.addresses.length; i < ct; ++i) {
+                    addAddress(result.addresses[i]);
+                }
+
+                formElements['description'].value = result.description;
+
+                form.style.display = 'block';
+                $('[data-tabcontent="editLocations"]').trigger('click');
+                toast('Getting saved location', 0);
+                vars.savedLocation = result;
+                vars.savedLocationId = id;
             });
 
         }).on('click', '[id |= "lPCd"]', function () {
@@ -391,6 +419,10 @@ window.onload = function () {
             optionElement.text = 'At the end';
             optionElement.id = 'oI-' + 1;
             addStopsOptions.add(optionElement);
+        });
+        document.getElementById('editLocationsForm').addEventListener('reset', function () {
+            document.getElementById('editLocationsAddresses').innerHTML = '';
+            document.getElementById('editLocationsLocations').innerHTML = '';
         });
         $('#busRouteForm').parsley().on('form:submit', function (e) {
             var form = document.getElementById('busRouteForm'), formElements = form.elements,
@@ -492,7 +524,7 @@ window.onload = function () {
         $('#busRouteEditForm').parsley().on('form:submit', function (e) {
             var form = document.getElementById('busRouteEditForm'), formElements = form.elements,
                     startTime = formElements['startTime'].value, closeTime = formElements['closeTime'].value,
-                    type = formElements['type'].value, admin_id = vars.adminId, value, hub = formElements['hubh'].value, stops = [], fares = [], destinations = [],
+                    type = formElements['type'].value, value, hub = formElements['hubh'].value, stops = [], fares = [], destinations = [],
                     sendBtn = formElements['save'], heading = document.getElementById('busRouteFormHeading'), data = {}, savedRoute = vars.savedRoute;
 
             for (var i = 0, list = formElements['stoph[]'], listF = formElements['fares[]'], listLength = list.length || 1; i < listLength; ++i) {
@@ -614,6 +646,130 @@ window.onload = function () {
                 sendBtn.classList.remove('btn-primary');
                 sendBtn.classList.add('btn-warning');
                 heading.innerHTML = 'No bustops specified';
+            }
+            return false;
+        });
+        $('#editLocationsForm').parsley().on('form:submit', function (e) {
+            var form = document.getElementById('editLocationsForm'), formElements = form.elements,
+                    type = formElements['type'].value, value, description = formElements['description'].value, names = [], addresses = [], changes = false,
+                    sendBtn = formElements['save'], heading = document.getElementById('busRouteFormHeading'), formData = new FormData(), savedLocation = vars.savedLocation;
+
+            for (var i = 0, list = formElements['names[]'], listLength = list.length || 1; i < listLength; ++i) {
+                (value = (list[i] || list).value) && names.push(value);
+            }
+
+            for (var i = 0, list = formElements['addresses[]'], listLength = list.length || 1; i < listLength; ++i) {
+                (value = (list[i] || list).value) && addresses.push(value);
+            }
+
+            if (names.length) {
+                //test for changes and compile changes
+                type !== savedLocation.type && formData.append('type', type);
+                description !== savedLocation.description && formData.append('description', description);
+                if (names.length === savedLocation.names.length) {
+                    for (var i = 0, ct = names.length; i < ct; ++i) {
+                        if (names[i] !== savedLocation.names[i]) {
+                            formData.append('names[]', names);
+                            changes = true;
+                            break;
+                        }
+                    }
+                } else {
+                    formData.append('names[]', names);
+                    changes = true;
+                }
+                if (addresses.length === savedLocation.addresses.length) {
+                    for (var i = 0, ct = addresses.length; i < ct; ++i) {
+                        if (addresses[i] !== savedLocation.addresses[i]) {
+                            formData.append('addresses[]', addresses);
+                            changes = true;
+                            break;
+                        }
+                    }
+                } else {
+                    formData.append('addresses[]', addresses);
+                    changes = true;
+                }
+                for (var i = 0, list = formElements['pictures[]'].files, listLength = list.length; i < listLength; ++i) {
+                    formData.append('pictures[]', formElements['pictures[]'].files[i]);
+                    changes = true;
+                }
+
+                if (changes) {
+                    //Make the button change color and display saving
+                    sendBtn.classList.remove('btn-primary');
+                    sendBtn.classList.remove('btn-danger');
+                    sendBtn.classList.remove('btn-success');
+                    sendBtn.classList.add('btn-warning');
+                    sendBtn.disabled = true;
+                    sendBtn.innerHTML = 'Saving';
+                    heading.innerHTML = 'Saving...';
+
+                    formData.append('i', vars.savedLocationId);
+                    formData.append('b', type === 'BUSTOP');
+
+                    $.ajax({
+                        type: "POST",
+                        url: 'edit_location.php',
+                        data: formData,
+                        dataType: 'JSON',
+                        /*** Options to tell JQuery not to process data or worry about content-type ****/
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        /****************************************/
+                        success: function (response) {
+                            if (!response.err) {
+                                //Display submitted
+
+                                /*
+                                 * No need to change the button class back to primary since were closing the dialog anyway
+                                 */
+                                sendBtn.classList.remove('btn-warning');
+                                sendBtn.classList.add('btn-success');
+                                sendBtn.innerHTML = 'Success';
+                                heading.innerHTML = 'Saved';
+
+                                //toast('Saved', 2, 10000);
+                                displayLocationsPage(vars.savedRoutesPage/*, function () {
+                                 //$('[data-tabcontent="editLocations"]').trigger('click');
+                                 //form.style.display = 'none';
+                                 }*/);
+                                //form.reset();
+                            } else {
+                                switch (response.err.error) {
+                                    case 'DB':
+                                    default:
+                                        heading.innerHTML = 'Problem updating location, please try again';
+                                        break;
+                                }
+
+                                sendBtn.classList.remove('btn-warning');
+                                sendBtn.classList.add('btn-danger');
+                                sendBtn.innerHTML = 'Try again';
+                            }
+                        }, error: function (jqXHR, textStatus, errorThrown) {
+                            sendBtn.classList.remove('btn-warning');
+                            sendBtn.classList.add('btn-danger');
+                            sendBtn.innerHTML = 'Try again';
+                            heading.innerHTML = 'Try saving again';
+                        }, complete: function () {
+                            sendBtn.disabled = false;
+                        }
+                    });
+                } else {
+                    sendBtn.classList.remove('btn-danger');
+                    sendBtn.classList.remove('btn-success');
+                    sendBtn.classList.remove('btn-primary');
+                    sendBtn.classList.add('btn-warning');
+                    heading.innerHTML = 'No changes';
+                }
+            } else {
+                sendBtn.classList.remove('btn-danger');
+                sendBtn.classList.remove('btn-success');
+                sendBtn.classList.remove('btn-primary');
+                sendBtn.classList.add('btn-warning');
+                heading.innerHTML = 'Please specify at least one location name';
             }
             return false;
         });
@@ -2199,6 +2355,12 @@ window.onload = function () {
         div.setAttribute("style", "margin-top:5px;");
         div.innerHTML = '<div class="col-xs-10"><div class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-arrow-down"></i></span><input type="text" class="form-control" name="destination[]" ' + (value ? 'value="' + value + '" ' : '') + 'placeholder="Destination ' + ++vars.addEditDestinationCt + '"></div></div><div class="col-xs-2"><button type="button" id="EcD-' + vars.addEditDestinationCt + '" class="btn btn-warning">Clear</button></div>';
         document.getElementById("editDestinations").appendChild(div);
+    }
+    function addAddress(value) {
+        $('#editLocationsAddresses').append('<textarea style="margin-top:5px;" class="form-control" rows="2" name="addresses[]" placeholder="Address">' + (value ? value : '') + '</textarea>');
+    }
+    function addLocation(value) {
+        $('#editLocationsLocations').append('<div style="margin-top:5px;" class="input-group"><span class="input-group-addon"><i class="glyphicon glyphicon-home"></i></span><input ' + (value ? 'value="' + value + '" ' : '') + 'name="names[]" type="text" class="form-control" placeholder="Location name" autofocus></div>');
     }
 
     function displayHistoryPage(page, cb) {

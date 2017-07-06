@@ -5,7 +5,7 @@
   if (!isset($_SESSION['id'])) {
   exit();
   } */
-
+//get admin_id from session
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_once '../php/form_validate.php';
     require_once '../php/form_validate_multiple.php';
