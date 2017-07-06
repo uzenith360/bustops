@@ -25,7 +25,7 @@ if ($locationId) {
             $tx = $neo4jClient->transaction();
 
             if (!$tx->run('MATCH (n:{i:' . $locationId . '}) DETACH DELETE n')->summarize()->updateStatistics()->containsUpdates()) {
-                $ntErr = false;
+                throw new GraphAware\Neo4j\Client\Exception\Neo4jException('No updates');
             }
         } catch (GraphAware\Neo4j\Client\Exception\Neo4jException $e) {
             $ntErr = false;
@@ -55,7 +55,8 @@ if ($locationId) {
                 $ntErr = false;
             }
             if ($isBustop && $ntErr) {
-                if (mongoDB_delete($locationId, 'bustops')) {
+                require_once '../php/delete_route_stop.php';
+                if (mongoDB_delete($locationId, 'bustops') && delete_route_stop($locationId)) {
                     $tx->commit();
                 } else {
                     $ntErr = false;

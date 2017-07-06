@@ -1,5 +1,4 @@
 <?php
-
 require_once 'mongodb.php';
 
 function route_exists($hub, $lastBustop, $type) {
@@ -8,8 +7,7 @@ function route_exists($hub, $lastBustop, $type) {
     $command = new MongoDB\Driver\Command([
         'aggregate' => 'routes',
         'pipeline' => [
-            ['$match' => ['hub' => $hub]],
-            ['$match' => ['type' => $type]],
+            ['$match' => ['$and' => [['hub' => $hub], ['type' => $type]]]],
             ['$redact' => [
                     '$cond' => [
                         'if' => [
@@ -20,9 +18,11 @@ function route_exists($hub, $lastBustop, $type) {
                     ]
                 ]
             ],
-            ['$group' => ['_id' => null, 'count' => ['$sum' => 1]]]
+            ['$count' => 'n']
         ]
     ]);
     $res = $mongoDB->executeCommand('bustops', $command)->toArray()[0];
-    return $res->ok ? isset($res->result[0]) ? $res->result[0]->count : 0 : null;
-}//echo route_exists('593be78dda48142b10003573', '5944f058da48142df00007c5', 'DANFO');
+    return $res->ok ? isset($res->result[0]) ? $res->result[0]->n : 0 : null;
+}
+
+//echo route_exists('593be78dda48142b10003573', '5944f058da48142df00007c5', 'DANFO');
