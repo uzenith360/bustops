@@ -664,8 +664,8 @@ window.onload = function () {
 
             if (names.length) {
                 //test for changes and compile changes
-                type !== savedLocation.type && formData.append('type', type);
-                description !== savedLocation.description && formData.append('description', description);
+                type !== savedLocation.type && (changes = true) &&formData.append('type', type);
+                description !== savedLocation.description&& (changes = true) && formData.append('description', description);
                 if (names.length === savedLocation.names.length) {
                     for (var i = 0, ct = names.length; i < ct; ++i) {
                         if (names[i] !== savedLocation.names[i]) {
