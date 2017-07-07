@@ -57,7 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($thrsUpload) {
                 //try to save files
                 $fileBatch = dechex(mt_rand(0, 1000));
-                $dir = 'img/l/';
+                $dir = '../img/l/';
                 $fullDir = $dir . $fileBatch . '/';
 
                 if (file_exists($fullDir) || mkdir($fullDir)) {
