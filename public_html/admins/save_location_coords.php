@@ -4,7 +4,7 @@ ini_set('precision', '17');
 $locationId = filter_input(INPUT_GET, 'i', FILTER_SANITIZE_STRING);
 $lat = doubleval($_GET['lat']);
 $lng = doubleval($_GET['lng']);
-$isBustop = $_GET['b'] === 'true';
+$isBustop = +$_GET['b'];
 
 if ($locationId && $lat && $lng) {
     require_once '../php/mongodb_update.php';

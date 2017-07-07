@@ -258,7 +258,7 @@ window.onload = function () {
                     addStop([stopName, stop, result.fares[idx]]);
                 });
                 optionElement.selected = true;
-                formElements['destination[]'].value = result.destinations[0];
+                result.destinations.length && (formElements['destination[]'].value = result.destinations[0]);
                 for (var i = 1, ct = result.destinations.length; i < ct; ++i) {
                     addDestination(result.destinations[i]);
                 }
@@ -318,7 +318,7 @@ window.onload = function () {
                     (vars.editLocationSearchMarker = (vars.locations[id] = {data: result, marker: new Place(result, {map: vars.map, loc: result.latlng, title: 'Saved location', draggable: true}, getMarkerData, {dragend: function () {
                                 var data = vars.editLocationSearchMarker.getMarker().getPosition().toJSON();
                                 data.i = id;
-                                data.b = result.type === 'BUSTOP';
+                                data.b = +(result.type === 'BUSTOP');
                                 ajax({url: 'save_location_coords.php', method: 'GET', data: data, dataType: 'TEXT'}, function (err, result) {
                                     if (err || !result) {
                                         toast('Problem updating location, please try again', 2, 10000);
@@ -354,12 +354,12 @@ window.onload = function () {
                     }
                 }
 
-                formElements['names[]'].value = result.names[0];
+                result.names.length && (formElements['names[]'].value = result.names[0]);
                 for (var i = 1, ct = result.names.length; i < ct; ++i) {
                     addLocation(result.names[i]);
                 }
 
-                formElements['addresses[]'].value = result.addresses[0];
+                result.addresses.length && (formElements['addresses[]'].value = result.addresses[0]);
                 for (var i = 1, ct = result.addresses.length; i < ct; ++i) {
                     addAddress(result.addresses[i]);
                 }
@@ -664,8 +664,8 @@ window.onload = function () {
 
             if (names.length) {
                 //test for changes and compile changes
-                type !== savedLocation.type && (changes = true) &&formData.append('type', type);
-                description !== savedLocation.description&& (changes = true) && formData.append('description', description);
+                type !== savedLocation.type && (changes = true) && formData.append('type', type);
+                description !== savedLocation.description && (changes = true) && formData.append('description', description);
                 if (names.length === savedLocation.names.length) {
                     for (var i = 0, ct = names.length; i < ct; ++i) {
                         if (names[i] !== savedLocation.names[i]) {
@@ -706,7 +706,7 @@ window.onload = function () {
                     heading.innerHTML = 'Saving...';
 
                     formData.append('i', vars.savedLocationId);
-                    formData.append('b', type === 'BUSTOP');
+                    formData.append('b', +(type === 'BUSTOP'));
 
                     $.ajax({
                         type: "POST",

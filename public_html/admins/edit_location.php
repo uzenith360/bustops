@@ -1,9 +1,5 @@
 <?php
 
-echo print_r($_POST);
-echo print_r($_FILES);
-exit();
-
 /* session_start();
 
   if (!isset($_SESSION['id'])) {
@@ -17,16 +13,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     require_once '../php/form_validate_multiple.php';
 
     $response = ['err' => null, 'result' => null];
+    $thrsUpload = isset($_FILES['pictures']['tmp_name'][0]);
 
-    $validationResult = $form_validate_multiple([
-        'pictures[]' => 'filemaxmegabytes:2|filemimetypes:image/jpeg,image/png,image/jpg'
-            ], ['pictures[]' => $_FILES['pictures']], ['pictures[]']);
+    if ($thrsUpload) {
+        $validationResult = $form_validate_multiple([
+            'pictures[]' => 'filemaxmegabytes:2|filemimetypes:image/jpeg,image/png,image/jpg'
+                ], ['pictures[]' => $_FILES['pictures']], ['pictures[]']);
+    }
 
-    if (empty($validationResult)) {
+    if (!$thrsUpload || empty($validationResult)) {
         //FIRST UPLOAD FILE BEFORE SUBMITTING TO DATA MONGO
-        $cleanedUserInputMap = array_map(function($value) {
-            return htmlspecialchars(strip_tags(trim(isset($_POST[$value]) ? $_POST[$value] : '')));
-        }, ['type' => 'type', 'description' => 'description']);
+        $cleanedUserInputMap = array_filter(array_map(function($value) {
+                    return htmlspecialchars(strip_tags(trim(isset($_POST[$value]) ? $_POST[$value] : '')));
+                }, ['type' => 'type', 'description' => 'description']));
         isset($_POST['names']) && is_array($_POST['names']) && $cleanedUserInputMap['names'] = array_filter(array_map(function($name) {
                     return ucwords(htmlspecialchars(strip_tags(trim($name))));
                 }, $_POST['names']));
@@ -49,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $fileError = false;
             $pictures = [];
-            if ($_FILES['pictures']['tmp_name'][0]) {
+            if ($thrsUpload) {
                 //try to save files
                 $fileBatch = dechex(mt_rand(0, 1000));
                 $dir = 'img/l/';
@@ -65,6 +64,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             break;
                         }
                     }
+                    
+                    count($pictures) && $cleanedUserInputMap['pictures'] = $pictures;
                 }
             }
 
@@ -72,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (count($cleanedUserInputMap)) {
                     require_once '../php/mongodb_update.php';
                     //edit from elastic search too
-                    $changes = array_merge(['pictures' => $pictures], $cleanedUserInputMap);
+                    $changes = $cleanedUserInputMap;
                     $locationId = filter_input(INPUT_POST, 'i', FILTER_SANITIZE_STRING);
                     $isBustop = +$_POST['b'];
 
@@ -83,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         //dnt forget to edit the bustops collection o
                         $ntErr = true;
                         if (isset($changes['names']) || isset($changes['addresses'])) {
-                            require_once 'elasticsearch_client.php';
+                            require_once '../php/elasticsearch_client.php';
 
                             $doc = [];
                             isset($changes['names']) && $doc['names'] = $changes['names'];
