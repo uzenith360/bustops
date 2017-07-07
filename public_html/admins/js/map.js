@@ -595,6 +595,11 @@ window.onload = function () {
                                     sendBtn.classList.add('btn-success');
                                     sendBtn.innerHTML = 'Success';
                                     heading.innerHTML = 'Saved';
+                                    
+                                    //update values
+                                    for(var datum in data){
+                                        savedRoute[datum] = data[datum];
+                                    }
 
                                     //toast('Saved', 2, 10000);
                                     displayHistoryPage(vars.savedRoutesPage/*, function () {
@@ -651,7 +656,7 @@ window.onload = function () {
         });
         $('#editLocationsForm').parsley().on('form:submit', function (e) {
             var form = document.getElementById('editLocationsForm'), formElements = form.elements,
-                    type = formElements['type'].value, value, description = formElements['description'].value, names = [], addresses = [], changes = false,
+                    type = formElements['type'].value, value, description = formElements['description'].value, data = {}, names = [], addresses = [],
                     sendBtn = formElements['save'], heading = document.getElementById('busRouteFormHeading'), formData = new FormData(), savedLocation = vars.savedLocation;
 
             for (var i = 0, list = formElements['names[]'], listLength = list.length || 1; i < listLength; ++i) {
@@ -664,38 +669,38 @@ window.onload = function () {
 
             if (names.length) {
                 //test for changes and compile changes
-                type !== savedLocation.type && (changes = true) && formData.append('type', type);
-                description !== savedLocation.description && (changes = true) && formData.append('description', description);
+                type !== savedLocation.type && (data.type = type) && formData.append('type', type);
+                description !== savedLocation.description && (data.description = description) && formData.append('description', description);
                 if (names.length === savedLocation.names.length) {
                     for (var i = 0, ct = names.length; i < ct; ++i) {
                         if (names[i] !== savedLocation.names[i]) {
                             formData.append('names[]', names);
-                            changes = true;
+                            data.names = names;
                             break;
                         }
                     }
                 } else {
                     formData.append('names[]', names);
-                    changes = true;
+                    data.names = names;
                 }
                 if (addresses.length === savedLocation.addresses.length) {
                     for (var i = 0, ct = addresses.length; i < ct; ++i) {
                         if (addresses[i] !== savedLocation.addresses[i]) {
                             formData.append('addresses[]', addresses);
-                            changes = true;
+                            data.addresses = addresses;
                             break;
                         }
                     }
                 } else {
                     formData.append('addresses[]', addresses);
-                    changes = true;
+                     data.addresses = addresses;
                 }
                 for (var i = 0, list = formElements['pictures[]'].files, listLength = list.length; i < listLength; ++i) {
                     formData.append('pictures[]', formElements['pictures[]'].files[i]);
-                    changes = true;
+                     data.pictures = true;
                 }
 
-                if (changes) {
+                if (Object.keys(data).length) {
                     //Make the button change color and display saving
                     sendBtn.classList.remove('btn-primary');
                     sendBtn.classList.remove('btn-danger');
@@ -729,6 +734,11 @@ window.onload = function () {
                                 sendBtn.classList.add('btn-success');
                                 sendBtn.innerHTML = 'Success';
                                 heading.innerHTML = 'Saved';
+                                
+                                //update values
+                                    for(var datum in data){
+                                        savedLocation[datum] = data[datum];
+                                    }
 
                                 //toast('Saved', 2, 10000);
                                 displayLocationsPage(vars.savedRoutesPage/*, function () {
