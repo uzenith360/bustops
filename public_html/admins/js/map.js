@@ -1491,6 +1491,7 @@ window.onload = function () {
                             heading.innerHTML = 'Saved';
 
                             data.id = response.result;
+                            data.latlng = {lat:lat,lng:lng};
 
                             //on success
                             (vars.locations[response.result] = {data: data, marker: new Place(data, {map: vars.map, loc: {lat: lat, lng: lng}, title: 'New location'}, getMarkerData)}).marker.showInfo();
