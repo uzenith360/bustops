@@ -75,9 +75,7 @@ window.onload = function () {
         savedLocationsPage: null,
         savedLocation: null,
         savedLocationId: null,
-        activeTabContent: 'new',
-        editLocationSearchMarker: null,
-        editLocationSearchMarkerlocation: null
+        activeTabContent: 'new'
     };
 
     //init
@@ -301,8 +299,14 @@ window.onload = function () {
             var id = $(this).prop('id').split('-')[1];
 
             if (vars.locations.hasOwnProperty(id)) {
-                vars.map.panTo(vars.locations[id].data.latlng);
-                vars.locations[id].marker.showInfo();
+                var locationData = vars.locations[id].data, locationMarker = vars.locations[id].marker, location_marker = locationMarker.getMarker();
+                vars.map.panTo(locationData.latlng);
+                location_marker.setDraggable(true);
+                vars.googleMaps.event.addListener(location_marker, 'dragend', function () {
+                    onLocationMarkerdragend(id);
+                });
+                locationMarker.showInfo();
+
                 $('html, body').animate({scrollTop: '0px'}, 300);
             } else {
                 toast('Getting location', 1);
@@ -315,21 +319,10 @@ window.onload = function () {
 
                     vars.map.panTo(result.latlng);
                     result.id = id;
-                    (vars.editLocationSearchMarker = (vars.locations[id] = {data: result, marker: new Place(result, {map: vars.map, loc: result.latlng, title: 'Saved location', draggable: true}, getMarkerData, {dragend: function () {
-                                var data = vars.editLocationSearchMarker.getMarker().getPosition().toJSON();
-                                data.i = id;
-                                data.b = +(result.type === 'BUSTOP');
-                                ajax({url: 'save_location_coords.php', method: 'GET', data: data, dataType: 'TEXT'}, function (err, result) {
-                                    if (err || !result) {
-                                        toast('Problem updating location, please try again', 2, 10000);
-                                        vars.editLocationSearchMarker.getMarker().setPosition(vars.editLocationSearchMarkerlocation);
-                                        return;
-                                    }
 
-                                    vars.editLocationSearchMarkerlocation = {lat: data.lat, lng: data.lng};
-                                });
-                            }})}).marker).showInfo();
-                    vars.editLocationSearchMarkerlocation = vars.editLocationSearchMarker.getMarker().getPosition();
+                    (vars.locations[id] = {data: result, marker: new Place(result, {map: vars.map, loc: result.latlng, title: 'Saved location', draggable: true}, getMarkerData, {dragend: function () {
+                                onLocationMarkerdragend(id);
+                            }})}).marker.showInfo();
                     $('html, body').animate({scrollTop: '0px'}, 300);
                 });
             }
@@ -595,9 +588,9 @@ window.onload = function () {
                                     sendBtn.classList.add('btn-success');
                                     sendBtn.innerHTML = 'Success';
                                     heading.innerHTML = 'Saved';
-                                    
+
                                     //update values
-                                    for(var datum in data){
+                                    for (var datum in data) {
                                         savedRoute[datum] = data[datum];
                                     }
 
@@ -693,11 +686,11 @@ window.onload = function () {
                     }
                 } else {
                     formData.append('addresses[]', addresses);
-                     data.addresses = addresses;
+                    data.addresses = addresses;
                 }
                 for (var i = 0, list = formElements['pictures[]'].files, listLength = list.length; i < listLength; ++i) {
                     formData.append('pictures[]', formElements['pictures[]'].files[i]);
-                     data.pictures = true;
+                    data.pictures = true;
                 }
 
                 if (Object.keys(data).length) {
@@ -734,11 +727,11 @@ window.onload = function () {
                                 sendBtn.classList.add('btn-success');
                                 sendBtn.innerHTML = 'Success';
                                 heading.innerHTML = 'Saved';
-                                
+
                                 //update values
-                                    for(var datum in data){
-                                        savedLocation[datum] = data[datum];
-                                    }
+                                for (var datum in data) {
+                                    savedLocation[datum] = data[datum];
+                                }
 
                                 //toast('Saved', 2, 10000);
                                 displayLocationsPage(vars.savedRoutesPage/*, function () {
@@ -1491,7 +1484,7 @@ window.onload = function () {
                             heading.innerHTML = 'Saved';
 
                             data.id = response.result;
-                            data.latlng = {lat:lat,lng:lng};
+                            data.latlng = {lat: lat, lng: lng};
 
                             //on success
                             (vars.locations[response.result] = {data: data, marker: new Place(data, {map: vars.map, loc: {lat: lat, lng: lng}, title: 'New location'}, getMarkerData)}).marker.showInfo();
@@ -1606,6 +1599,23 @@ window.onload = function () {
     }
     function onMapzoom_changed() {
         console.log('zoom_changed');
+    }
+
+    function onLocationMarkerdragend(id) {
+        var __marker = vars.locations[id].marker.getMarker(), _data = vars.locations[id].data;
+
+        var data = __marker.getPosition().toJSON();
+        data.i = id;
+        data.b = +(_data.type === 'BUSTOP');
+        ajax({url: 'save_location_coords.php', method: 'GET', data: data, dataType: 'TEXT'}, function (err, result) {
+            if (err || !result) {
+                toast('Problem updating location, please try again', 2, 10000);
+                __marker.setPosition(_data.latlng);
+                return;
+            }
+
+            _data.latlng = {lat: data.lat, lng: data.lng};
+        });
     }
 
     function saveCurrentLocation() {
