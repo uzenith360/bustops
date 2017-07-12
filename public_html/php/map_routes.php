@@ -39,11 +39,11 @@ function map_routes($id, $routeInfo) {
 
         for ($i = 0, $routes = '', $matches = ''; $i < $stopsLength; ++$i) {
             $activeStopMatch = 'MATCH (s:BUSTOP{i: "' . $transportStops[$i] . '"})';
-            for ($i0 = $i + 1, $routes = '', $matches = '', $relCt = 0; $i0 < $stopsLength; ++$i0) {
+            for ($i0 = $i + 1, $i1 = $i, $routes = '', $matches = '', $relCt = 0; $i0 < $stopsLength; ++$i0, ++$i1) {
                 $reltag = 'r' . $relCt;
                 $stopTag = 's' . $relCt;
                 $matches .= ',(' . $stopTag . ':BUSTOP{i: "' . $transportStops[$i0] . '"})';
-                $routes .= 'MERGE (s)-[' . $reltag . ':' . $transportType . ']->(' . $stopTag . ') SET ' . $reltag . '.f=' . $transportFares[$i] . ',' . $reltag . '.m="' . $timecreated . '"' . ($startTime ? ',' . $reltag . '.s="' . $startTime . '"' : '') . ($closeTime ? ',' . $reltag . '.e="' . $closeTime . '"' : '') . ',' . $reltag . '.i="' . $id . '" ';
+                $routes .= 'MERGE (s)-[' . $reltag . ':' . $transportType . ']->(' . $stopTag . ') SET ' . $reltag . '.f=' . $transportFares[$i1] . ',' . $reltag . '.m="' . $timecreated . '"' . ($startTime ? ',' . $reltag . '.s="' . $startTime . '"' : '') . ($closeTime ? ',' . $reltag . '.e="' . $closeTime . '"' : '') . ',' . $reltag . '.i="' . $id . '" ';
                 ++$relCt;
 
                 if (!($i0 % 5)) {
@@ -54,6 +54,7 @@ function map_routes($id, $routeInfo) {
             $routes && $tx->run($activeStopMatch . $matches . $routes);
         }
 
+        //we'll allow the calling code to commit this whenever it feels d whole operation was successful
         //$tx->commit();
 
         ini_set('max_execution_time', $max_execution_time);

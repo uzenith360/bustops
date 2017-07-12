@@ -301,10 +301,12 @@ window.onload = function () {
             if (vars.locations.hasOwnProperty(id)) {
                 var locationData = vars.locations[id].data, locationMarker = vars.locations[id].marker, location_marker = locationMarker.getMarker();
                 vars.map.panTo(locationData.latlng);
-                location_marker.setDraggable(true);
-                vars.googleMaps.event.addListener(location_marker, 'dragend', function () {
-                    onLocationMarkerdragend(id);
-                });
+                if (!location_marker.getDraggable()) {
+                    location_marker.setDraggable(true);
+                    vars.googleMaps.event.addListener(location_marker, 'dragend', function () {
+                        onLocationMarkerdragend(id);
+                    });
+                }
                 locationMarker.showInfo();
 
                 $('html, body').animate({scrollTop: '0px'}, 300);
@@ -382,7 +384,10 @@ window.onload = function () {
                             }
                             toast('Deleting location', 0);
 
-                            vars.locations[id] && vars.locations[id].marker.remove();
+                            if (vars.locations.hasOwnProperty(id)) {
+                                vars.locations[id].marker.remove();
+                                delete vars.locations[id];
+                            }
                             document.getElementById('lPC-' + id).remove();
                             $('[id |= "lPC"]>th').each(function (idx) {
                                 $(this).text(idx + 1);
