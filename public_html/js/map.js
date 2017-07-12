@@ -1064,14 +1064,14 @@ window.onload = function () {
                         vars.startToBustopRouteTRIDs.push('sTb0');
                     }
 
-                    directions += '<tr id="bTb0"><td><img src="img/directions_bus.png" alt="Bus directions"/></td><td>At ' + route.n[0].names.join(', ') + ' enter a ' + route.r[0].t + ' going to ' + route.r[0].destinations.join(', ') + '</td><td>&#8358;' + route.r[0].f + '<div id="bTi-0"></div></td><td>' + timeFormat(date) + '</td></tr>';
+                    directions += '<tr id="bTb0"><td><img src="img/directions_bus.png" alt="Bus directions"/></td><td>At ' + route.n[0].names.join(', ') + ' enter a ' + route.r[0].t.replace(/_/g, ' ') + ' going to ' + route.r[0].destinations.join(', ') + '</td><td>&#8358;' + route.r[0].f + '<div id="bTi-0"></div></td><td>' + timeFormat(date) + '</td></tr>';
                     vars.bustopToBustopTRIDs[0] = ['bTb0'];
 
                     var bTbct = 0, i = 1, len = route.n.length - 1, midPoints = [], destination, timeLineCntdIdCt = -1, timeLineCntd = [], bustopToEndDirectionServiceOK;
                     while (i < len) {//show trip time lines with fares,distance and time, calulate total in trip summary 
                         !vars.bustopToBustopTRIDs[bTbct] && (vars.bustopToBustopTRIDs[bTbct] = []);
 
-                        directions += '<tr id="bTb' + i + '"><td><img src="img/directions_bus.png" alt="Bus directions"/></td><td>Stop at ' + route.n[i].names.join(', ') + ' enter a ' + route.r[i].t + ' going to ' + route.r[i].destinations.join(', ') + '</td><td>&#8358;' + route.r[i].f + '<div id="bTi-' + i + '"></div></td><td id="tL' + ++timeLineCntdIdCt + '"></td></tr>';
+                        directions += '<tr id="bTb' + i + '"><td><img src="img/directions_bus.png" alt="Bus directions"/></td><td>Stop at ' + route.n[i].names.join(', ') + ' enter a ' + route.r[i].t.replace(/_/g, ' ') + ' going to ' + route.r[i].destinations.join(', ') + '</td><td>&#8358;' + route.r[i].f + '<div id="bTi-' + i + '"></div></td><td id="tL' + ++timeLineCntdIdCt + '"></td></tr>';
                         vars.bustopToBustopTRIDs[bTbct++].push('bTb' + i);
 
                         midPoints.push({location: route.n[i++].latlng});
