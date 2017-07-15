@@ -26,24 +26,28 @@ function delete_route_stop($stop) {
     ]);
     $res = $mongoDB->executeCommand('bustops', $command)->toArray()[0];
 
-    if ($res->ok && isset($res->result[0])) {
-        try {
-            $timeedited = (new DateTime())->format(DateTime::ISO8601);
-            $bulk = new MongoDB\Driver\BulkWrite;
-            foreach ($res->result as $result) {
-                $bulk->update(
-                        ['_id' => $result->_id], ['$unset' => ['fares.' . $result->i => 1]]
-                );
-                $bulk->update(
-                        ['_id' => $result->_id], ['$pull' => ['fares'=> null]]
-                );
-                $bulk->update(
-                        ['_id' => $result->_id], ['$pull' => ['stops'=> $stop]]
-                );
+    if ($res->ok) {
+        if (isset($res->result[0])) {
+            try {
+                $timeedited = (new DateTime())->format(DateTime::ISO8601);
+                $bulk = new MongoDB\Driver\BulkWrite;
+                foreach ($res->result as $result) {
+                    $bulk->update(
+                            ['_id' => $result->_id], ['$unset' => ['fares.' . $result->i => 1]]
+                    );
+                    $bulk->update(
+                            ['_id' => $result->_id], ['$pull' => ['fares' => null]]
+                    );
+                    $bulk->update(
+                            ['_id' => $result->_id], ['$pull' => ['stops' => $stop]]
+                    );
+                }
+                return $mongoDB->executeBulkWrite('bustops.routes', $bulk);
+            } catch (MongoDB\Driver\Exception\Exception $e) {
+                return null;
             }
-            return $mongoDB->executeBulkWrite('bustops.routes', $bulk);
-        } catch (MongoDB\Driver\Exception\Exception $e) {
-            return null;
+        }else{
+            return true;
         }
     } else {
         return 0;

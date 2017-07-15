@@ -25,18 +25,6 @@ function map_routes($id, $routeInfo) {
 
         $stopsLength = count($transportStops);
 
-        //get all the stops and create them
-        for ($i = 0, $stops = ''; $i < $stopsLength; ++$i) {
-            $stoptag = 's' . $i;
-            $stops .= 'MERGE (' . $stoptag . ':BUSTOP{i: "' . $transportStops[$i] . '"}) ON CREATE SET ' . $stoptag . '.c="' . $timecreated . '" ';
-
-            if (!($i % 10)) {
-                $tx->run($stops);
-                $stops = '';
-            }
-        }
-        $stops && $tx->run($stops);
-
         for ($i = 0, $routes = '', $matches = ''; $i < $stopsLength; ++$i) {
             $activeStopMatch = 'MATCH (s:BUSTOP{i: "' . $transportStops[$i] . '"})';
             for ($i0 = $i + 1, $i1 = $i, $routes = '', $matches = '', $relCt = 0; $i0 < $stopsLength; ++$i0, ++$i1) {

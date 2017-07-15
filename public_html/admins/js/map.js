@@ -255,7 +255,7 @@ window.onload = function () {
                     addStopsOptions.add(optionElement);
                     addStop([stopName, stop, result.fares[idx]]);
                 });
-                optionElement.selected = true;
+                optionElement && (optionElement.selected = true);
                 result.destinations.length && (formElements['destination[]'].value = result.destinations[0]);
                 for (var i = 1, ct = result.destinations.length; i < ct; ++i) {
                     addDestination(result.destinations[i]);
@@ -369,10 +369,10 @@ window.onload = function () {
             });
 
         }).on('click', '[id |= "lPCd"]', function () {
-            var id = $(this).prop('id').split('-')[1];
+            var $_this = $(this), id = $_this.prop('id').split('-')[1];
             new Dialog('<h4 style="margin:0px;"><strong class="text-danger">Delete location!</strong></h4>', '<div>Are you sure you want to delete this location?</div>', '<button type="button" z-dialog-yes class="btn btn-danger">Yes</button><button type="button" z-dialog-no class="btn btn-default">No</button>', {yes: ['click', function (e) {
                         toast('Deleting location', 1);
-                        ajax({url: 'delete_location.php', method: 'POST', data: {i: id, b: true}, dataType: 'JSON'}, function (err, result) {
+                        ajax({url: 'delete_location.php', method: 'POST', data: {i: id, b: +($_this.attr('data-locationtype') === 'BUSTOP')}, dataType: 'JSON'}, function (err, result) {
                             if (err || result.err) {
                                 switch (err || result.err.error) {
                                     case 'DB':
@@ -732,10 +732,17 @@ window.onload = function () {
                                 sendBtn.classList.add('btn-success');
                                 sendBtn.innerHTML = 'Success';
                                 heading.innerHTML = 'Saved';
-
+                                
                                 //update values
                                 for (var datum in data) {
                                     savedLocation[datum] = data[datum];
+                                }
+
+                                if(vars.locations.hasOwnProperty(vars.savedLocationId)){
+                                    //remove the previous route
+                                    vars.locations[vars.savedLocationId].marker.remove();
+                                    
+                                    (vars.locations[vars.savedLocationId] = {data: savedLocation, marker: new Place(savedLocation, {map: vars.map, loc: {lat: savedLocation.latlng.lat, lng: savedLocation.latlng.lng}, title: 'Edited location'}, savedLocation.type === 'BUSTOP' ? getMarkerData : undefined)}).marker.showInfo();
                                 }
 
                                 //toast('Saved', 2, 10000);
@@ -1492,7 +1499,7 @@ window.onload = function () {
                             data.latlng = {lat: lat, lng: lng};
 
                             //on success
-                            (vars.locations[response.result] = {data: data, marker: new Place(data, {map: vars.map, loc: {lat: lat, lng: lng}, title: 'New location'}, getMarkerData)}).marker.showInfo();
+                            (vars.locations[response.result] = {data: data, marker: new Place(data, {map: vars.map, loc: {lat: lat, lng: lng}, title: 'New location'}, data.type === 'BUSTOP' ? getMarkerData : undefined)}).marker.showInfo();
 
                             displayLocationsPage(vars.savedLocationsPage);
                             zDialog.close();
@@ -2421,7 +2428,7 @@ window.onload = function () {
 
             var idx = 0, locationsPaginationContent = '<table class="table table-hover table-striped" style="margin-bottom: 0px;">';
             results.forEach(function (result) {
-                locationsPaginationContent += '<tr id="lPC-' + result._id.$oid + '"><th>' + ++idx + '</th><td>' + result.type + ' at ' + result.names.join(', ') + '</td><td><div class="pull-right"><button id="lPCd-' + result._id.$oid + '" type="button" title="delete" class="btn btn-danger btn-sm"><span class="glyphicon glyphicon-remove"></span></button></div></td><td><div class="pull-right"><button id="lPCe-' + result._id.$oid + '" type="button" title="edit" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-pencil"></span></button></div></td><td><div class="pull-right"><button id="lPCs-' + result._id.$oid + '" type="button" title="view on map" class="btn btn-info btn-sm"><span class="glyphicon glyphicon-search"></span></button></div></td></tr>';
+                locationsPaginationContent += '<tr id="lPC-' + result._id.$oid + '"><th>' + ++idx + '</th><td>' + result.type + ' at ' + result.names.join(', ') + '</td><td><div class="pull-right"><button data-locationtype="' + result.type + '" id="lPCd-' + result._id.$oid + '" type="button" title="delete" class="btn btn-danger btn-sm"><span class="glyphicon glyphicon-remove"></span></button></div></td><td><div class="pull-right"><button id="lPCe-' + result._id.$oid + '" type="button" title="edit" class="btn btn-primary btn-sm"><span class="glyphicon glyphicon-pencil"></span></button></div></td><td><div class="pull-right"><button id="lPCs-' + result._id.$oid + '" type="button" title="view on map" class="btn btn-info btn-sm"><span class="glyphicon glyphicon-search"></span></button></div></td></tr>';
             });
             vars.locationsPaginationContent.html(locationsPaginationContent + '</table>');
         });

@@ -23,8 +23,8 @@ if ($locationId) {
 
         try {
             $tx = $neo4jClient->transaction();
-
-            if (!$tx->run('MATCH (n:{i:' . $locationId . '}) DETACH DELETE n')->summarize()->updateStatistics()->containsUpdates()) {
+            ini_set('max_execution_time', 180);
+            if (!$tx->run('MATCH (n:BUSTOP{i:"' . $locationId . '"}) DETACH DELETE n')->summarize()->updateStatistics()->containsUpdates()) {
                 throw new GraphAware\Neo4j\Client\Exception\Neo4jException('No updates');
             }
         } catch (GraphAware\Neo4j\Client\Exception\Neo4jException $e) {

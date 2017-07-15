@@ -70,8 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             break;
                         }
                     }
-                    
-                     count($pictures) && $cleanedUserInputMap['pictures'] = $pictures;
+
+                    count($pictures) && $cleanedUserInputMap['pictures'] = $pictures;
                 }
             }
 
@@ -80,11 +80,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if (($response['result'] = saveData($cleanedUserInputMap, ['names' => $cleanedUserInputMap['names'], 'addresses' => $cleanedUserInputMap['addresses']], 'locations'))) {
                     if ($cleanedUserInputMap['type'] === 'BUSTOP') {
                         require_once '../php/mongodb_insert.php';
-                        //we dnt need names in the route collection
-                        if (!mongoDB_insert(['_id' => new MongoDB\BSON\ObjectID($response['result'])/* , 'names' => $cleanedUserInputMap['names'] */, 'loc' => ['type' => 'Point', 'coordinates' => [$cleanedUserInputMap['latlng']['lng'], $cleanedUserInputMap['latlng']['lat']]]], 'bustops')) {
-                            require_once '../php/mongodb_delete.php';
-                            mongoDB_delete($response['result'], 'bustops');
+                        require_once '../php/neo4j_client.php';
 
+                        //create it in neo4j
+                        try {
+                            $tx = $neo4jClient->transaction();
+
+                            if ($tx->run('CREATE (n:BUSTOP{i: "' . $response['result'] . '"}) SET n.c="' . (new DateTime())->format(DateTime::ISO8601).'"')->summarize()->updateStatistics()->containsUpdates()) {
+                                //we dnt need names in the route collection
+                                if (mongoDB_insert(['_id' => new MongoDB\BSON\ObjectID($response['result'])/* , 'names' => $cleanedUserInputMap['names'] */, 'loc' => ['type' => 'Point', 'coordinates' => [$cleanedUserInputMap['latlng']['lng'], $cleanedUserInputMap['latlng']['lat']]]], 'bustops')) {
+                                    $tx->commit();
+                                } else {
+                                    require_once '../php/mongodb_delete.php';
+                                    mongoDB_delete($response['result'], 'bustops');
+
+                                    throw new GraphAware\Neo4j\Client\Exception\Neo4jException('DB error');
+                                }
+                            } else {
+                                throw new GraphAware\Neo4j\Client\Exception\Neo4jException('No updates');
+                            }
+                        } catch (GraphAware\Neo4j\Client\Exception\Neo4jException $e) {
                             $response['result'] = null;
                             $response ['err'] = ['error' => 'DB', 'msg' => ['message' => 'An error occurred, please retry']];
                         }
