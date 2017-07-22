@@ -74,7 +74,6 @@ window.onload = function () {
         locationsPaginationContent: null,
         savedLocationsPage: null,
         savedLocation: null,
-        savedLocationId: null,
         activeTabContent: 'new'
     };
 
@@ -365,7 +364,7 @@ window.onload = function () {
                 $('[data-tabcontent="editLocations"]').trigger('click');
                 toast('Getting saved location', 0);
                 vars.savedLocation = result;
-                vars.savedLocationId = id;
+                vars.savedLocation.id = id;
             });
 
         }).on('click', '[id |= "lPCd"]', function () {
@@ -708,7 +707,7 @@ window.onload = function () {
                     sendBtn.innerHTML = 'Saving';
                     heading.innerHTML = 'Saving...';
 
-                    formData.append('i', vars.savedLocationId);
+                    formData.append('i', vars.savedLocation.id);
                     formData.append('b', +(type === 'BUSTOP'));
 
                     $.ajax({
@@ -738,11 +737,11 @@ window.onload = function () {
                                     savedLocation[datum] = data[datum];
                                 }
 
-                                if(vars.locations.hasOwnProperty(vars.savedLocationId)){
+                                if(vars.locations.hasOwnProperty(vars.savedLocation.id)){
                                     //remove the previous route
-                                    vars.locations[vars.savedLocationId].marker.remove();
+                                    vars.locations[vars.savedLocation.id].marker.remove();
                                     
-                                    (vars.locations[vars.savedLocationId] = {data: savedLocation, marker: new Place(savedLocation, {map: vars.map, loc: {lat: savedLocation.latlng.lat, lng: savedLocation.latlng.lng}, title: 'Edited location'}, savedLocation.type === 'BUSTOP' ? getMarkerData : undefined)}).marker.showInfo();
+                                    (vars.locations[vars.savedLocation.id] = {data: savedLocation, marker: new Place(savedLocation, {map: vars.map, loc: {lat: savedLocation.latlng.lat, lng: savedLocation.latlng.lng}, title: 'Edited location'}, savedLocation.type === 'BUSTOP' ? getMarkerData : undefined)}).marker.showInfo();
                                 }
 
                                 //toast('Saved', 2, 10000);
