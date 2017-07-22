@@ -24,6 +24,20 @@ function map_routes($id, $routeInfo) {
         $tx = $neo4jClient->transaction();
 
         $stopsLength = count($transportStops);
+        
+        /*
+        //get all the stops and create them
+        for ($i = 0, $stops = ''; $i < $stopsLength; ++$i) {
+            $stoptag = 's' . $i;
+            $stops .= 'MERGE (' . $stoptag . ':BUSTOP{i: "' . $transportStops[$i] . '"}) ON CREATE SET ' . $stoptag . '.c="' . $timecreated . '" ';
+
+            if (!($i % 10)) {
+                $tx->run($stops);
+                $stops = '';
+            }
+        }
+        $stops && $tx->run($stops);
+         */
 
         for ($i = 0, $routes = '', $matches = ''; $i < $stopsLength; ++$i) {
             $activeStopMatch = 'MATCH (s:BUSTOP{i: "' . $transportStops[$i] . '"})';
