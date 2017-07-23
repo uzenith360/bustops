@@ -1,5 +1,9 @@
 <?php
+/* session_start();
 
+  if (!isset($_SESSION['id'])) {
+  exit();
+  } */
 //protect this file o
 require_once '../php/mongodb.php';
 require_once '../php/elasticsearch_client.php';
