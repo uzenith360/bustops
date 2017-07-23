@@ -17,7 +17,7 @@ function map_routes($id, $routeInfo) {
 
     array_unshift($transportStops, $routeInfo['hub']);
 
-    $max_execution_time = ini_get('max_execution_time');
+    //$max_execution_time = ini_get('max_execution_time');
     try {
         ini_set('max_execution_time', 180);
 
@@ -25,7 +25,7 @@ function map_routes($id, $routeInfo) {
 
         $stopsLength = count($transportStops);
         
-        /*
+        /* jst for posterity
         //get all the stops and create them
         for ($i = 0, $stops = ''; $i < $stopsLength; ++$i) {
             $stoptag = 's' . $i;
@@ -37,7 +37,7 @@ function map_routes($id, $routeInfo) {
             }
         }
         $stops && $tx->run($stops);
-         */
+        */
 
         for ($i = 0, $routes = '', $matches = ''; $i < $stopsLength; ++$i) {
             $activeStopMatch = 'MATCH (s:BUSTOP{i: "' . $transportStops[$i] . '"})';
@@ -59,10 +59,10 @@ function map_routes($id, $routeInfo) {
         //we'll allow the calling code to commit this whenever it feels d whole operation was successful
         //$tx->commit();
 
-        ini_set('max_execution_time', $max_execution_time);
+        //ini_set('max_execution_time', $max_execution_time);
         return [true, $tx];
     } catch (GraphAware\Neo4j\Client\Exception\Neo4jException $e) {
-        ini_set('max_execution_time', $max_execution_time);
+        //ini_set('max_execution_time', $max_execution_time);
         return [false, null];
     }
 }
