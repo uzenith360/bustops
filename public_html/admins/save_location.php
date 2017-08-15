@@ -84,6 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         //create it in neo4j
                         try {
+                            ini_set('max_execution_time', 180);
                             $tx = $neo4jClient->transaction();
 
                             if ($tx->run('CREATE (n:BUSTOP{i: "' . $response['result'] . '"}) SET n.c="' . (new DateTime())->format(DateTime::ISO8601).'"')->summarize()->updateStatistics()->containsUpdates()) {
