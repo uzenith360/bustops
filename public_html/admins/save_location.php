@@ -84,10 +84,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         //create it in neo4j
                         try {
-                            ini_set('max_execution_time', 180);
+                            //i increased the max time to 200s to give me additional 20mins to rollback the mongodb/elasticsearch inserts if the neo4j query fails
+                            ini_set('max_execution_time', 200);
                             $tx = $neo4jClient->transaction();
 
-                            if ($tx->run('CREATE (n:BUSTOP{i: "' . $response['result'] . '"}) SET n.c="' . (new DateTime())->format(DateTime::ISO8601).'"')->summarize()->updateStatistics()->containsUpdates()) {
+                            if ($tx->run('CREATE (n:BUSTOP{i: "' . $response['result'] . '"}) SET n.c="' . (new DateTime())->format(DateTime::ISO8601) . '"')->summarize()->updateStatistics()->containsUpdates()) {
                                 //we dnt need names in the route collection
                                 if (mongoDB_insert(['_id' => new MongoDB\BSON\ObjectID($response['result'])/* , 'names' => $cleanedUserInputMap['names'] */, 'loc' => ['type' => 'Point', 'coordinates' => [$cleanedUserInputMap['latlng']['lng'], $cleanedUserInputMap['latlng']['lat']]]], 'bustops')) {
                                     $tx->commit();
@@ -101,6 +102,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 throw new GraphAware\Neo4j\Client\Exception\Neo4jException('No updates');
                             }
                         } catch (GraphAware\Neo4j\Client\Exception\Neo4jException $e) {
+                            require_once '../php/delete_data.php';
+                            delete_data($response['result'], true, 'locations');
+                            
                             $response['result'] = null;
                             $response ['err'] = ['error' => 'DB', 'msg' => ['message' => 'An error occurred, please retry']];
                         }
