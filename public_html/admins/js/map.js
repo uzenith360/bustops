@@ -1389,7 +1389,7 @@ window.onload = function () {
 
         vars.startRouteMarker = new vars.googleMaps.Marker({
             map: vars.map,
-            title: 'Start of journey',
+            title: 'Start of journey (Drag to change location)',
             anchorPoint: new vars.googleMaps.Point(0, -29),
             icon: 'http://maps.google.com/mapfiles/kml/shapes/man_maps.png',
             visible: false,
@@ -1398,7 +1398,7 @@ window.onload = function () {
         });
         vars.endRouteMarker = new vars.googleMaps.Marker({
             map: vars.map,
-            title: 'Destination',
+            title: 'Destination (Drag to change location)',
             anchorPoint: new vars.googleMaps.Point(0, -29),
             icon: 'http://maps.google.com/mapfiles/kml/shapes/flag_maps.png',
             visible: false,
