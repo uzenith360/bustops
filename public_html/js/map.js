@@ -1119,7 +1119,7 @@ window.onload = function () {
                             waypoints: midPoints,
                             travelMode: 'DRIVING'
                         }, function (response, getDrivingDirectionsStatus) {
-                            var routeLegs = response.routes[0].legs, startToBustopLine = [startLoc], bustopToDestLine = [], timeLineCntdIdx = 0, routeR = route.r, totalFares = 0;
+                            var routeLegs = response ? response.routes[0].legs:[], startToBustopLine = [startLoc], bustopToDestLine = [], timeLineCntdIdx = 0, routeR = route.r, totalFares = 0;
 
                             if (getDrivingDirectionsStatus === 'OK') {
                                 toast('Drawing route', 0);
