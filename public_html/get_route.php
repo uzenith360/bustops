@@ -55,6 +55,8 @@ if (($startLat = doubleval($_GET['start']['lat'])) && ($startLng = doubleval($_G
     $bestRouteBustopToDestDistKey;
     $startCoords;
     $endCoords;
+    
+    ini_set('max_execution_time', 180);
 
     //get points close to start
     foreach ($mongoDB->executeQuery('bustops.bustops', new MongoDB\Driver\Query(['loc' => ['$near' => ['$geometry' => ['type' => 'Point', 'coordinates' => [$startLng, $startLat]]/* , '$maxDistance' => 5000 */]]], ['limit' => $nearBustopsLimit/* , 'projection' => ['loc' => 0] */])) as $r) {
@@ -101,10 +103,8 @@ if (($startLat = doubleval($_GET['start']['lat'])) && ($startLng = doubleval($_G
                     } else if ($relCt === $bestRouteLength) {//echo $bestRouteLength.'<br/>';
                         $startCoords = $startNearBustop->loc->coordinates;
                         !isset($startToBustopDists[$routeStartToBustopDistKey = (string) $startNearBustop->_id]) && $startToBustopDists[(string) $startNearBustop->_id] = (int)haversineGreatCircleDistance($startLat, $startLng, $startCoords[1], $startCoords[0]);
-                        $endCoords = $endNearBustop->loc->coordinates;
-                        !isset($bustopToDestDists[$routeBustopToDestDistKey = (string) $endNearBustop->_id]) && $bustopToDestDists[(string) $endNearBustop->_id] = (int)haversineGreatCircleDistance($endCoords[1], $endCoords[0], $endLat, $endLng);
-
-                        if ($startToBustopDists[$routeStartToBustopDistKey] < $startToBustopDists[$bestRouteStartToBustopDistKey] || $bustopToDestDists[$routeBustopToDestDistKey] < $bustopToDestDists[$bestRouteBustopToDestDistKey]) {
+                      
+                        if (($startToBustopDists[$routeStartToBustopDistKey] < $startToBustopDists[$bestRouteStartToBustopDistKey]) || (($endCoords = $endNearBustop->loc->coordinates)&&(!isset($bustopToDestDists[$routeBustopToDestDistKey = (string) $endNearBustop->_id]) && $bustopToDestDists[(string) $endNearBustop->_id] = (int)haversineGreatCircleDistance($endCoords[1], $endCoords[0], $endLat, $endLng))&&$bustopToDestDists[$routeBustopToDestDistKey] < $bustopToDestDists[$bestRouteBustopToDestDistKey])) {
                             //echo $startToBustopDists[$bestRouteStartToBustopDistKey].' - '.$startToBustopDists[$routeStartToBustopDistKey].' + '.$bustopToDestDists[$bestRouteBustopToDestDistKey] .' - '.$bustopToDestDists[$routeBustopToDestDistKey].'<br/>';
                             $bestRouteStartToBustopDistKey = $routeStartToBustopDistKey;
                             $bestRouteBustopToDestDistKey = $routeBustopToDestDistKey;
